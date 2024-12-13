@@ -1,2 +1,2 @@
 # PhoenixFantasy
-Projekat iz Arhitektura i Projektovanje Softvera
+Projekat iz predmeta Arhitektura i Projektovanje Softvera
