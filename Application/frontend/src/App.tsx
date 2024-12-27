@@ -1,8 +1,23 @@
+import Navbar from "./components/Navbar";
+import { BrowserRouter, Route, Routes } from "react-router";
+import NFRoutes from "./routes/NFRoutes";
+import Footer from "./components/Footer";
+
 function App() {
   return (
-    <div className="w-screen h-screen flex justify-center items-center">
-      <h1 className="text-3xl font-extrabold">Proba</h1>
-    </div>
+    <>
+      <BrowserRouter>
+        <div className="w-full h-full overflow-hidden dark:bg-[#212529] dark:text-white">
+          <Navbar />
+          <main className="w-full h-full">
+            <Routes>
+              <Route path="*" element={<NFRoutes />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </>
   );
 }
 
