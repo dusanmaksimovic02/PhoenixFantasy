@@ -2,8 +2,14 @@ import Navbar from "./components/Navbar";
 import { BrowserRouter, Route, Routes } from "react-router";
 import NFRoutes from "./routes/NFRoutes";
 import Footer from "./components/Footer";
+import { ToastContainer } from "react-toastify";
+import emailjs from "@emailjs/browser";
 
 function App() {
+  emailjs.init({
+    publicKey: "H2xpeUK6xVAiQDh35",
+  });
+
   return (
     <>
       <BrowserRouter>
@@ -17,6 +23,7 @@ function App() {
           <Footer />
         </div>
       </BrowserRouter>
+      <ToastContainer />
     </>
   );
 }
