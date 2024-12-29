@@ -20,6 +20,46 @@ export default {
         background: "url('assets/images/background.jpg')",
         ball: "url('assets/images/ball.png')",
       },
+      keyframes: {
+        growIn: {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        slideInLeft: {
+          "0%": { transform: "translateX(-100vw)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        slideInRight: {
+          "0%": { transform: "translateX(100vw)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
+        slideInTop: {
+          "0%": { transform: "translateY(-100vh)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideInRotate: {
+          "0%": {
+            transform: "translateY(40vh) rotate(0deg)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "translateY(0) rotate(360deg)",
+            opacity: "1",
+          },
+        },
+      },
+      animation: {
+        growIn: "growIn 3s ease-in-out",
+        slideInLeft: "slideInLeft 2s ease-in-out",
+        slideInRight: "slideInRight 2s ease-in-out",
+        slideInTop: "slideInTop 2s ease-in-out",
+        fadeIn: "fadeIn 2.5s ease-in-out",
+        slideInRotate: "slideInRotate 1.5s ease-in-out",
+      },
     },
   },
   plugins: [],
