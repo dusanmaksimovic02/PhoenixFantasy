@@ -1,7 +1,13 @@
+import { mtConfig } from "@material-tailwind/react";
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: "class",
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@material-tailwind/react/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -10,6 +16,8 @@ export default {
       },
       colors: {
         phoenix: "#F1721D",
+        "surface-light": "#f3f4f6",
+        "surface-dark": "#111827"
       },
       boxShadow: {
         label:
@@ -62,5 +70,14 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require("tailwind-scrollbar")({
+      nocompatible: true,
+      preferredStrategy: "pseudoelements",
+    }),
+    [mtConfig],
+  ],
+  variants: {
+    scrollbar: ["dark"],
+  },
 };

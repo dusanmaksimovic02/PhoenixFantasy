@@ -1,4 +1,4 @@
-import { Matchup } from "../pages/Home";
+import { Matchup } from "./Rounds";
 
 type Props = {
   matchup: Matchup;

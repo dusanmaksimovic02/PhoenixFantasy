@@ -15,7 +15,7 @@ function App() {
       <BrowserRouter>
         <div className="w-full h-full overflow-hidden dark:bg-[#212529] dark:text-white">
           <Navbar />
-          <main className="w-full h-full">
+          <main className="w-full h-full ">
             <Routes>
               <Route path="*" element={<NFRoutes />} />
             </Routes>

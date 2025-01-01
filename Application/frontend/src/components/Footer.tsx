@@ -35,7 +35,7 @@ const Footer = () => {
     e.preventDefault();
 
     if (!opinion) {
-      alert("Please enter your opinion before submitting!");
+      toast.info("Please enter your opinion before submitting!");
       return;
     }
 
@@ -47,7 +47,7 @@ const Footer = () => {
     emailjs.send("service_hotfwkr", "template_rczwn1v", templateParams).then(
       (response) => {
         if (response.status === 200) {
-          toast.success("SUCCESS! Your opinion has been sent successfully!");
+          toast.success("Your opinion has been sent successfully!");
           setOpinion("");
         }
       },
