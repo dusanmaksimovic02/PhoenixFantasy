@@ -8,7 +8,7 @@ import emailjs from "@emailjs/browser";
 import { toast } from "react-toastify";
 
 const Footer = () => {
-  const targetDate = new Date("2025-01-01T00:00:00").getTime();
+  const targetDate = new Date("2025-02-01T00:00:00").getTime();
   const [timeLeft, setTimeLeft] = useState<string>("");
   const links = [
     {
@@ -95,9 +95,25 @@ const Footer = () => {
           <p className="font-semibold text-[18px]">Customer Support: </p>
           <p className="text-white">9 AM - 6 PM (Mon- Fri)</p>
 
-          <p className="text-white">
-            <span className="font-semibold text-[18px]">Call us: </span>+1 234
+          <p
+            className="text-white cursor-pointer"
+            onClick={() => {
+              window.location.href = "tel:+1 234 567 890";
+            }}
+          >
+            <span className="font-semibold text-[18px] ">Call us: </span>+1 234
             567 890
+          </p>
+
+          <p
+            className="text-white cursor-pointer"
+            onClick={() => {
+              window.location.href =
+                "mailto:phoenix@support.com?subject=Support Request&body=Hello Phoenix Support,";
+            }}
+          >
+            <span className="font-semibold text-[18px]">Mail: </span>
+            phoenix@support.com
           </p>
 
           <br />

@@ -1,0 +1,24 @@
+export type Player = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  country: string;
+  team: string;
+  age: number;
+  position: string;
+  height: string;
+  weight: string;
+  photoUrl: string;
+  gamesPlayed: number;
+  pointsPerGame: number;
+  reboundsPerGame: number;
+  assistsPerGame: number;
+  stealsPerGame: number;
+  blocksPerGame: number;
+  fieldGoalPercentage: number;
+  threePointPercentage: number;
+  freeThrowPercentage: number;
+  turnoversPerGame: number;
+  minutesPerGame: number;
+  jerseyNumber: number;
+};

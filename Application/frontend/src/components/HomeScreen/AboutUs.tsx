@@ -6,7 +6,7 @@ export const AboutUs = () => {
         <h1 className="text-phoenix font-extrabold text-4xl sm:pl-20">
           About <span className="text-black dark:text-white">Us</span>
         </h1>
-        <div className="text-center h-[90%] flex justify-center items-center w-full flex-col">
+        <div className="h-[90%] flex justify-center items-center w-full flex-col">
           <p className="font-semibold text-[20px] max-sm:pt-10">Phoenix League  And Fantasy: A Legacy of Excellence Since 2010</p>
           <br />
           <p className="px-20 max-sm:px-5">

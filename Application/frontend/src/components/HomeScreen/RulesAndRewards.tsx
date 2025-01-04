@@ -13,7 +13,7 @@ const RulesAndRewards = () => {
           exciting rewards. Before you start, make sure to familiarize yourself
           with the rules that define our league!
         </p>
-        <p>
+        <div>
           <p>Team Compositio</p>
           Each team must have 10 players on its roster, selected during the
           draft. Teams may have a maximum of: 2 PG (point guards) 2 SG (shooting
@@ -21,7 +21,7 @@ const RulesAndRewards = () => {
           During the draft, managers can pick players who are active members of
           the Phoenix League teams. Each player has a specific value based on
           their previous season and expected performance.
-        </p>
+        </div>
         <p>
           Fantasy Draft Drafting is the foundation of our league. Through a
           series of rounds, team managers select players to build their rosters

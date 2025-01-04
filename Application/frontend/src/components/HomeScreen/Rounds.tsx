@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
 import GameCard from "./GameCard";
+import { Button } from "@material-tailwind/react";
+import { Link } from "react-router";
 
 export type Team = {
   name: string;
@@ -280,6 +282,9 @@ const Rounds = () => {
           <GameCard key={index} matchup={game}></GameCard>
         ))}
       </div>
+      <Link className="flex justify-center p-5" to="/all-games">
+        <Button className="bg-phoenix border-phoenix hover:bg-opacity-80 hover:bg-phoenix hover:border-phoenix">See all games</Button>
+      </Link>
     </div>
   );
 };

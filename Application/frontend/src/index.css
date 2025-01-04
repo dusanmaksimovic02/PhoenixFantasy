@@ -7,3 +7,70 @@
     @apply scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700  hover:scrollbar-thumb-gray-400 active:scrollbar-thumb-gray-300;
   }
 }
+
+:root {
+  --background: #ffffff;
+  --foreground: #374151;
+  --surface: #e5e7eb;
+  --surface-dark: #d1d5db;
+  --surface-light: #f3f4f6;
+  --surface-foreground: #030712;
+  --primary: #6028ff;
+  --primary-dark: #5216eb;
+  --primary-light: #724dff;
+  --primary-foreground: #f9fafb;
+  --secondary: #e5e7eb;
+  --secondary-dark: #d1d5db;
+  --secondary-light: #f3f4f6;
+  --secondary-foreground: #030712;
+  --info: #0062ff;
+  --info-dark: #0055dd;
+  --info-light: #007aff;
+  --info-foreground: #f9fafb;
+  --success: #00bf6b;
+  --success-dark: #00a35f;
+  --success-light: #02e585;
+  --success-foreground: #f9fafb;
+  --warning: #fca327;
+  --warning-dark: #f67d0a;
+  --warning-light: #fdba4c;
+  --warning-foreground: #f9fafb;
+  --error: #ef4444;
+  --error-dark: #dc2626;
+  --error-light: #f87171;
+  --error-foreground: #f9fafb;
+}
+
+/* Dark mode */
+.dark {
+  --background: #030712;
+  --foreground: #9ca3af;
+  --surface: #1f2937;
+  --surface-dark: #111827;
+  --surface-light: #374151;
+  --surface-foreground: #f9fafb;
+  --primary: #6028ff;
+  --primary-dark: #5216eb;
+  --primary-light: #724dff;
+  --primary-foreground: #f9fafb;
+  --secondary: #1f2937;
+  --secondary-dark: #111827;
+  --secondary-light: #374151;
+  --secondary-foreground: #f9fafb;
+  --info: #0062ff;
+  --info-dark: #0055dd;
+  --info-light: #007aff;
+  --info-foreground: #f9fafb;
+  --success: #00bf6b;
+  --success-dark: #00a35f;
+  --success-light: #02e585;
+  --success-foreground: #f9fafb;
+  --warning: #fca327;
+  --warning-dark: #f67d0a;
+  --warning-light: #fdba4c;
+  --warning-foreground: #f9fafb;
+  --error: #ef4444;
+  --error-dark: #dc2626;
+  --error-light: #f87171;
+  --error-foreground: #f9fafb;
+}
