@@ -1,29 +1,23 @@
-import { useNavigate } from "react-router";
 import { Coach } from "../../models/Coach.modal";
 
 type Props = {
   coaches: Coach[];
 };
 
-const TABLE_HEAD = ["Full name", "Country", "Age", "Experience", "Role"];
+const TABLE_HEAD = [
+  "Photo",
+  "Full name",
+  "Country",
+  "Age",
+  "Experience",
+  "Role",
+  "Description",
+];
 
 const Coaches = (props: Props) => {
-  const navigate = useNavigate();
-
-  const handleRowClick = (coach: Coach) => {
-    const coachName = `${coach.firstName}-${coach.lastName}`
-      .toLowerCase()
-      .replace(/\s+/g, "-");
-    const team = coach.team.toLowerCase().replace(/\s+/g, "-");
-
-    navigate(`/team/${team}/coach/${coachName}`, {
-      state: { coach },
-    });
-  };
-
   return (
     <div className="w-full overflow-hidden rounded-lg border border-surface max-sm:overflow-x-scroll scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700  hover:scrollbar-thumb-gray-400 active:scrollbar-thumb-gray-300 scrollbar-thumb-rounded scrollbar-track-rounded">
-      <table className="w-full">
+      <table className="w-full whitespace-nowrap text-nowrap">
         <thead className="border-b border-surface bg-surface-light text-sm font-medium text-foreground dark:bg-surface-dark">
           <tr>
             {TABLE_HEAD.map((head) => (
@@ -41,14 +35,21 @@ const Coaches = (props: Props) => {
             return (
               <tr
                 key={index}
-                className="even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
-                onClick={() => handleRowClick(coach)}
+                className="even:bg-surface-light dark:even:bg-surface-dark"
               >
+                <td className="p-3 max-sm:min-w-[150px]">
+                  <img
+                    src={coach.photoUrl}
+                    alt="photo"
+                    className="w-28 h-36 rounded-2xl"
+                  />
+                </td>
                 <td className="p-3 text-nowrap">{`${coach.firstName} ${coach.lastName}`}</td>
                 <td className="p-3">{`${coach.country}`}</td>
                 <td className="p-3 text-nowrap">{`${coach.age}`}</td>
                 <td className="p-3 text-nowrap">{`${coach.experience} years`}</td>
                 <td className="p-3 text-nowrap">{`${coach.role} `}</td>
+                <td className="p-3">{coach.description}</td>
               </tr>
             );
           })}

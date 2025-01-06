@@ -3,6 +3,9 @@ import { TeamFull } from "../models/TeamFull.model";
 import { Tabs } from "@material-tailwind/react";
 import Players from "../components/TeamPage/Players";
 import Coaches from "../components/TeamPage/Coaches";
+import Games from "../components/TeamPage/Games";
+import PlayersStats from "../components/TeamPage/PlayersStats";
+import TeamStats from "../components/TeamPage/TeamStats";
 
 const teams: TeamFull[] = [
   {
@@ -32,15 +35,33 @@ const teams: TeamFull[] = [
       gamesPlayed: 50 + index,
       pointsPerGame: 10 + index * 0.5,
       reboundsPerGame: 5 + index * 0.3,
-      assistsPerGame: 2 + index * 0.2,
+      assistsPerGame: (2 + index * 0.2),
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -54,7 +75,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -67,7 +89,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -79,7 +102,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -91,7 +115,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -103,7 +128,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -138,11 +164,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -156,7 +200,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/steve-kerr-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -168,7 +213,8 @@ const teams: TeamFull[] = [
         experience: 9,
         role: "Assistant Coach",
         description: "Assistant coach focusing on defensive strategy.",
-        photoUrl: "https://example.com/mike-brown-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -180,7 +226,8 @@ const teams: TeamFull[] = [
         experience: 8,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/bruce-fraser-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -192,7 +239,8 @@ const teams: TeamFull[] = [
         experience: 13,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/chris-jones-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -204,7 +252,8 @@ const teams: TeamFull[] = [
         experience: 10,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/laura-brown-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -239,11 +288,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -257,7 +324,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -270,7 +338,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -282,7 +351,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -294,7 +364,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -306,7 +377,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -341,11 +413,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -359,7 +449,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -372,7 +463,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -384,7 +476,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -396,7 +489,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -408,7 +502,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -443,11 +538,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -462,7 +575,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -475,7 +589,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -487,7 +602,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -499,7 +615,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -511,7 +628,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -546,11 +664,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -564,7 +700,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -577,7 +714,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -589,7 +727,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -601,7 +740,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -613,7 +753,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -648,11 +789,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -666,7 +825,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -679,7 +839,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -691,7 +852,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -703,7 +865,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -715,7 +878,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -750,11 +914,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -768,7 +950,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -781,7 +964,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -793,7 +977,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -805,7 +990,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -817,7 +1003,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -852,11 +1039,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -870,7 +1075,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -883,7 +1089,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -895,7 +1102,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -907,7 +1115,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -919,7 +1128,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -954,11 +1164,29 @@ const teams: TeamFull[] = [
       stealsPerGame: 1 + index * 0.1,
       blocksPerGame: 0.5 + index * 0.05,
       fieldGoalPercentage: 45 + index * 0.5,
+      fieldGoalMade: 300 + index * 5,
+      fieldGoalMiss: 150 + index * 3,
       threePointPercentage: 35 + index * 0.3,
+      threePointMade: 120 + index * 2,
+      threePointMiss: 60 + index * 2,
+      twoPointsPercentage: 40 + index * 0.3,
+      twoPointMade: 180 + index * 3,
+      twoPointMiss: 90 + index * 2,
       freeThrowPercentage: 80 + index * 0.2,
+      freeThrowMade: 100 + index,
+      freeThrowMiss: 20 + index,
       turnoversPerGame: 2 + index * 0.1,
       minutesPerGame: 20 + index,
       jerseyNumber: 10 + (index % 30),
+      plusMinusIndex: 5 - index * 0.5,
+      pir:
+        10 +
+        index * 0.5 +
+        (5 + index * 0.3) +
+        (2 + index * 0.2) +
+        (1 + index * 0.1) +
+        (0.5 + index * 0.05) -
+        (2 + index * 0.1),
     })),
     coaches: [
       {
@@ -972,7 +1200,8 @@ const teams: TeamFull[] = [
         role: "Head Coach",
         description:
           "Main head coach responsible for team strategy and performance.",
-        photoUrl: "https://example.com/monty-williams-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 2,
@@ -985,7 +1214,8 @@ const teams: TeamFull[] = [
         role: "Assistant Coach",
         description:
           "Assistant coach focusing on player development and defense.",
-        photoUrl: "https://example.com/mark-bryant-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 3,
@@ -997,7 +1227,8 @@ const teams: TeamFull[] = [
         experience: 7,
         role: "Assistant Coach",
         description: "Assistant coach focusing on offensive strategy.",
-        photoUrl: "https://example.com/steve-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 4,
@@ -1009,7 +1240,8 @@ const teams: TeamFull[] = [
         experience: 15,
         role: "Physiotherapist",
         description: "Responsible for player health and injury recovery.",
-        photoUrl: "https://example.com/john-doe-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
       {
         id: 5,
@@ -1021,7 +1253,8 @@ const teams: TeamFull[] = [
         experience: 12,
         role: "Physiotherapist",
         description: "Works on player rehabilitation and injury prevention.",
-        photoUrl: "https://example.com/jane-smith-photo.png",
+        photoUrl:
+          "https://upload.wikimedia.org/wikipedia/commons/7/7a/LeBron_James_%2851959977144%29_%28cropped2%29.jpg",
       },
     ],
   },
@@ -1133,13 +1366,13 @@ const TeamPage = () => {
               <Coaches coaches={team!.coaches} />
             </Tabs.Panel>
             <Tabs.Panel value="players-stats" className="p-5">
-              Players stats
+              <PlayersStats players={team!.players} />
             </Tabs.Panel>
             <Tabs.Panel value="team-stats" className="p-5">
-              Team stats
+              <TeamStats />
             </Tabs.Panel>
-            <Tabs.Panel value="games" className="p-5">
-              games
+            <Tabs.Panel value="games" className="p-5 px-10">
+              <Games />
             </Tabs.Panel>
           </Tabs>
         </div>

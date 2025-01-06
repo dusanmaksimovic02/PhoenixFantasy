@@ -16,6 +16,7 @@ export default {
       },
       colors: {
         phoenix: "#F1721D",
+        "custom-gray": "#212529",
         background: "var(--background)",
         foreground: "var(--foreground)",
         surface: "var(--surface)",

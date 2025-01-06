@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from "react-router";
 import { Player } from "../../models/Player.model";
+import { Tooltip } from "@material-tailwind/react";
 
 type Props = {
   players: Player[];
@@ -47,19 +48,33 @@ const Players = (props: Props) => {
         <tbody className="group text-sm text-black dark:text-white ">
           {props.players.map((player, index) => {
             return (
-              <tr
-                key={index}
-                className="even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
-                onClick={() => handleRowClick(player)}
-              >
-                <td className="p-3 text-nowrap">{`${player.firstName} ${player.lastName}`}</td>
-                <td className="p-3">{player.position}</td>
-                <td className="p-3">{player.country}</td>
-                <td className="p-3">{player.age}</td>
-                <td className="p-3">{player.height}</td>
-                <td className="p-3">{player.weight}</td>
-                <td className="p-3">{player.jerseyNumber}</td>
-              </tr>
+              <Tooltip key={index}>
+                <Tooltip.Trigger
+                  as="tr"
+                  className="even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
+                  onClick={() => handleRowClick(player)}
+                >
+                  {/* <tr
+                    key={index}
+                    className="even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
+                    onClick={() => handleRowClick(player)}
+                  > */}
+                  <td className="p-3 text-nowrap">
+                    {`${player.firstName} ${player.lastName}`}
+                  </td>
+                  <td className="p-3">{player.position}</td>
+                  <td className="p-3">{player.country}</td>
+                  <td className="p-3">{player.age}</td>
+                  <td className="p-3">{player.height}</td>
+                  <td className="p-3">{player.weight}</td>
+                  <td className="p-3">{player.jerseyNumber}</td>
+                  {/* </tr> */}
+                </Tooltip.Trigger>
+                <Tooltip.Content className="dark:bg-white dark:text-black">
+                  Click to see full player page
+                  <Tooltip.Arrow />
+                </Tooltip.Content>
+              </Tooltip>
             );
           })}
         </tbody>

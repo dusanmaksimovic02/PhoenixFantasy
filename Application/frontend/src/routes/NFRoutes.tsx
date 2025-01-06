@@ -6,8 +6,7 @@ import Statistics from "../pages/Statistics";
 import Fantasy from "../pages/Fantasy";
 import AllGames from "../pages/AllGames";
 import TeamPage from "../pages/TeamPage";
-import PlayerPage from "../pages/Player";
-import CoachPage from "../pages/CoachPage";
+import PlayerPage from "../pages/PlayerPage";
 
 const NFRoutes = () => {
   return (
@@ -19,11 +18,6 @@ const NFRoutes = () => {
       <Route path="/all-games" index element={<AllGames />} />
       <Route path="/team/:teamName" index element={<TeamPage />} />
       <Route path="/team/:teamName/:player" index element={<PlayerPage />} />
-      <Route
-        path="/team/:teamName/coach/:coachName"
-        index
-        element={<CoachPage />}
-      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
