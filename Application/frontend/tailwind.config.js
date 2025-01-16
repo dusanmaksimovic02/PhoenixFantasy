@@ -56,6 +56,8 @@ export default {
       backgroundImage: {
         background: "url('assets/images/background.jpg')",
         ball: "url('assets/images/ball.png')",
+        basketballBall: "url('assets/images/basketballBall.png')",
+        court: "url('https://muralsyourway.vtexassets.com/arquivos/ids/236597-825-auto?width=825&height=auto&aspect=true')",
       },
       keyframes: {
         growIn: {
