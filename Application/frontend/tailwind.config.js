@@ -51,7 +51,7 @@ export default {
       boxShadow: {
         label:
           "inset 0px 5px 15px rgba(0, 0, 0, 0.4), inset 0px -5px 15px rgba(255, 255, 255, 0.4)",
-        afterlabel: "0px 5px 10px rgba(0, 0, 0, 0.2)",
+        afterLabel: "0px 5px 10px rgba(0, 0, 0, 0.2)",
       },
       backgroundImage: {
         background: "url('assets/images/background.jpg')",

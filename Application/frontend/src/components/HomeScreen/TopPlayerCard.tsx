@@ -6,7 +6,7 @@ type Props = {
 
 const TopPlayerCard = (props: Props) => {
   return (
-    <div className="w-[350px] shadow-inner drop-shadow p-5 bg-slate-50 flex flex-col gap-5 rounded-2xl justify-center items-center text-black">
+    <div className="w-[350px] shadow-inner drop-shadow p-5 bg-slate-50 flex flex-col gap-5 rounded-2xl justify-center items-center text-black bg-surface-light  text-foreground dark:bg-surface-dark">
       <div
         className={`rounded-full w-48 h-48 p-2 m-5 border-2 border-black bg-cover`}
         style={{ backgroundImage: `url(${props.player.imageUrl})` }}

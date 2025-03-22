@@ -257,7 +257,7 @@ const Rounds = () => {
 
   return (
     <div className="font-palanquin">
-      <div className="flex gap-5 justify-center text-2xl">
+      <div className="flex gap-5 justify-center text-2xl p-5">
         <button
           onClick={() => {
             if (round - 1 > 0) setRound(round - 1);
@@ -277,13 +277,13 @@ const Rounds = () => {
         </button>
       </div>
 
-      <div className="flex gap-5 justify-around p-5 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700 scrollbar-thumb-rounded-full scrollbar-track-rounded-full hover:scrollbar-thumb-gray-400 active:scrollbar-thumb-gray-300">
+      <div className="flex gap-5 justify-around p-5 py-8 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700 scrollbar-thumb-rounded-full scrollbar-track-rounded-full hover:scrollbar-thumb-gray-400 active:scrollbar-thumb-gray-300">
         {rounds[`round${round}`].map((game, index) => (
           <GameCard key={index} matchup={game}></GameCard>
         ))}
       </div>
-      <Link className="flex justify-center p-5" to="/all-games">
-        <Button className="bg-phoenix border-phoenix hover:bg-opacity-80 hover:bg-phoenix hover:border-phoenix">See all games</Button>
+      <Link className="flex justify-center mt-8" to="/all-games">
+        <Button className="bg-phoenix border-phoenix hover:bg-opacity-80 hover:bg-phoenix hover:border-phoenix text-white dark:text-black text-[16px]">See all games</Button>
       </Link>
     </div>
   );

@@ -231,7 +231,7 @@ const Register = () => {
                 id="default-checkbox"
                 onChange={() => setShowPassword((prev) => !prev)}
                 checked={showPassword}
-                className="checked:!bg-phoenix"
+                className="checked:!bg-phoenix border-white"
                 color="warning"
               >
                 <Checkbox.Indicator />

@@ -141,7 +141,7 @@ const Standing = () => {
     <div className="w-screen h-fit flex justify-center items-center p-7 pb-10 pt-[3.5rem]">
       <div className="w-full h-fit mt-10 rounded-lg border border-surface overflow-hidden max-sm:overflow-x-scroll scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-700  hover:scrollbar-thumb-gray-400 active:scrollbar-thumb-gray-300 scrollbar-thumb-rounded scrollbar-track-rounded">
         <table className="w-full">
-          <thead className="border-b border-surface bg-surface-light text-sm font-medium text-foreground dark:bg-surface-dark">
+          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium  text-foreground dark:bg-surface-dark">
             <tr>
               {TABLE_HEAD.map((head) => (
                 <th key={head} className="px-2.5 py-2 text-start font-medium">
@@ -152,7 +152,7 @@ const Standing = () => {
           </thead>
           <tbody className="group text-sm text-black dark:text-white">
             {TABLE_ROWS.map((row: TeamShort, index) => (
-              <tr key={index} className="border-b border-surface last:border-0">
+              <tr key={index} className="border-[3px] border-surface last:border-0">
                 <td className="p-3 font-extrabold">{row.position}</td>
                 <td className="p-3 flex gap-5 items-center font-extrabold text-[18px] whitespace-nowrap w-[300px]">
                   <Link

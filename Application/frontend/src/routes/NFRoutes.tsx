@@ -9,6 +9,7 @@ import TeamPage from "../pages/TeamPage";
 import PlayerPage from "../pages/PlayerPage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import GamePage from "../pages/GamePage";
 
 const NFRoutes = () => {
   return (
@@ -22,6 +23,7 @@ const NFRoutes = () => {
       <Route path="/team/:teamName/:player" index element={<PlayerPage />} />
       <Route path="/login" index element={<Login />} />
       <Route path="/register" index element={<Register />} />
+      <Route path="/game/:team1/vs/:team2"  element={<GamePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
