@@ -25,8 +25,8 @@ const GamePage = () => {
   const players = Array.from({ length: 10 }, (_, index) => ({
     id: index + 1,
     firstName: `Player${index + 1}`,
-    lastName: team1,
-    team: team1,
+    lastName: `Suns`,
+    team: "Phoenix Suns",
     country: "USA",
     age: 20 + index,
     position: ["PG", "SG", "SF", "PF", "C"][index % 5],

@@ -10,6 +10,7 @@ import PlayerPage from "../pages/PlayerPage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import GamePage from "../pages/GamePage";
+import ProfilePage from "../pages/ProfilePage";
 
 const NFRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const NFRoutes = () => {
       <Route path="/login" index element={<Login />} />
       <Route path="/register" index element={<Register />} />
       <Route path="/game/:team1/vs/:team2"  element={<GamePage />} />
+      <Route path="/profile"  element={<ProfilePage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
