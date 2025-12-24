@@ -285,7 +285,7 @@ const Rounds: FC = () => {
         ))}
       </div>
       <Link className="flex justify-center " to="/all-games">
-        <button className="bg-phoenix hover:bg-phoenix/85 hover:border-phoenix hover:border-4 hover:cursor-pointer w-35 shadow-inner drop-shadow h-12 rounded-2xl text-2xl mt-5 ml-10 text-white dark:text-black text-[16px]">
+        <button className="btn bg-phoenix/80 hover:bg-phoenix  border-phoenix whitespace-nowrap hover:border-4 hover:cursor-pointer w-35 shadow-inner drop-shadow h-12 rounded-2xl text-2xl mt-5 ml-10 text-white dark:text-black text-[16px]">
           See all games
         </button>
       </Link>

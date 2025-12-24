@@ -25,7 +25,7 @@ const HomeStart: FC = () => {
           Create your team, play with friends, and rule the league!
         </p>
         <button
-          className="bg-phoenix hover:bg-phoenix/85 hover:border-phoenix hover:border-4 hover:cursor-pointer shadow-inner drop-shadow w-80 h-15 rounded-3xl text-2xl mt-5 ml-10"
+          className="btn bg-phoenix/80 hover:bg-phoenix hover:border-phoenix border-phoenix hover:border-4 hover:cursor-pointer shadow-inner drop-shadow w-80 h-15 rounded-2xl text-2xl mt-5 ml-10"
           onClick={handleClick}
         >
           Start Fantasy Draft

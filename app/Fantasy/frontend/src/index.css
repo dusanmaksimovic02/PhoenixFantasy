@@ -52,7 +52,7 @@
   --background-image-background-image: url("assets/images/background.jpg");
   --background-image-ball: url("assets/images/ball.png");
   --background-image-basketballBall: url("assets/images/basketballBall.png");
-  --background-image-court: url("https://muralsyourway.vtexassets.com/arquivos/ids/236597-825-auto?width=825&height=auto&aspect=true");
+  --background-image-court: url("assets/images/court.png");
   --background-image-home-start: url("assets/images/home-start.png");
 
   --shadow-label: inset 0px 5px 15px rgba(0, 0, 0, 0.4),

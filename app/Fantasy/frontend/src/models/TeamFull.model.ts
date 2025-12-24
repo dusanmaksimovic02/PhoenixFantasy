@@ -1,5 +1,5 @@
-import { Coach } from "./Coach.modal";
-import { Player } from "./Player.model";
+import { type Coach } from "./Coach.modal";
+import { type Player } from "./Player.model";
 
 export type TeamFull = {
   id: number;
