@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CgProfile } from "react-icons/cg";
 import { CiLock } from "react-icons/ci";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
   forwardRef,
@@ -127,10 +127,10 @@ const Login: FC = () => {
           animate="animate"
           exit="exit"
         >
-          <div className="w-screen h-screen relative bg-center bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center max-sm:w-112.5 max-sm:h-162.5">
+          <div className="w-screen h-screen relative bg-center bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center max-sm:w-100 max-sm:h-125">
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="w-full max-w-md p-7 bg-black/50 rounded-2xl max-sm:rounded-[30px] max-sm:my-2 max-sm:mx-8"
+              className="w-full max-w-md p-7 bg-black/50 rounded-2xl  max-sm:rounded-[70px] max-sm:my-2 max-sm:mx-8"
             >
               <h1 className="text-3xl font-bold text-center text-phoenix">
                 Login
@@ -156,11 +156,14 @@ const Login: FC = () => {
               >
                 Login
               </button>
-              <p className="my-4 flex items-center justify-center gap-1 text-white">
-                Don't have an account?
-                <Link className="font-bold text-phoenix" to={"/register"}>
+              <p className="my-4 text-center text-white ">
+                Don't have an account?{"  "}
+                <span
+                  className="font-bold text-phoenix cursor-pointer"
+                  onClick={() => navigate("/register")}
+                >
                   Create an account
-                </Link>
+                </span>
               </p>
             </form>
           </div>
