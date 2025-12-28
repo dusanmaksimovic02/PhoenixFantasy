@@ -1,7 +1,7 @@
 import logo from "../../assets/images/phoenixLogo.png";
 export const AboutUs = () => {
   return (
-    <div className="p-5 pt-10 flex gap-10 max-sm:flex-col max-sm:justify-center max-sm:items-center font-palanquin">
+    <div className="p-5 pt-10 flex gap-10 max-sm:flex-col max-sm:justify-center max-sm:items-center font-palanquin transition-all duration-1000">
       <div className="basis-2/5 flex justify-center rounded-3xl shadow-inner drop-shadow p-5">
         <img src={logo} alt="Phoenix League Logo" className="" />
       </div>
@@ -11,7 +11,7 @@ export const AboutUs = () => {
         </h1>
         <br />
         <div className="h-[90%] flex justify-center w-full flex-col">
-          <p className="font-semibold text-[20px] max-sm:pt-10  px-20">
+          <p className="font-semibold text-[20px] px-20 max-sm:px-5">
             Phoenix League And Fantasy: A Legacy of Excellence Since 2010
           </p>
           <br />

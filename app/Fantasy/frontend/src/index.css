@@ -54,6 +54,7 @@
   --background-image-basketballBall: url("assets/images/basketballBall.png");
   --background-image-court: url("assets/images/court.png");
   --background-image-home-start: url("assets/images/home-start.png");
+  --background-image-home: url("assets/images/home.png");
 
   --shadow-label: inset 0px 5px 15px rgba(0, 0, 0, 0.4),
     inset 0px -5px 15px rgba(255, 255, 255, 0.4);

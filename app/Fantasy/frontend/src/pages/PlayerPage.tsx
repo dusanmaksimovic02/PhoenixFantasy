@@ -3,13 +3,13 @@ import { type Player } from "../models/Player.model";
 import StatsCard from "../components/StatsCard";
 import type { FC } from "react";
 
-const PlayerPage:FC = () => {
+const PlayerPage: FC = () => {
   const location = useLocation();
   const player = location.state?.player as Player;
 
   return (
     <>
-      <div className="h-screen min-h-screen w-screen sm:pt-16 flex  sm:gap-5 max-sm:w-svw max-sm:min-w-svw max-sm:pt-14" >
+      <div className="h-screen min-h-screen w-screen sm:pt-16 flex  sm:gap-5 max-sm:w-svw max-sm:min-w-svw max-sm:pt-14 transition-all duration-1000">
         <div className="bg-phoenix h-full max-sm:w-svw max-sm:h-svh flex flex-col gap-5 justify-center items-center p-8 whitespace-nowrap text-white dark:text-black">
           <img
             src={player.photoUrl}
@@ -19,16 +19,21 @@ const PlayerPage:FC = () => {
           <p className="text-2xl font-bold text-nowrap">{`${player.firstName} ${player.lastName}`}</p>
           <div className="">
             <p>
-              <strong className="text-black dark:text-white">Country:</strong> {player.country}
+              <strong className="text-black dark:text-white">Country:</strong>{" "}
+              {player.country}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Age:</strong> {player.age}
+              <strong className="text-black dark:text-white">Age:</strong>{" "}
+              {player.age}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Team:</strong> {player.team}
+              <strong className="text-black dark:text-white">Team:</strong>{" "}
+              {player.team}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Jersey number: </strong>
+              <strong className="text-black dark:text-white">
+                Jersey number:{" "}
+              </strong>
               {player.jerseyNumber}
             </p>
             <p>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from "react";
+import { type FC } from "react";
 import { CiCircleInfo } from "react-icons/ci";
 
 const teamStats = {
@@ -112,22 +112,10 @@ const teamStatsMeaning: { abbr: string; meaning: string }[] = [
 ];
 
 const TeamStats: FC = () => {
-  const [placement, setPlacement] = useState<"left" | "bottom">("left");
-
-  useEffect(() => {
-    const handleResize = () => {
-      setPlacement(window.innerWidth < 640 ? "bottom" : "left");
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
     <div className="h-100">
       <div className="w-full p-5 flex justify-end">
-        <div className={`dropdown dropdown-center ${placement === "left" ? "dropdown-left" : "dropdown-bottom"}`}>
+        <div className={`dropdown dropdown-center dropdown-left`}>
           <label
             tabIndex={0}
             className="btn btn-ghost p-0 hover:bg-transparent"
@@ -137,15 +125,13 @@ const TeamStats: FC = () => {
 
           <div
             tabIndex={0}
-            className="dropdown-content z-100 w-fit h-fit rounded-xl border-2 border-black
-                 bg-surface-light p-5 shadow-lg
-                 dark:bg-surface-dark dark:text-white text-black"
+            className="dropdown-content z-100 w-fit h-fit max-sm:w-70 rounded-xl border-2 border-black bg-surface-light p-5 shadow-lg dark:bg-surface-dark dark:text-white text-black"
           >
-            <p className="font-extrabold text-center mb-2">
+            <p className="font-extrabold text-nowrap text-center mb-2">
               Table Head meaning
             </p>
 
-            <div className="text-sm w-fit text-nowrap max-sm:w-25">
+            <div className="text-sm w-fit text-nowrap max-sm:text-wrap">
               {teamStatsMeaning.map((th, index) => (
                 <div key={index}>
                   <strong>{th.abbr}</strong> – {th.meaning}

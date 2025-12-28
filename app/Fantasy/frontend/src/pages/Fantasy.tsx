@@ -2,7 +2,7 @@ import type { FC } from "react";
 
 const Fantasy:FC = () => {
   return (
-    <div className="w-screen h-screen flex justify-center items-center">
+    <div className="w-screen h-screen flex justify-center items-center transition-all duration-1000">
       Fantasy
     </div>
   );

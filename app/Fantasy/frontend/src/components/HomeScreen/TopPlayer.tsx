@@ -165,19 +165,40 @@ const TopPlayer: FC = () => {
   ];
 
   return (
-    <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin px-24">
-      <div>
-        <h1 className="text-black dark:text-white font-extrabold text-4xl s">
-          Top <span className="text-phoenix">Players</span> For Your
-          <span className="text-phoenix"> Team</span>
-        </h1>
+    <>
+      <h1 className="text-black dark:text-white font-extrabold text-4xl p-5 pt-0 px-24 max-sm:px-5 transition-all duration-1000">
+        Top <span className="text-phoenix">Performers</span> For <span className="text-phoenix"> Your Team</span>
+      </h1>
+      <div className="px-5">
+        <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin px-24 max-sm:px-5">
+          <div>
+            <h1 className="text-black dark:text-white font-extrabold text-4xl max-sm:px-0">
+              <span className="text-phoenix">Based</span> on the{" "}
+              <span className="text-phoenix">previous round</span>
+            </h1>
+          </div>
+          <div className="flex gap-10 justify-around p-8 snap-x snap-mandatory overflow-x-auto max-sm:w-svw ">
+            {bestPlayers.map((player, index) => (
+              <TopPlayerCard key={index} player={player} />
+            ))}
+          </div>
+        </div>
+        <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin px-24 max-sm:px-5">
+          <div>
+            <h1 className="text-black dark:text-white font-extrabold text-4xl s">
+              <span className="text-phoenix">Based</span> on the
+              <span className="text-phoenix"> whole part</span> of the
+              <span className="text-phoenix"> season so far</span>
+            </h1>
+          </div>
+          <div className="flex gap-10 justify-around p-8 snap-x snap-mandatory overflow-x-auto max-sm:w-svw ">
+            {bestPlayers.map((player, index) => (
+              <TopPlayerCard key={index} player={player} />
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="flex gap-10 justify-around p-8 snap-x snap-mandatory overflow-x-auto max-sm:w-svw ">
-        {bestPlayers.map((player, index) => (
-          <TopPlayerCard key={index} player={player}/>
-        ))}
-      </div>
-    </div>
+    </>
   );
 };
 

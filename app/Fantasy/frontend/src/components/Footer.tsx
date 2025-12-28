@@ -6,10 +6,21 @@ import { IoIosSend } from "react-icons/io";
 import { NavLink } from "react-router-dom";
 import emailjs from "@emailjs/browser";
 import { toast } from "react-toastify";
+import CountdownBox from "./CountdownBox";
 
 const Footer: FC = () => {
-  const targetDate = new Date("2026-01-20T00:00:00").getTime();
-  const [timeLeft, setTimeLeft] = useState<string>("");
+  const targetDate = new Date("2026-01-27T00:00:00").getTime();
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  
+
+  const [isLive, setIsLive] = useState(false);
+  const [blink, setBlink] = useState(false);
+
   const links = [
     {
       name: "Home",
@@ -60,11 +71,12 @@ const Footer: FC = () => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const now = new Date().getTime();
+      const now = Date.now();
       const distance = targetDate - now;
 
       if (distance <= 0) {
-        setTimeLeft("Event has started!");
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        setIsLive(true);
         return;
       }
 
@@ -75,17 +87,27 @@ const Footer: FC = () => {
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      setTimeLeft({ days, hours, minutes, seconds });
     };
 
     calculateTimeLeft();
-    const intervalId = setInterval(calculateTimeLeft, 1000);
+    const timer = setInterval(calculateTimeLeft, 1000);
 
-    return () => clearInterval(intervalId);
+    return () => clearInterval(timer);
   }, [targetDate]);
 
+  useEffect(() => {
+    if (timeLeft.days === 0 && timeLeft.hours === 0 && !isLive) {
+      const blinkInterval = setInterval(() => {
+        setBlink((prev) => !prev);
+      }, 500);
+
+      return () => clearInterval(blinkInterval);
+    }
+  }, [timeLeft, isLive]);
+
   return (
-    <footer className="w-full h-fit p-5 pt-10 grid dark:bg-custom-gray  overflow-hidden  text-center">
+    <footer className="w-full h-fit p-5 pt-10 grid dark:bg-custom-gray  overflow-hidden  text-center transition-all duration-1000">
       <div className="flex flex-wrap w-full gap-5">
         <div className="grow shrink">
           <h1 className="font-extrabold text-2xl text-phoenix">Contact us</h1>
@@ -93,20 +115,20 @@ const Footer: FC = () => {
           <br />
 
           <p className="font-semibold text-[18px]">Customer Support: </p>
-          <p >9 AM - 6 PM (Mon- Fri)</p>
+          <p className="pt-2">9 AM - 6 PM (Mon- Fri)</p>
 
           <p
-            className=" cursor-pointer"
+            className=" cursor-pointer pt-2"
             onClick={() => {
               window.location.href = "tel:+1 234 567 890";
             }}
           >
-            <a className="font-semibold text-[18px] ">Call us: </a>+1 234
-            567 890
+            <a className="font-semibold text-[18px] ">Call us: </a>+1 234 567
+            890
           </p>
 
           <p
-            className="cursor-pointer"
+            className="cursor-pointer pt-2"
             onClick={() => {
               window.location.href =
                 "mailto:phoenix@support.com?subject=Support Request&body=Hello Phoenix Support,";
@@ -138,13 +160,41 @@ const Footer: FC = () => {
           </div>
         </div>
         <div className="text-center grow shrink">
-          <h1 className="font-extrabold text-2xl text-phoenix">Next round</h1>
+          <div className="text-center grow shrink">
+            <h1 className="font-extrabold text-2xl text-phoenix mb-4">
+              Next round
+            </h1>
 
-          <br />
-
-          <p id="countdown" className="font-bold text-lg">
-            {timeLeft}
-          </p>
+            {isLive ? (
+              <div className="flex justify-center">
+                <span
+                  className="px-6 py-3 text-xl font-extrabold rounded-full 
+        bg-red-600 text-white animate-pulse shadow-lg"
+                >
+                  🔴 LIVE
+                </span>
+              </div>
+            ) : (
+              <div className="grid grid-flow-col gap-6 auto-cols-max justify-center">
+                <CountdownBox label="days" value={timeLeft.days} />
+                <CountdownBox label="hours" value={timeLeft.hours} />
+                <CountdownBox
+                  label="min"
+                  value={timeLeft.minutes}
+                  blink={
+                    timeLeft.days === 0 && timeLeft.hours === 0 ? blink : false
+                  }
+                />
+                <CountdownBox
+                  label="sec"
+                  value={timeLeft.seconds}
+                  blink={
+                    timeLeft.days === 0 && timeLeft.hours === 0 ? blink : false
+                  }
+                />
+              </div>
+            )}
+          </div>
         </div>
         <div className="grow shrink">
           <h1 className="font-extrabold text-2xl text-phoenix">Phoenix</h1>
@@ -199,7 +249,7 @@ const Footer: FC = () => {
           </button>
         </div>
       </div>
-      <div className="w-full text-center pt-5 justify-self-end self-end max-sm:text-[13px]">
+      <div className="w-full text-center pt-10 justify-self-end self-end max-sm:text-[13px]">
         <hr />
         <p className=" flex justify-center items-center gap-2 py-2">
           Phoenix

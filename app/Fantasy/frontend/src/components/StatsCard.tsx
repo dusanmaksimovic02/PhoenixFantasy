@@ -10,7 +10,7 @@ type Props = {
 
 const StatsCard: FC<Props> = (props) => {
   return (
-    <div className="w-fit h-fit rounded-2xl  bg-phoenix flex flex-col p-7 justify-center items-center text-white dark:text-black gap-5 font-palanquin grow shrink  ">
+    <div className="w-fit h-fit rounded-2xl  bg-phoenix flex flex-col p-7 justify-center items-center text-white dark:text-black gap-5 font-palanquin grow shrink  transition-all duration-1000">
       <p className="text-2xl text-black dark:text-white font-bold">{props.label}</p>
       <p className="text-5xl font-extrabold">
         {props.percentage ? props.points + " %" : props.points}

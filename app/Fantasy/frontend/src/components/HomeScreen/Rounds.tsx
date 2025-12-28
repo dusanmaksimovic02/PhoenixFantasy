@@ -256,7 +256,7 @@ const Rounds: FC = () => {
   const maxRounds = Object.keys(rounds).length;
 
   return (
-    <div className="font-palanquin">
+    <div className="font-palanquin transition-all duration-1000 max-sm:pt-16">
       <div className="flex gap-5 justify-center text-2xl p-5">
         <button
           onClick={() => {
@@ -285,7 +285,7 @@ const Rounds: FC = () => {
         ))}
       </div>
       <Link className="flex justify-center " to="/all-games">
-        <button className="btn bg-phoenix/80 hover:bg-phoenix  border-phoenix whitespace-nowrap hover:border-4 hover:cursor-pointer w-35 shadow-inner drop-shadow h-12 rounded-2xl text-2xl mt-5 ml-10 text-white dark:text-black text-[16px]">
+        <button className="btn bg-phoenix/80 hover:bg-phoenix  border-phoenix whitespace-nowrap hover:border-4 hover:cursor-pointer w-50 shadow-inner drop-shadow h-15 rounded-2xl text-2xl mt-5 ml-10 text-white dark:text-black ">
           See all games
         </button>
       </Link>

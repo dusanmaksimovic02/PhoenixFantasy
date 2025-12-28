@@ -19,7 +19,7 @@ const Home: FC = () => {
   }, [location.hash]);
   
   return (
-    <>
+    <div className="transition-all duration-1000">
       <HomeStart />
       <Rounds />
       <section id="about-us" className="pt-14">
@@ -31,7 +31,8 @@ const Home: FC = () => {
       <section id="top-players" className="pt-14">
         <TopPlayer />
       </section>
-    </>
+      <div className="h-20"></div>
+    </div>
   );
 };
 

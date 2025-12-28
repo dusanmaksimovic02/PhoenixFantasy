@@ -380,7 +380,7 @@ const AllGames: FC = () => {
   };
 
   return (
-    <div className="pt-16">
+    <div className="pt-16 transition-all duration-1000">
       <div className="p-5 flex items-center justify-between">
         <h1 className="text-center text-3xl font-bold w-[90%] ">
           All Games by Rounds

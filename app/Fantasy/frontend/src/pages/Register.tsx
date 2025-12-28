@@ -150,7 +150,7 @@ const Register: FC = () => {
   const confirmPasswordError = errors.confirmPassword?.message;
 
   return (
-    <div className="w-screen h-screen relative bg-court bg-no-repeat bg-cover bg-center **:max-sm:h-svh max-sm:w-svw ">
+    <div className="w-screen h-screen relative bg-court bg-no-repeat bg-cover bg-center **:max-sm:h-svh max-sm:w-svw transition-all duration-1000">
       <div className="absolute inset-0 bg-black/40"></div>
       <AnimatePresence mode="wait">
         <motion.div

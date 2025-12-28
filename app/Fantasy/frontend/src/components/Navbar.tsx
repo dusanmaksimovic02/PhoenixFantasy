@@ -71,7 +71,7 @@ const Navbar: FC = () => {
 
   return (
     <>
-      <header className="fixed z-10 text-white w-full h-16  bg-phoenix flex">
+      <header className="fixed z-10 text-white w-full h-16  bg-phoenix flex transition-all duration-1000">
         <nav className="font-palanquin w-full flex justify-between items-center">
           <NavLink
             to="/"

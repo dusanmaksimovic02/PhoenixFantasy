@@ -1308,16 +1308,16 @@ const TeamPage: FC = () => {
 
   return (
     <>
-      <div className="pt-14 h-fit w-screen font-palanquin min-h-screen">
-        <div className="max-sm:bg-center bg-phoenix h-fit w-full p-10 max-sm:h-svh">
-          <div className="h-fit flex max-sm:flex-col justify-between items-center gap-5 bg-black/60 p-7 text-white rounded-2xl max-sm:h-svh max-sm:justify-around">
+      <div className="pt-14 h-fit w-screen font-palanquin min-h-screen transition-all duration-1000">
+        <div className="max-sm:bg-center bg-phoenix h-fit w-full p-10 max-sm:p-0 max-sm:h-svh">
+          <div className="h-fit flex max-sm:flex-col justify-between items-center gap-5  p-7  max-sm:p-0 rounded-2xl max-sm:h-svh max-sm:justify-around">
             <div className="flex max-sm:flex-col gap-5 justify-center items-center">
               <img
                 src={team?.logoUrl}
                 alt={`${team?.club.toLowerCase()} logo`}
                 className="w-40 h-40 "
               />
-              <p className="text-5xl text-phoenix font-extrabold">
+              <p className="text-5xl max-sm:text-4xl font-extrabold text-nowrap">
                 {team?.club}
               </p>
             </div>

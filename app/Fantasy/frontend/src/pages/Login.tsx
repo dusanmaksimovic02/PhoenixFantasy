@@ -117,7 +117,7 @@ const Login: FC = () => {
   const passwordError = errors.password?.message;
 
   return (
-    <div className="w-full h-full relative bg-court  bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw ">
+    <div className="w-full h-full relative bg-court  bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw transition-all duration-1000">
       <div className="absolute inset-0 bg-black/40"></div>
       <AnimatePresence mode="wait">
         <motion.div
