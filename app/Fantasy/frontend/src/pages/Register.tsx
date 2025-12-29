@@ -200,7 +200,7 @@ const Register: FC = () => {
   const confirmPasswordError = errors.confirmPassword?.message;
 
   return (
-    <div className="w-screen h-screen relative bg-court bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw transition-all duration-1000">
+    <div className="w-screen h-screen relative bg-court bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw">
       <div className="absolute inset-0 bg-black/40"></div>
       <AnimatePresence mode="wait">
         <motion.div
@@ -228,7 +228,7 @@ const Register: FC = () => {
               <h2 className="text-3xl font-bold text-center text-phoenix">
                 Register
               </h2>
-              <ul className="steps w-full mb-3 pt-3 transition-all duration-300">
+              <ul className="steps w-full mb-3 pt-3">
                 <li
                   className={`step ${
                     step >= 1 &&

@@ -2,7 +2,7 @@ import type { FC } from "react";
 
 const RulesAndRewards: FC = () => {
   return (
-    <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin transition-all duration-1000">
+    <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin ">
       <div className=" ">
         <h1 className="text-black dark:text-white font-extrabold text-4xl sm:pl-20">
           Rules And <span className="text-phoenix">Rewards</span>

@@ -2,7 +2,7 @@ import type { FC } from "react";
 
 const GameInfo: FC = () => {
   return (
-    <div className="transition-all duration-1000">
+    <>
       <h3 className="text-center text-black dark:text-white font-semibold">
         Result by quarters
       </h3>
@@ -194,7 +194,7 @@ const GameInfo: FC = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
 };
 

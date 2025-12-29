@@ -256,7 +256,7 @@ const Rounds: FC = () => {
   const maxRounds = Object.keys(rounds).length;
 
   return (
-    <div className="font-palanquin transition-all duration-1000 max-sm:pt-16">
+    <div className="font-palanquin max-sm:pt-16">
       <div className="flex gap-5 justify-center text-2xl p-5">
         <button
           onClick={() => {

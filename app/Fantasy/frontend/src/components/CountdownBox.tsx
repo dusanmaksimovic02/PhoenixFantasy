@@ -13,10 +13,13 @@ const CountdownBox = ({ value, label, blink }: CountdownBoxProps) => {
           ? "bg-red-600 text-white"
           : "text-black dark:text-white bg-surface-light dark:bg-surface-dark"
       }
-      transition-all duration-300`}
+      `}
     >
       <span className="countdown font-mono text-4xl">
-        <span style={{ "--value": value } as React.CSSProperties}  aria-live="polite" />
+        <span
+          style={{ "--value": value } as React.CSSProperties}
+          aria-live="polite"
+        />
       </span>
       <span className="text-sm font-semibold mt-1">{label}</span>
     </div>

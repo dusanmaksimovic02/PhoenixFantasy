@@ -12,7 +12,7 @@ const HomeStart: FC = () => {
   };
 
   return (
-    <div className="h-screen w-screen gap-10 pt-15 flex justify-center items-center transition-all duration-1000 max-sm:flex-col max-sm:h-svh max-sm:w-svw max-sm:pt-47 max-sm:gap-0">
+    <div className="h-screen w-screen gap-10 pt-15 flex justify-center items-center max-sm:flex-col max-sm:h-svh max-sm:w-svw max-sm:pt-47 max-sm:gap-0">
       <div className="h-full w-[50%] flex flex-col justify-center pl-23 max-sm:pl-0 gap-2 max-sm:justify-center max-sm:items-center max-sm:h-svh max-sm:w-svw text-nowrap">
         <h1 className="text-7xl font-bold max-sm:text-[2.5rem] max-xl:text-5xl max-lg:text-3xl">
           Phoenix <span className="text-phoenix">Fantasy</span>

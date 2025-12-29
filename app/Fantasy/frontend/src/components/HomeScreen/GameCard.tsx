@@ -18,7 +18,7 @@ const GameCard: FC<Props> = (props) => {
 
   return (
     <div
-      className="flex flex-col justify-center items-center gap-2 px-12 p-5 bg-phoenix rounded-2xl shadow-inner drop-shadow text-white dark:text-black font-palanquin cursor-pointer transition-all duration-1000"
+      className="flex flex-col justify-center items-center gap-2 px-12 p-5 bg-phoenix rounded-2xl shadow-inner drop-shadow text-white dark:text-black font-palanquin cursor-pointer"
       onClick={handleClick}
     >
       <div className="flex justify-center items-center gap-3 max-lg:w-37.5">

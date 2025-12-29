@@ -1308,8 +1308,8 @@ const TeamPage: FC = () => {
 
   return (
     <>
-      <div className="pt-14 h-fit w-screen font-palanquin min-h-screen transition-all duration-1000">
-        <div className="max-sm:bg-center bg-phoenix h-fit w-full p-10 max-sm:p-0 max-sm:h-svh">
+      <div className="pt-14 h-fit w-screen font-palanquin min-h-screen ">
+        <div className="max-sm:bg-center bg-phoenix/95 h-fit w-full p-10 max-sm:p-0 max-sm:h-svh">
           <div className="h-fit flex max-sm:flex-col justify-between items-center gap-5  p-7  max-sm:p-0 rounded-2xl max-sm:h-svh max-sm:justify-around">
             <div className="flex max-sm:flex-col gap-5 justify-center items-center">
               <img

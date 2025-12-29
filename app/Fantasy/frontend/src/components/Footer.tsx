@@ -107,7 +107,7 @@ const Footer: FC = () => {
   }, [timeLeft, isLive]);
 
   return (
-    <footer className="w-full h-fit p-5 pt-10 grid dark:bg-custom-gray  overflow-hidden  text-center transition-all duration-1000">
+    <footer className="w-full h-fit p-5 pt-10 grid dark:bg-custom-gray  overflow-hidden  text-center">
       <div className="flex flex-wrap w-full gap-5">
         <div className="grow shrink">
           <h1 className="font-extrabold text-2xl text-phoenix">Contact us</h1>
@@ -203,7 +203,7 @@ const Footer: FC = () => {
 
           <ul className="flex gap-2 flex-col text-center">
             {links.map(({ name, to }, index) => (
-              <li key={index}>
+              <li className="list-none" key={index}>
                 <NavLink
                   to={to}
                   className={({ isActive }) =>

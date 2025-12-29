@@ -2,7 +2,7 @@ import type { FC } from "react";
 
 const TeamStats:FC = () => {
   return (
-    <div className="w-full overflow-hidden rounded-lg border-2 border-surface transition-all duration-1000">
+    <div className="w-full overflow-hidden rounded-lg border-2 border-surface">
       <table className="w-full">
 
         <tbody className="group text-black dark:text-white">

@@ -1,8 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { IoMenu } from "react-icons/io5";
 import { useEffect, useState, type FC } from "react";
-import { GoSun } from "react-icons/go";
-import { PiMoonLight } from "react-icons/pi";
 import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
 
@@ -71,7 +69,7 @@ const Navbar: FC = () => {
 
   return (
     <>
-      <header className="fixed z-10 text-white w-full h-16  bg-phoenix flex transition-all duration-1000">
+      <header className="fixed z-10 text-white w-full h-16  bg-phoenix flex">
         <nav className="font-palanquin w-full flex justify-between items-center">
           <NavLink
             to="/"
@@ -80,7 +78,7 @@ const Navbar: FC = () => {
           <div className="max-lg:hidden justify-self-center">
             <ul className="flex gap-5">
               {navLinks.map(({ name, to, isSection }) => (
-                <li key={to}>
+                <li className="list-none" key={to}>
                   {isSection ? (
                     <span
                       onClick={() => handleScroll(to)}
@@ -115,29 +113,29 @@ const Navbar: FC = () => {
               <span>Login</span>
             </button>
 
-            <div className="max-lg:hidden">
-              <input
-                type="checkbox"
-                id="dark-mode-toggle"
-                className="w-0 h-0 hidden peer"
-                onChange={handleToggle}
-                checked={isDarkMode}
-              />
-              <label
-                htmlFor="dark-mode-toggle"
-                className="w-20 h-10 relative block bg-[#ebebeb] rounded-full shadow-label cursor-pointer transition-[0.3s] after:w-7.5 after:h-7.5 after:absolute after:top-1.25 after:left-1.25 after:bg-linear-to-b after:from-[#ffcc89] after:to-[#d8860b] after:rounded-[180px] after:shadow-afterLabel after:transition-[0.3s] peer-checked:bg-[#242424] active:after:w-10 peer-checked:after:left-18.75 peer-checked:after:-translate-x-full peer-checked:after:bg-linear-to-b peer-checked:after:from-[#777] peer-checked:after:to-[#3a3a3a] mr-3 max-sm:mr-20"
-              >
-                <GoSun
-                  className={`absolute w-6.25 h-6.25 top-2 z-100 left-1.75 transition-[0.3s] ${
-                    isDarkMode ? "fill-[#7e7e7e]" : "fill-white"
-                  }`}
+            <div className="max-lg:hidden mr-3 flex items-center justify-center">
+              <label className="swap swap-rotate">
+                <input
+                  type="checkbox"
+                  onChange={handleToggle}
+                  checked={isDarkMode}
                 />
 
-                <PiMoonLight
-                  className={`absolute w-6.25 h-6.25 top-2 z-100 left-12 transition-[0.3s] ${
-                    isDarkMode ? "fill-white" : "fill-[#7e7e7e]"
-                  }`}
-                />
+                <svg
+                  className="swap-off h-10 w-10 fill-current"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" />
+                </svg>
+
+                <svg
+                  className="swap-on h-10 w-10 fill-current text-custom-gray"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
+                </svg>
               </label>
             </div>
           </div>
@@ -157,6 +155,7 @@ const Navbar: FC = () => {
                 <ul className="text-white flex flex-col gap-5 text-center text-2xl">
                   {navLinks.map(({ name, to, isSection }) => (
                     <li
+                      className="list-none"
                       key={to}
                       onClick={() => {
                         toggleMenu();
@@ -184,29 +183,29 @@ const Navbar: FC = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="flex gap-2 w-full justify-center">
-                  <input
-                    type="checkbox"
-                    id="dark-mode-toggle"
-                    className="w-0 h-0 hidden peer"
-                    onChange={handleToggle}
-                    checked={isDarkMode}
-                  />
-                  <label
-                    htmlFor="dark-mode-toggle"
-                    className="ml-18 w-20 h-10 relative block bg-[#ebebeb] rounded-full shadow-label cursor-pointer transition-[0.3s] after:w-7.5 after:h-7.5 after:absolute after:top-1.25 after:left-1.25 after:bg-linear-to-b after:from-[#ffcc89] after:to-[#d8860b] after:rounded-[180px] after:shadow-afterLabel after:transition-[0.3s] peer-checked:bg-[#242424] active:after:w-10 peer-checked:after:left-18.75 peer-checked:after:-translate-x-full  peer-checked:after:bg-linear-to-b peer-checked:after:from-[#777] peer-checked:after:to-[#3a3a3a] mr-3 max-lg:mr-20"
-                  >
-                    <GoSun
-                      className={`absolute w-6.25 h-6.25 top-2 z-100 left-1.75 transition-[0.3s] ${
-                        isDarkMode ? "fill-[#7e7e7e]" : "fill-white"
-                      }`}
+                <div className="ml-3 flex items-center justify-center">
+                  <label className="swap swap-rotate">
+                    <input
+                      type="checkbox"
+                      onChange={handleToggle}
+                      checked={isDarkMode}
                     />
 
-                    <PiMoonLight
-                      className={`absolute w-6.25 h-6.25 top-2 z-100 left-12 transition-[0.3s] ${
-                        isDarkMode ? "fill-white" : "fill-[#7e7e7e]"
-                      }`}
-                    />
+                    <svg
+                      className="swap-off h-10 w-10 fill-current"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" />
+                    </svg>
+
+                    <svg
+                      className="swap-on h-10 w-10 fill-current text-custom-gray"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
+                    </svg>
                   </label>
                 </div>
               </div>

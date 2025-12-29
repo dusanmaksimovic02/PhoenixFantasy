@@ -91,8 +91,8 @@ const GamePage: FC = () => {
   return (
     <>
       <div className="pt-14 h-fit w-screen font-palanquin min-h-screen">
-        <div className=" h-fit w-full  max-sm:h-svh transition-all duration-1000">
-          <div className="h-fit flex max-sm:flex-col justify-between items-center gap-5 bg-phoenix p-5 text-white dark:text-black max-sm:h-svh max-sm:justify-around">
+        <div className=" h-fit w-full  max-sm:h-svh">
+          <div className="h-fit flex max-sm:flex-col justify-between items-center gap-5 bg-phoenix/95 p-5 text-white dark:text-black max-sm:h-svh max-sm:justify-around">
             <div className="w-full flex max-sm:flex-col justify-between items-center gap-5 p-5  rounded-3xl ">
               <div className="flex justify-center items-center flex-col gap-3 text-center">
                 <img

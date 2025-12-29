@@ -136,7 +136,46 @@
 
 @layer base {
   * {
-    @apply font-palanquin;
+    @apply font-palanquin transition-all duration-200;
+  }
+  h1 {
+    @apply text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight;
+  }
+
+  h2 {
+    @apply text-2xl sm:text-3xl lg:text-4xl font-bold leading-snug;
+  }
+
+  h3 {
+    @apply text-xl sm:text-2xl lg:text-3xl font-semibold;
+  }
+
+  h4 {
+    @apply text-lg sm:text-xl lg:text-2xl font-semibold;
+  }
+
+  h5 {
+    @apply text-base sm:text-lg lg:text-xl font-medium;
+  }
+
+  h6 {
+    @apply text-sm sm:text-base lg:text-lg font-medium;
+  }
+
+  p {
+    @apply text-sm sm:text-base lg:text-lg leading-relaxed;
+  }
+
+  ul {
+    @apply list-disc pl-5 sm:pl-6 lg:pl-8 space-y-1;
+  }
+
+  ol {
+    @apply list-decimal pl-5 sm:pl-6 lg:pl-8 space-y-1;
+  }
+
+  li {
+    @apply text-sm sm:text-base lg:text-lg;
   }
 }
 
