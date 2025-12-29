@@ -1,0 +1,8 @@
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.csproj.AssemblyReference.cache
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.AssemblyInfoInputs.cache
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.AssemblyInfo.cs
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.csproj.CoreCompileInputs.cache
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\Application\StatsApi\obj\Debug\net8.0\StatsApi.sourcelink.json
