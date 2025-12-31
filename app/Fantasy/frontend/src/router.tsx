@@ -12,6 +12,9 @@ import AllGames from "./pages/AllGames";
 import TeamPage from "./pages/TeamPage";
 import PlayerPage from "./pages/PlayerPage";
 import GamePage from "./pages/GamePage";
+import CreateDraftLeague from "./pages/CreateDraftLeague";
+import FantasyLayout from "./components/FantasyPage/FantasyLayout";
+import DraftLeague from "./pages/DraftLeague";
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +26,21 @@ export const router = createBrowserRouter([
       },
       {
         path: "fantasy",
-        element: <Fantasy />,
+        element: <FantasyLayout />,
+        children: [
+          {
+            element: <Fantasy />,
+            index: true,
+          },
+          {
+            element: <CreateDraftLeague />,
+            path: "draft/:leagueName/:code",
+          },
+          {
+            element: <DraftLeague />,
+            path: "draft/:leagueName",
+          },
+        ],
       },
       {
         path: "login",

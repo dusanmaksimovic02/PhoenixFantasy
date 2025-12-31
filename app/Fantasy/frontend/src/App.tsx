@@ -2,7 +2,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { useEffect } from "react";
 import emailjs from "@emailjs/browser";
-import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "./theme-provider";
 
 const App = () => {
   useEffect(() => {
@@ -13,8 +13,9 @@ const App = () => {
 
   return (
     <>
-      <RouterProvider router={router} />
-      <ToastContainer />
+      <ThemeProvider defaultTheme="light" storageKey="theme-mode">
+        <RouterProvider router={router} />
+      </ThemeProvider>
     </>
   );
 };

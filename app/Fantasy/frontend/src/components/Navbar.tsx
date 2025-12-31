@@ -3,6 +3,7 @@ import { IoMenu } from "react-icons/io5";
 import { useEffect, useState, type FC } from "react";
 import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
+import { useTheme } from "../use-theme";
 
 type NavLinkType = {
   name: string;
@@ -12,18 +13,16 @@ type NavLinkType = {
 
 const Navbar: FC = () => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("dark-mode");
-    return savedTheme === "true";
-  });
+  const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleToggle = () => {
+    setTheme(theme == "dark" ? "light" : "dark");
     setIsDarkMode((prevMode) => {
       const newMode = !prevMode;
-      localStorage.setItem("dark-mode", newMode.toString());
       return newMode;
     });
   };
