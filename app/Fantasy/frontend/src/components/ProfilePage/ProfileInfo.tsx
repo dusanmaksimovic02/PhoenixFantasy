@@ -3,6 +3,7 @@ import { z } from "zod";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email"),
+  username: z.string(),
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
   birthDate: z.string(),
@@ -18,6 +19,7 @@ const ProfileInfo: FC = () => {
 
   const [profile, setProfile] = useState<FormData>({
     email: "phoenix@example.com",
+    username:"Dzoni",
     name: "Nikola",
     surname: "Nikolić",
     birthDate: "1999-05-12",
@@ -62,6 +64,7 @@ const ProfileInfo: FC = () => {
           {(
             [
               ["email", "Email"],
+              ["username", "Username"],
               ["name", "Name"],
               ["surname", "Surname"],
               ["birthDate", "Birth date"],

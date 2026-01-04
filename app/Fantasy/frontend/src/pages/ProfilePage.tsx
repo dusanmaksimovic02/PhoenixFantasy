@@ -1,31 +1,63 @@
 import { useEffect, useState, type FC } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ProfileSidebar, {
   type ProfileSection,
 } from "../components/ProfilePage/ProfileSidebar";
 import ProfileContent from "../components/ProfilePage/ProfileContent";
 
+
+const sectionToHash: Record<ProfileSection, string> = {
+  info: "#info",
+  security: "#security",
+  "fantasy leagues": "#fantasy-leagues",
+  section3: "#section3",
+};
+
+const hashToSection: Record<string, ProfileSection> = {
+  "#info": "info",
+  "#security": "security",
+  "#fantasy-leagues": "fantasy leagues",
+  "#section3": "section3",
+};
+
 const ProfilePage: FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [active, setActive] = useState<ProfileSection>("info");
 
+  
   useEffect(() => {
-    const hash = window.location.hash.replace("#", "") as ProfileSection;
-    if (hash) setActive(hash);
-  }, []);
+    const section = hashToSection[location.hash];
 
+    if (section) {
+      setActive(section);
+    } else {
+      navigate(
+        { hash: sectionToHash.info },
+        { replace: true }
+      );
+    }
+  }, [location.hash, navigate]);
+
+ 
   const handleChange = (section: ProfileSection) => {
     setActive(section);
-    window.location.hash = section;
+    navigate(
+      { hash: sectionToHash[section] },
+      { replace: true }
+    );
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
-      {/* SIDEBAR */}
-      <ProfileSidebar active={active} onChange={handleChange} />
+    <div className="min-h-screen bg-white dark:bg-custom-gray text-neutral-900 dark:text-neutral-100">
+      <div className="flex min-h-screen py-11">
+        <ProfileSidebar active={active} onChange={handleChange} />
 
-      {/* CONTENT */}
-      <main className="ml-64 p-8 min-h-screen">
-        <ProfileContent section={active} />
-      </main>
+        <main className="flex-1 p-14">
+          <ProfileContent section={active} />
+        </main>
+      </div>
     </div>
   );
 };
