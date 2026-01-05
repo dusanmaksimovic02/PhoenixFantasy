@@ -18,10 +18,10 @@ const Home: FC = () => {
           <img src={pozadina} alt="slika" className="w-screen h-screen" />
           <div className="absolute inset-0 pt-14  bg-black/40">
             <div className="w-[40%] p-10 flex flex-col items-start h-full justify-center">
-              <h1 className="text-phoenix">
+              <h1 className="text-phoenix text-nowrap">
                 Phoenix <span className="text-white">Statistics</span>
               </h1>
-              <p>
+              <p className="text-white">
                 Enter real-time statistics, track player performance, and record
                 all the key moments of matches in one place.
               </p>

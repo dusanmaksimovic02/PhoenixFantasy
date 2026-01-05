@@ -13,6 +13,7 @@ import {
   type FC,
   type InputHTMLAttributes,
 } from "react";
+import { useAuth } from "../context/auth/useAuth";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -97,6 +98,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
 const Login: FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const { login } = useAuth();
 
   const {
     register,
@@ -114,6 +116,7 @@ const Login: FC = () => {
 
   function onSubmit(data: FormInputs) {
     console.log(data);
+    login(data);
   }
 
   const nameError = errors.username?.message;
