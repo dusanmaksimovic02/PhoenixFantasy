@@ -1,10 +1,10 @@
 import { useEffect, useState, type FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { FiMenu } from "react-icons/fi";
 import ProfileSidebar, {
   type ProfileSection,
 } from "../components/ProfilePage/ProfileSidebar";
 import ProfileContent from "../components/ProfilePage/ProfileContent";
-
 
 const sectionToHash: Record<ProfileSection, string> = {
   info: "#info",
@@ -20,44 +20,68 @@ const hashToSection: Record<string, ProfileSection> = {
   "#section3": "section3",
 };
 
+const NAVBAR_HEIGHT = 64;
+const FOOTER_HEIGHT = 96;
+
 const ProfilePage: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const [active, setActive] = useState<ProfileSection>("info");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  
   useEffect(() => {
     const section = hashToSection[location.hash];
-
-    if (section) {
-      setActive(section);
-    } else {
-      navigate(
-        { hash: sectionToHash.info },
-        { replace: true }
-      );
-    }
+    if (section) setActive(section);
+    else navigate({ hash: sectionToHash.info }, { replace: true });
   }, [location.hash, navigate]);
 
- 
   const handleChange = (section: ProfileSection) => {
     setActive(section);
-    navigate(
-      { hash: sectionToHash[section] },
-      { replace: true }
-    );
+    setMobileOpen(false);
+    navigate({ hash: sectionToHash[section] }, { replace: true });
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-custom-gray text-neutral-900 dark:text-neutral-100">
-      <div className="flex min-h-screen py-11">
-        <ProfileSidebar active={active} onChange={handleChange} />
+    <div className="bg-white dark:bg-custom-gray">
+      {/* prostor za fixed navbar */}
+      <div style={{ height: NAVBAR_HEIGHT }} />
 
-        <main className="flex-1 p-14">
-          <ProfileContent section={active} />
+      {/* SCROLL CONTAINER */}
+      <div
+        className="flex overflow-hidden"
+        style={{
+          height: `calc(100vh - ${NAVBAR_HEIGHT}px - ${FOOTER_HEIGHT}px)`,
+        }}
+      >
+        <ProfileSidebar
+          active={active}
+          onChange={handleChange}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+        />
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="md:hidden flex items-center gap-4 px-4 py-4 border-b">
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="text-2xl"
+            >
+              <FiMenu />
+            </button>
+            <span className="font-semibold">My Profile</span>
+          </div>
+
+          <div className="flex justify-center p-4 md:p-10">
+            <div className="w-full max-w-6xl">
+              <ProfileContent section={active} />
+            </div>
+          </div>
         </main>
       </div>
+
+      {/* footer space */}
+      <div style={{ height: FOOTER_HEIGHT }} />
     </div>
   );
 };
