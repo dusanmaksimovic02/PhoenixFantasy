@@ -1,15 +1,22 @@
-import { useAuth } from "../context/auth/useAuth";
-import type { FC } from "react";
+import { type FC } from "react";
+import ProfileSidebar from "../components/ProfilePage/ProfileSidebar";
+import ProfileContent from "../components/ProfilePage/ProfileContent";
+import { useLocation } from "react-router-dom";
 
 const Profile: FC = () => {
-  const { user, logout } = useAuth();
+  const location = useLocation();
+
+  const hash = location.hash;
 
   return (
-    <div className="pt-16 w-screen h-screen flex flex-col">
-      {user ? JSON.stringify(user) : "user"}
-      <button className="btn" onClick={logout}>
-        logout
-      </button>
+    <div className="min-h-screen bg-white dark:bg-custom-gray text-neutral-900 dark:text-neutral-100">
+      <div className="flex min-h-screen">
+        <ProfileSidebar />
+
+        <main className="flex-1 overflow-auto">
+          <ProfileContent section={hash.length == 0 ? "#info" : hash} />
+        </main>
+      </div>
     </div>
   );
 };

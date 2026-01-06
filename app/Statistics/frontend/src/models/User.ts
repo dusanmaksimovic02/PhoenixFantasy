@@ -5,9 +5,9 @@ export type User = {
   name: string;
   surname: string;
   username: string;
-  birthDate: string;
+  birthDate: Date;
   phone: string;
-  gander: string;
+  gender: string;
   role: string;
 };
 

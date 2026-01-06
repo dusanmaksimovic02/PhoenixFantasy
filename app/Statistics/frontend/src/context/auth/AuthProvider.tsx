@@ -62,20 +62,20 @@ export const AuthProvider: FC<Props> = ({ children }) => {
   const login = async (user: LoginUser) => {
     const user2 = {
       id: "1",
-      email: user.username,
+      email: "proba@gmail.com",
       password: user.password,
       name: "Name",
       surname: "Surname",
-      username: "username",
-      birthDate: Date(),
+      username: user.username,
+      birthDate: new Date(),
       phone: "+381646353265",
-      gander: "male",
-      role: "referee",
+      gender: "male",
+      role: "manager",
     };
     const data = {
       user: user2,
       token: "!232e6532e5",
-      role: "referee",
+      role: "manager",
       id: "1",
     };
 
