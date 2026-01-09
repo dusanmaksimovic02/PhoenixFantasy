@@ -16,7 +16,7 @@ const tableHead = [
   "",
 ];
 
-const AllReferees: FC = () => {
+const AllManager: FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const referees: User[] = [
@@ -143,14 +143,13 @@ const AllReferees: FC = () => {
   ];
 
   const handleDeleteClick = () => {
-    toast.success("You deleted referee successfully!");
+    toast.success("You deleted manager successfully!");
     setIsOpen(false);
   };
 
   return (
     <div className="w-full">
-      <h3 className="text-center">All Referees</h3>
-
+      <h3 className="text-center">All Managers</h3>
       <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
         <table className="w-full">
           <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">
@@ -197,7 +196,7 @@ const AllReferees: FC = () => {
                 ✕
               </button>
               <h3 className="w-full text-center">
-                Are you sure you want to delete this referee?
+                Are you sure you want to delete this manager?
               </h3>
               <div className="flex justify-between">
                 <button
@@ -221,4 +220,4 @@ const AllReferees: FC = () => {
   );
 };
 
-export default AllReferees;
+export default AllManager;

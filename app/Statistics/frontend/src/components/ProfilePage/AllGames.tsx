@@ -476,152 +476,155 @@ const AllGames: FC = () => {
   ];
 
   return (
-    <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
-      <table className="w-full">
-        <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">
-          <tr>
-            {tableHead.map((head) => (
-              <th key={head} className="px-2.5 py-2  text-start  font-medium">
-                {head}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="text-sm text-black dark:text-white ">
-          {games.map((game) => (
-            <tr
-              key={game.id}
-              className="tooltip table-row  border-[3px] border-surface whitespace-nowrap cursor-pointer"
-              data-tip="click to edit game"
-              onClick={() => {
-                setIsOpen(true);
-                setSelectedGame(game);
-              }}
-            >
-              <td className="p-3 cursor-pointer">{game.id}</td>
-              <td className="p-3 cursor-pointer">{game.homeTeam}</td>
-              <td className="p-3 cursor-pointer">{game.awayTeam}</td>
-              <td className="p-3 cursor-pointer">
-                {game.dateTime.toDateString()}
-              </td>
-              <td className="p-3 cursor-pointer">
-                {game.dateTime.toTimeString()}
-              </td>
-              <td className="p-3 cursor-pointer">{game.venue}</td>
-              <td className="p-3 cursor-pointer">
-                {game.referee.name} {game.referee.surname}{" "}
-                {game.referee.username}
-              </td>
+    <div className="w-full">
+      <h3 className="text-center">All Games</h3>
+      <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
+        <table className="w-full rounded-4xl">
+          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium rounded-3xl text-foreground  dark:bg-surface-dark">
+            <tr>
+              {tableHead.map((head) => (
+                <th key={head} className="px-2.5 py-2  text-start  font-medium">
+                  {head}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {isOpen && selectedGame && (
-        <dialog open={isOpen} className="modal">
-          <div className="modal-box w-6/12 max-w-5xl bg-white dark:bg-custom-gray">
-            <div className="modal-action text flex flex-col gap-10">
-              <button
-                type="button"
-                className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
+          </thead>
+          <tbody className="text-sm rounded-2xl text-black dark:text-white ">
+            {games.map((game) => (
+              <tr
+                key={game.id}
+                className="tooltip table-row  border-[3px] border-surface whitespace-nowrap cursor-pointer"
+                data-tip="click to edit game"
                 onClick={() => {
-                  setIsOpen(false);
+                  setIsOpen(true);
+                  setSelectedGame(game);
                 }}
               >
-                ✕
-              </button>
-
-              <h3 className="text-nowrap w-full text-center">
-                Edit game details
-              </h3>
-
-              <div className="flex flex-col gap-4">
-                <div>
-                  <label>Date</label>
-                  <input
-                    type="date"
-                    className="input input-bordered w-full"
-                    value={formatDate(selectedGame.dateTime)}
-                    onChange={(e) =>
-                      setSelectedGame({
-                        ...selectedGame,
-                        dateTime: new Date(
-                          `${e.target.value}T${formatTime(
-                            selectedGame.dateTime
-                          )}`
-                        ),
-                      })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label>Time</label>
-                  <input
-                    type="time"
-                    className="input input-bordered w-full"
-                    value={formatTime(selectedGame.dateTime)}
-                    onChange={(e) =>
-                      setSelectedGame({
-                        ...selectedGame,
-                        dateTime: new Date(
-                          `${formatDate(selectedGame.dateTime)}T${
-                            e.target.value
-                          }`
-                        ),
-                      })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label>Venue</label>
-                  <input
-                    type="text"
-                    className="input input-bordered w-full"
-                    value={selectedGame.venue}
-                    onChange={(e) =>
-                      setSelectedGame({
-                        ...selectedGame,
-                        venue: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label>Referee</label>
-                  <input
-                    type="text"
-                    className="input input-bordered w-full"
-                    value={`${selectedGame.referee.name} ${selectedGame.referee.surname}`}
-                    onChange={(e) =>
-                      setSelectedGame({
-                        ...selectedGame,
-                        referee: {
-                          ...selectedGame.referee,
-                          name: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-between px-10">
+                <td className="p-3 cursor-pointer">{game.id}</td>
+                <td className="p-3 cursor-pointer">{game.homeTeam}</td>
+                <td className="p-3 cursor-pointer">{game.awayTeam}</td>
+                <td className="p-3 cursor-pointer">
+                  {game.dateTime.toDateString()}
+                </td>
+                <td className="p-3 cursor-pointer">
+                  {game.dateTime.toTimeString()}
+                </td>
+                <td className="p-3 cursor-pointer">{game.venue}</td>
+                <td className="p-3 cursor-pointer">
+                  {game.referee.name} {game.referee.surname}{" "}
+                  {game.referee.username}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {isOpen && selectedGame && (
+          <dialog open={isOpen} className="modal">
+            <div className="modal-box flex flex-col justify-center items-center bg-neutral-100 dark:bg-neutral-800">
+              <div className="modal-action text flex flex-col gap-10">
                 <button
-                  className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={() => setIsOpen(false)}
+                  type="button"
+                  className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
                 >
-                  Cancel
+                  ✕
                 </button>
-                <button className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl">
-                  Submit changes
-                </button>
+
+                <h3 className="text-nowrap w-full text-center">
+                  Edit game details
+                </h3>
+
+                <div className="flex flex-col justify-center w-100 gap-4">
+                  <div>
+                    <label>Date</label>
+                    <input
+                      type="date"
+                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100 scheme-light input-bordered w-full"
+                      value={formatDate(selectedGame.dateTime)}
+                      onChange={(e) =>
+                        setSelectedGame({
+                          ...selectedGame,
+                          dateTime: new Date(
+                            `${e.target.value}T${formatTime(
+                              selectedGame.dateTime
+                            )}`
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label>Time</label>
+                    <input
+                      type="time"
+                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100 input-bordered w-full scheme-light"
+                      value={formatTime(selectedGame.dateTime)}
+                      onChange={(e) =>
+                        setSelectedGame({
+                          ...selectedGame,
+                          dateTime: new Date(
+                            `${formatDate(selectedGame.dateTime)}T${
+                              e.target.value
+                            }`
+                          ),
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label>Venue</label>
+                    <input
+                      type="text"
+                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100  input-bordered w-full"
+                      value={selectedGame.venue}
+                      onChange={(e) =>
+                        setSelectedGame({
+                          ...selectedGame,
+                          venue: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label>Referee</label>
+                    <input
+                      type="text"
+                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100  input-bordered w-full"
+                      value={`${selectedGame.referee.name} ${selectedGame.referee.surname}`}
+                      onChange={(e) =>
+                        setSelectedGame({
+                          ...selectedGame,
+                          referee: {
+                            ...selectedGame.referee,
+                            name: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between px-2">
+                  <button
+                    className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl">
+                    Submit changes
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </dialog>
-      )}
+          </dialog>
+        )}
+      </div>
     </div>
   );
 };

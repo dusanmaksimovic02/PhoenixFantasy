@@ -6,6 +6,8 @@ import AddReferee from "./AddReferee";
 import AddManager from "./AddManager";
 import AllGames from "./AllGames";
 import AllReferees from "./AllReferees";
+import AllManager from "./AllManager";
+import AddGame from "./AddGame";
 
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
@@ -28,12 +30,20 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
     component: <AllReferees />,
     roles: ["manager", "admin"],
   },
+  "#all-manager": {
+    component: <AllManager />,
+    roles: ["admin"],
+  },
   "#add-referee": {
     component: <AddReferee />,
     roles: ["admin", "manager"],
   },
   "#add-manager": {
     component: <AddManager />,
+    roles: ["admin"],
+  },
+  "#add-game": {
+    component: <AddGame />,
     roles: ["admin"],
   },
 };

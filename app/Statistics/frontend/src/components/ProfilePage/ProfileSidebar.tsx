@@ -31,6 +31,11 @@ const PROFILE_TABS: ProfileTab[] = [
     roles: ["manager", "admin"],
   },
   {
+    key: "#all-manager",
+    label: "All Manager",
+    roles: ["admin"],
+  },
+  {
     key: "#all-referees",
     label: "All Referees",
     roles: ["manager", "admin"],
@@ -42,8 +47,13 @@ const PROFILE_TABS: ProfileTab[] = [
   },
   {
     key: "#add-manager",
-    label: "Add referee",
+    label: "Add manager",
     roles: ["admin"],
+  },
+  {
+    key: "#add-game",
+    label: "Add game",
+    roles: ["admin", "manager"],
   },
 ];
 
