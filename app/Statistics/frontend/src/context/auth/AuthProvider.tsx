@@ -70,12 +70,12 @@ export const AuthProvider: FC<Props> = ({ children }) => {
       birthDate: new Date(),
       phone: "+381646353265",
       gender: "male",
-      role: "manager",
+      role: "referee",
     };
     const data = {
       user: user2,
       token: "!232e6532e5",
-      role: "manager",
+      role: user2.role,
       id: "1",
     };
 

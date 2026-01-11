@@ -54,6 +54,7 @@
   --background-image-background-image2: url("./assets/images/background_1920x1080.png");
   --background-image-basketballBall: url("assets/images/basketballBall.png");
   --background-image-court: url("assets/images/court.png");
+  --background-image-jersey: url("assets/images/jersey.png");
 }
 
 @tailwind utilities;
