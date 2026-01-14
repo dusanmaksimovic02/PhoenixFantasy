@@ -1,0 +1,22 @@
+public enum PlayerStatType
+{
+    Points,
+    Made1p,
+    Miss1p,
+    Made2p,
+    Miss2p,
+    Made3p,
+    Miss3p,
+    Assists,
+    Rebounds,
+    OffensiveRebounds,
+    DefensiveRebounds,
+    Steals,
+    Turnovers,
+    Pir,
+    PersonalFouls,
+    RecievedFouls,
+    Blocks,
+    RecievedBlocks,
+    TechnicalFouls
+}

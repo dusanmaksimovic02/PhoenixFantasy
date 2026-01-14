@@ -19,4 +19,9 @@ public class PlayerGameStats
     public int? Steals { get; set; }
     public int? Turnovers { get; set; }
     public int? Pir { get; set; }
+    public int? PersonalFouls { get; set; }
+    public int? RecievedFouls { get; set; }
+    public int? Blocks { get; set; }
+    public int? RecievedBlocks { get; set; }
+    public int? TechnicalFouls { get; set; }
 }
