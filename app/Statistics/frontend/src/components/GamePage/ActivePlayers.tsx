@@ -19,7 +19,7 @@ const ActivePlayers: FC = () => {
   const activePlayers2 = Array.from({ length: 5 }, (_, index) => ({
     id: index + 1,
     name: `Player${index + 1}`,
-    surname: `Suns`,
+    surname: `State`,
     position: [
       "Point Guard",
       "Shouting Guard",
