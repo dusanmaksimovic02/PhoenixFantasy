@@ -25,7 +25,7 @@ const GameInfo: FC = () => {
     result: { homeScore: 59, awayScore: 48 },
   };
   return (
-    <div className="pt-7 pl-7 pr-10">
+    <div className="pt-7 px-10 ">
       <div className="h-fit w-full max-sm:h-svh flex max-sm:flex-col justify-between items-center gap-5 p-7 bg-surface-light dark:bg-surface-dark rounded-4xl max-sm:justify-around">
         <div className="w-full flex flex-1 max-sm:flex-col justify-between items-center gap-5 rounded-3xl ">
           <div>
