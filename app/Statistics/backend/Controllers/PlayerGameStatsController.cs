@@ -1,3 +1,7 @@
+
+
+using Microsoft.AspNetCore.Mvc;
+
 namespace StatsApi.Controllers;
 
 [ApiController]
@@ -16,7 +20,7 @@ public class PlayerGameStatsController : ControllerBase
     {
         try
         {
-            await _playerStatService.UpdateStatsAsync(dto);
+            await _playerStatService.UpdateStatAsync(dto);
             return Ok();
         }
         catch (Exception ex)

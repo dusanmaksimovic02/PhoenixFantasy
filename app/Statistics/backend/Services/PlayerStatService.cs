@@ -1,3 +1,4 @@
+/*
 public class PlayerStatService
 {
     private readonly StatsDbContext _context;
@@ -33,7 +34,7 @@ public class PlayerStatService
     /*public void Execute(IPlayerStatCommand command)
     {
         command.Execute();
-    }*/
+    }
 }
 
 public class UpdatePlayerStatDto
@@ -48,3 +49,4 @@ public class StatChange
     public PlayerStatType StatType { get; set; }
     public int Delta { get; set; }
 }
+*/

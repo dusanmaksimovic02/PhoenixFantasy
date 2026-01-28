@@ -21,7 +21,7 @@ public class PlayerController : ControllerBase
     {
         try
         {
-            var player = await context.Players.FirstOrDefaultAsync(x => x.Id == id) ?? throw new Exception
+            var player = await context.Players.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
             ($"Player with Id {id} doesn't exist");
             return Ok(player);
         }

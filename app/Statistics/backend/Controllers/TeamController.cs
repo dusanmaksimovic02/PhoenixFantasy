@@ -21,7 +21,7 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams.FirstOrDefaultAsync(x => x.Id == id) ?? throw new Exception
+            var team = await context.Teams.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
             ($"Team with Id {id} doesn't exist");
             return Ok(team);
         }
@@ -98,11 +98,11 @@ public class TeamController : ControllerBase
     {
         var team = await context.Teams
             .Include(t => t.Players)
-            .FirstOrDefaultAsync(t => t.Id == teamId)
+            .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
             ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
         var player = await context.Players
-            .FirstOrDefaultAsync(p => p.Id == playerId)
+            .FirstOrDefaultAsync(p => p.Id.ToString() == playerId)
             ?? throw new Exception($"Player with Id {playerId} doesn't exist");
 
         if (team.Players == null)

@@ -21,7 +21,7 @@ public class CoachController : ControllerBase
     {
         try
         {
-            var coach = await context.Coaches.FirstOrDefaultAsync(x => x.Id == id) ?? throw new Exception
+            var coach = await context.Coaches.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
             ($"Coach with Id {id} doesn't exist");
             return Ok(coach);
         }

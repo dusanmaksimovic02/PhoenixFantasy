@@ -1,4 +1,6 @@
-public class UpdatePlayerStatCommand : IPlayerStatCommand
+using StatsApi.Models;
+
+public class UpdatePlayerStatCommand// : IPlayerStatCommand
 {
     private readonly PlayerGameStats _stats;
     private readonly PlayerStatType _statType;

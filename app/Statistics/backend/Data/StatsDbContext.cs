@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -11,10 +12,10 @@ public class DataContext : IdentityDbContext<Person>
     public DbSet<Coach> Coaches { get; set; }
     public DbSet<CoachGameStats> CoachGameStats { get; set; }
     public DbSet<Game> Games { get; set; }
-    public DbSet<League> Leagues { get; set; }
+    public DbSet<Manager> Managers { get; set; }
     public DbSet<Player> Players { get; set; }
     public DbSet<PlayerGameStats> PlayerGameStats { get; set; }
-    public DbSet<Statistician> Statisticians { get; set; }
+    public DbSet<Referee> Referees { get; set; }
     public DbSet<Team> Teams { get; set; }
 
     public DataContext(DbContextOptions<DataContext> options) : base(options)
@@ -24,7 +25,13 @@ public class DataContext : IdentityDbContext<Person>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<IdentityPasskeyData>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null); //ne treba tabela
+        });
     }
 }
 

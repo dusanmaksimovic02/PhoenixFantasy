@@ -21,7 +21,7 @@ public class RoleController : ControllerBase
     {
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-        string[] roles = { "Admin", "Moderator", "User" };
+        string[] roles = { "Admin", "Manager", "User" };
 
         foreach (var role in roles)
         {

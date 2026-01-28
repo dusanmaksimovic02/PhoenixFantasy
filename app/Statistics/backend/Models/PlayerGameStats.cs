@@ -1,7 +1,11 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace StatsApi.Models;
 
 public class PlayerGameStats
 {
+    [Key]
+    public Guid Id { get; set; }
     public Game? Game { get; set; }
     public Player? Player { get; set; }
 
