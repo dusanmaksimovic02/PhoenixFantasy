@@ -91,4 +91,34 @@ public class PlayerController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("GetSecondsPlayed/{playerId}/{gameId}")]
+    public async Task<IActionResult> GetSecondsPlayed(Guid playerId, Guid gameId)
+    {
+        var stats = await context.PlayerGameStats
+            .Where(x => x.Player!.Id == playerId && x.Game!.Id == gameId)
+            .Select(x => x.SecondsPlayed)
+            .FirstOrDefaultAsync();
+
+        if (stats == null)
+            return NotFound($"Stats not found for player {playerId} in game {gameId}");
+
+        return Ok(stats);
+    }
+
+    public string FormatPlaytime(int secondsPlayed)
+    {
+        String playtime = "";
+        int minutesPlayed = 0;
+        while(secondsPlayed >= 60)
+        {
+            minutesPlayed++;
+            secondsPlayed-=60;
+        }
+        playtime += minutesPlayed.ToString();
+        playtime += ":";
+        playtime += secondsPlayed.ToString();
+        return playtime;
+    }
+
 }

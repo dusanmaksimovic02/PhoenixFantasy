@@ -295,7 +295,9 @@ namespace backend.Migrations
                     RecievedFouls = table.Column<int>(type: "int", nullable: true),
                     Blocks = table.Column<int>(type: "int", nullable: true),
                     RecievedBlocks = table.Column<int>(type: "int", nullable: true),
-                    TechnicalFouls = table.Column<int>(type: "int", nullable: true)
+                    TechnicalFouls = table.Column<int>(type: "int", nullable: true),
+                    SecondsPlayed = table.Column<int>(type: "int", nullable: true),
+                    IsStarter = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {

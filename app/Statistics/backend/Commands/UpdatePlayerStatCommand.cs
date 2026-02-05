@@ -4,7 +4,7 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
 {
     private readonly PlayerGameStats _stats;
     private readonly PlayerStatType _statType;
-    private readonly int _delta; // +1 ili -1
+    private readonly int _delta;
 
     public UpdatePlayerStatCommand(
         PlayerGameStats stats,
@@ -114,6 +114,10 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
                 _stats.TechnicalFouls = (_stats.TechnicalFouls ?? 0) + _delta;
                 _stats.PersonalFouls = (_stats.PersonalFouls ?? 0) + _delta;
                 _stats.Pir = _stats.Made1p - _delta;
+                break;
+
+            case PlayerStatType.SecondsPlayed:
+                _stats.SecondsPlayed = (_stats.SecondsPlayed ?? 0) + _delta;
                 break;
 
             default:

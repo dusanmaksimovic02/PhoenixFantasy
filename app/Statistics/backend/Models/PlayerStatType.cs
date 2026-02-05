@@ -18,5 +18,6 @@ public enum PlayerStatType
     RecievedFouls,
     Blocks,
     RecievedBlocks,
-    TechnicalFouls
+    TechnicalFouls,
+    SecondsPlayed
 }

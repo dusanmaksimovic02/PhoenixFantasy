@@ -28,4 +28,6 @@ public class PlayerGameStats
     public int? Blocks { get; set; }
     public int? RecievedBlocks { get; set; }
     public int? TechnicalFouls { get; set; }
+    public int? SecondsPlayed { get; set; }
+    public bool? IsStarter { get; set; } = false;
 }

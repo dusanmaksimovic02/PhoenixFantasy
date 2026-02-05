@@ -12,7 +12,7 @@ using StatsApi.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260128171951_v1")]
+    [Migration("20260205113225_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -413,6 +413,9 @@ namespace backend.Migrations
                     b.Property<Guid?>("GameId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("IsStarter")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("Made1p")
                         .HasColumnType("int");
 
@@ -453,6 +456,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("RecievedFouls")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SecondsPlayed")
                         .HasColumnType("int");
 
                     b.Property<int?>("Steals")

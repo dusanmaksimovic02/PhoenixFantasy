@@ -410,6 +410,9 @@ namespace backend.Migrations
                     b.Property<Guid?>("GameId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("IsStarter")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("Made1p")
                         .HasColumnType("int");
 
@@ -450,6 +453,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("RecievedFouls")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SecondsPlayed")
                         .HasColumnType("int");
 
                     b.Property<int?>("Steals")
