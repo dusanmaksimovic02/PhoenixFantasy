@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using StatsApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,13 +12,13 @@ namespace StatsApi.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<Person> _userManager;
+    private readonly SignInManager<Person> _signInManager;
     private readonly IConfiguration _configuration;
 
     public AuthController(
-        UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager,
+        UserManager<Person> userManager,
+        SignInManager<Person> signInManager,
         IConfiguration configuration)
     {
         _userManager = userManager;
@@ -35,10 +36,13 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "User already exists" });
         }
 
-        var user = new IdentityUser
+        var user = new Referee
         {
             UserName = dto.Email,
-            Email = dto.Email
+            Email = dto.Email,
+
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -126,6 +130,8 @@ public class RegisterDto
 {
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string FirstName {get;set;} = string.Empty;
+    public string LastName {get;set;} = string.Empty;
 }
 
 public class LoginDto
