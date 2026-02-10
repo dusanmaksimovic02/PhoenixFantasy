@@ -1,6 +1,8 @@
+import axios from "axios";
 import { useAuth } from "../../context/auth/useAuth";
 import { useState, type FC } from "react";
 import { z } from "zod";
+import { toast } from "react-toastify";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -17,16 +19,16 @@ type FormData = z.infer<typeof formSchema>;
 const ProfileInfo: FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { user } = useAuth();
+  const { user, role, id } = useAuth();
 
   const [profile, setProfile] = useState<FormData>({
     email: user!.email,
-    username: user!.username,
-    name: user!.name,
-    surname: user!.surname,
-    birthDate: user!.birthDate.toString(),
+    username: user!.userName,
+    name: user!.firstName,
+    surname: user!.lastName,
+    birthDate: new Date().toDateString(),
     gender: user!.gender,
-    phoneNumber: user!.phone,
+    phoneNumber: user!.phoneNumber,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +36,7 @@ const ProfileInfo: FC = () => {
     setProfile((p) => ({ ...p, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const result = formSchema.safeParse(profile);
 
     if (!result.success) {
@@ -46,8 +48,35 @@ const ProfileInfo: FC = () => {
       return;
     }
 
-    setErrors({});
-    setIsEditing(false);
+    try {
+      await axios.put("http://localhost:5086/Referee/UpdateReferee/", {
+        userName: profile.username,
+        email: profile.email,
+        firstName: profile.name,
+        lastName: profile.surname,
+        // "birthDate": profile.birthDate,
+        // "gender": profile.gender,
+        phoneNumber: profile.phoneNumber,
+        id: user!.id,
+      });
+
+      toast.success("Profile updated successfully!");
+
+      try {
+        const res = await axios.get(
+          `http://localhost:5086/${role}/Get${role}ById/${id}`,
+        );
+        localStorage.setItem("user", JSON.stringify(res.data));
+      } catch (e) {
+        console.log("Error getting user data: ", e);
+      }
+
+      setErrors({});
+      setIsEditing(false);
+    } catch (e) {
+      toast.error("Update failed!");
+      console.log("Update failed: " + e);
+    }
   };
 
   return (

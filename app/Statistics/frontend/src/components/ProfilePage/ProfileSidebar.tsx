@@ -13,47 +13,47 @@ const PROFILE_TABS: ProfileTab[] = [
   {
     key: "#info",
     label: "Profile info",
-    roles: ["referee", "manager", "admin"],
+    roles: ["Referee", "Manager", "A`dmin"],
   },
   {
     key: "#security",
     label: "Change password",
-    roles: ["referee", "manager", "admin"],
+    roles: ["Referee", "Manager", "Admin"],
   },
   {
     key: "#your-matches",
     label: "Your matches",
-    roles: ["referee"],
+    roles: ["Referee"],
   },
   {
     key: "#all-games",
     label: "All Games",
-    roles: ["manager", "admin"],
+    roles: ["Manager", "Admin"],
   },
   {
     key: "#all-manager",
     label: "All Manager",
-    roles: ["admin"],
+    roles: ["Admin"],
   },
   {
     key: "#all-referees",
     label: "All Referees",
-    roles: ["manager", "admin"],
+    roles: ["Manager", "Admin"],
   },
   {
     key: "#add-referee",
     label: "Add referee",
-    roles: ["manager", "admin"],
+    roles: ["Manager", "Admin"],
   },
   {
     key: "#add-manager",
     label: "Add manager",
-    roles: ["admin"],
+    roles: ["Admin"],
   },
   {
     key: "#add-game",
     label: "Add game",
-    roles: ["admin", "manager"],
+    roles: ["Admin", "Manager"],
   },
 ];
 
@@ -119,7 +119,7 @@ const ProfileSidebar: FC = () => {
             bg-red-500/80 hover:bg-red-600
             text-white font-semibold transition cursor-pointer
           "
-            onClick={logout}
+            onClick={() => logout(false)}
           >
             <FiLogOut />
             Logout

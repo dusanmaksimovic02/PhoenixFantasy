@@ -65,6 +65,13 @@ public class RefereeController : ControllerBase
         {
             var refereeUpdate = await context.Referees.FirstOrDefaultAsync(x => x.Id == referee.Id) ?? throw new Exception
             ($"Referee with Id {referee.Id} doesn't exist");
+
+            refereeUpdate.FirstName = referee.FirstName;
+            refereeUpdate.LastName = referee.LastName;
+            refereeUpdate.Email = referee.Email;    
+            refereeUpdate.UserName = referee.UserName;
+            refereeUpdate.PhoneNumber = referee.PhoneNumber;
+
             context.Referees.Update(refereeUpdate);
             await context.SaveChangesAsync();
             return Ok($"Referee with Id {referee.Id} updated succesfuly");

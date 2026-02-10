@@ -1,7 +1,7 @@
 import type { LoginUser, User } from "@/models/User";
-// import axios from "axios";
+import axios from "axios";
 
-// const API_URL = "http://localhost:5104/api/Auth/";
+const API_URL = "http://localhost:5086/api/Auth/";
 
 const register = async (user: User) => {
   try {
@@ -9,7 +9,7 @@ const register = async (user: User) => {
       user: user,
       token: "!232e6532e5",
       role: "referee",
-      id: "1"
+      id: "1",
     };
     return data;
   } catch (e) {
@@ -19,7 +19,11 @@ const register = async (user: User) => {
 
 const login = async (user: LoginUser) => {
   try {
-    return user;
+    const data = await axios.post(API_URL + "login", {
+      email: user.username,
+      password: user.password,
+    });
+    return data;
   } catch (e) {
     console.log(e);
   }

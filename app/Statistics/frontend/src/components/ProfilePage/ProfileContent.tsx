@@ -12,39 +12,39 @@ import AddGame from "./AddGame";
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
     component: <ProfileInfo />,
-    roles: ["referee", "admin", "manager"],
+    roles: ["Referee", "Admin", "Manager"],
   },
   "#security": {
     component: <ChangePassword />,
-    roles: ["referee", "admin", "manager"],
+    roles: ["Referee", "Admin", "Manager"],
   },
   "#your-matches": {
     component: <YourMatches />,
-    roles: ["referee"],
+    roles: ["Referee"],
   },
   "#all-games": {
     component: <AllGames />,
-    roles: ["manager", "admin"],
+    roles: ["Manager", "Admin"],
   },
   "#all-referees": {
     component: <AllReferees />,
-    roles: ["manager", "admin"],
+    roles: ["Manager", "Admin"],
   },
   "#all-manager": {
     component: <AllManager />,
-    roles: ["admin"],
+    roles: ["Admin"],
   },
   "#add-referee": {
     component: <AddReferee />,
-    roles: ["admin", "manager"],
+    roles: ["Admin", "Manager"],
   },
   "#add-manager": {
     component: <AddManager />,
-    roles: ["admin"],
+    roles: ["Admin"],
   },
   "#add-game": {
     component: <AddGame />,
-    roles: ["admin"],
+    roles: ["Admin"],
   },
 };
 

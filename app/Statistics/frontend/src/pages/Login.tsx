@@ -98,7 +98,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
 const Login: FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { login } = useAuth();
+  const { loginUser } = useAuth();
 
   const {
     register,
@@ -115,8 +115,8 @@ const Login: FC = () => {
   const navigate = useNavigate();
 
   function onSubmit(data: FormInputs) {
-    console.log(data);
-    login(data);
+    // console.log(data);
+    loginUser(data);
   }
 
   const nameError = errors.username?.message;
