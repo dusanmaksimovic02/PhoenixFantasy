@@ -13,40 +13,42 @@ namespace StatsApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UserManager<Person> _userManager;
-    private readonly SignInManager<Person> _signInManager;
     private readonly IConfiguration _configuration;
 
     public AuthController(
         UserManager<Person> userManager,
-        SignInManager<Person> signInManager,
         IConfiguration configuration)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _configuration = configuration;
     }
 
-
-    [HttpPost("register")]
+    [HttpPost("Register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
-        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+        var existingUser = await _userManager.FindByNameAsync(dto.UserName);
         if (existingUser != null)
         {
-            return BadRequest(new { message = "User already exists" });
+            return BadRequest(new { message = "Username already exists" });
+        }
+
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingEmail != null)
+        {
+            return BadRequest(new { message = "Email already exists" });
         }
 
         var user = new Referee
         {
-            UserName = dto.Email,
+            UserName = dto.UserName,
             Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
 
             FirstName = dto.FirstName,
-            LastName = dto.LastName,
+            LastName = dto.LastName
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
-
         if (!result.Succeeded)
         {
             return BadRequest(result.Errors);
@@ -60,19 +62,16 @@ public class AuthController : ControllerBase
         });
     }
 
-
-    [HttpPost("login")]
+    [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var user = await _userManager.FindByEmailAsync(dto.Email);
+        var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user == null)
         {
             return Unauthorized(new { message = "Invalid credentials" });
         }
 
-        var passwordValid = await _userManager
-            .CheckPasswordAsync(user, dto.Password);
-
+        var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordValid)
         {
             return Unauthorized(new { message = "Invalid credentials" });
@@ -84,32 +83,58 @@ public class AuthController : ControllerBase
         return Ok(new
         {
             token,
-            roles
+            roles,
+            userId = user.Id,
+            username = user.UserName
         });
     }
 
+    [HttpPut("ChangeUserRole")]
+    public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
 
-    private string GenerateJwtToken(
-        IdentityUser user,
-        IList<string> roles)
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        if (currentRoles.Any())
+        {
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        }
+
+        var result = await _userManager.AddToRoleAsync(user, dto.NewRole);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(new
+        {
+            message = $"Role successfully changed to {dto.NewRole}"
+        });
+    }
+
+    private string GenerateJwtToken(Person user, IList<string> roles)
     {
         var claims = new List<Claim>
         {
             new Claim("id", user.Id),
-            new Claim("email", user.Email!)
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(ClaimTypes.Email, user.Email!)
         };
 
         foreach (var role in roles)
         {
-            claims.Add(new Claim("role", role));
+            claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
         );
 
-        var creds = new SigningCredentials(
-            key, SecurityAlgorithms.HmacSha256);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
@@ -125,17 +150,26 @@ public class AuthController : ControllerBase
     }
 }
 
-
 public class RegisterDto
 {
+    public string UserName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string FirstName {get;set;} = string.Empty;
-    public string LastName {get;set;} = string.Empty;
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
+    public DateTime BirthDate { get; set; }
 }
 
 public class LoginDto
 {
-    public string Email { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+}
+
+public class ChangeUserRoleDto
+{
+    public string UserId { get; set; } = string.Empty;
+    public string NewRole { get; set; } = string.Empty;
 }

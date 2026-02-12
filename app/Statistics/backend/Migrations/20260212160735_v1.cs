@@ -252,7 +252,8 @@ namespace backend.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CoachId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    TechnicalFouls = table.Column<int>(type: "int", nullable: true),
+                    CoachTechnicalFouls = table.Column<int>(type: "int", nullable: true),
+                    BenchTechnicalFouls = table.Column<int>(type: "int", nullable: true),
                     Difference = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>

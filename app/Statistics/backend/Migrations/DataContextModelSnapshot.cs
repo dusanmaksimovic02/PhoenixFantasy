@@ -221,17 +221,20 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("BenchTechnicalFouls")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("CoachId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CoachTechnicalFouls")
+                        .HasColumnType("int");
 
                     b.Property<int?>("Difference")
                         .HasColumnType("int");
 
                     b.Property<Guid?>("GameId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("TechnicalFouls")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

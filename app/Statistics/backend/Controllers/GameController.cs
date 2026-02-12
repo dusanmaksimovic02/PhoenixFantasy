@@ -125,4 +125,106 @@ public class GameController : ControllerBase
         }
     }
 
+    [HttpPost("StartGame")]
+    public async Task<IActionResult> StartGame([FromBody] StartGameDto dto)
+    {
+        try
+        {
+            if (dto.HomeTeamPlayerIds.Count > 12 || dto.GuestTeamPlayerIds.Count > 12)
+                return BadRequest("Maximum 12 players per team allowed");
+
+            if (dto.HomeStartersIds.Count != 5 || dto.GuestStartersIds.Count != 5)
+                return BadRequest("Each team must have exactly 5 starters");
+
+            if (!dto.HomeStartersIds.All(id => dto.HomeTeamPlayerIds.Contains(id)) ||
+                !dto.GuestStartersIds.All(id => dto.GuestTeamPlayerIds.Contains(id)))
+                return BadRequest("Starters must be selected from team players");
+
+            var game = await context.Games
+                .Include(g => g.HomeTeam)
+                .Include(g => g.GuestTeam)
+                .FirstOrDefaultAsync(g => g.Id == dto.GameId)
+                ?? throw new Exception("Game not found");
+
+            var alreadyStarted = await context.PlayerGameStats
+                .AnyAsync(pgs => pgs.Game!.Id == game.Id);
+
+            if (alreadyStarted)
+                return BadRequest("Game already started");
+
+            var allPlayerIds = dto.HomeTeamPlayerIds
+                .Concat(dto.GuestTeamPlayerIds)
+                .Distinct()
+                .ToList();
+
+            var players = await context.Players
+                .Where(p => allPlayerIds.Contains(p.Id))
+                .ToListAsync();
+
+            var stats = new List<PlayerGameStats>();
+
+            foreach (var player in players)
+            {
+                bool isStarter =
+                    dto.HomeStartersIds.Contains(player.Id) ||
+                    dto.GuestStartersIds.Contains(player.Id);
+
+                stats.Add(new PlayerGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    Game = game,
+                    Player = player,
+                    IsStarter = isStarter,
+                    SecondsPlayed = 0,
+
+                    Points = 0,
+                    Made1p = 0,
+                    Miss1p = 0,
+                    Made2p = 0,
+                    Miss2p = 0,
+                    Made3p = 0,
+                    Miss3p = 0,
+                    Assists = 0,
+                    Rebounds = 0,
+                    OffensiveRebounds = 0,
+                    DefensiveRebounds = 0,
+                    Steals = 0,
+                    Turnovers = 0,
+                    Pir = 0,
+                    PersonalFouls = 0,
+                    RecievedFouls = 0,
+                    Blocks = 0,
+                    RecievedBlocks = 0,
+                    TechnicalFouls = 0
+                });
+            }
+
+            context.PlayerGameStats.AddRange(stats);
+            await context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Game started successfully",
+                homePlayers = dto.HomeTeamPlayerIds.Count,
+                guestPlayers = dto.GuestTeamPlayerIds.Count
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+
+}
+
+public class StartGameDto
+{
+    public Guid GameId { get; set; }
+
+    public List<Guid> HomeTeamPlayerIds { get; set; } = new();
+    public List<Guid> HomeStartersIds { get; set; } = new();
+
+    public List<Guid> GuestTeamPlayerIds { get; set; } = new();
+    public List<Guid> GuestStartersIds { get; set; } = new();
 }
