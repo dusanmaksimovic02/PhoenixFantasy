@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
 using StatsApi.Models;
 
@@ -9,93 +9,96 @@ namespace StatsApi.Controllers;
 [Route("[controller]")]
 public class AdminController : ControllerBase
 {
-    private DataContext context { get; set; }
+    private readonly DataContext _context;
+    private readonly UserManager<Person> _userManager;
 
-    public AdminController(DataContext context)
+    public AdminController(DataContext context, UserManager<Person> userManager)
     {
-        this.context = context;
+        _context = context;
+        _userManager = userManager;
     }
 
     [HttpGet("GetAdminById/{id}")]
     public async Task<IActionResult> GetAdminById(string id)
     {
-        try
-        {
-            var admin = await context.Admins.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
-            ($"Admin with Id {id} doesn't exist");
-            return Ok(admin);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+            return NotFound($"User with Id {id} not found");
+
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+        if (!isAdmin)
+            return BadRequest("User is not an Admin");
+
+        return Ok(user);
     }
+
     [HttpGet("GetAdmins")]
     public async Task<IActionResult> GetAdmins()
     {
-        try
-        {
-            var admins = await context.Admins.ToListAsync();
-            return Ok(admins);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var admins = await _userManager.GetUsersInRoleAsync("Admin");
+        return Ok(admins);
     }
+
     [HttpPost("AddAdmin")]
-    public async Task<ActionResult<Admin>> AddAdmin([FromBody] Admin admin)
+    public async Task<IActionResult> AddAdmin([FromBody] RegisterDto dto)
     {
-        try
+        var user = new Person
         {
-            context.Admins.Add(admin);
-            await context.SaveChangesAsync();
-            return Ok(admin);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+            UserName = dto.UserName,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        await _userManager.AddToRoleAsync(user, "Admin");
+
+        return Ok(user);
     }
 
     [HttpPut("UpdateAdmin")]
-    public async Task<ActionResult<Admin>> UpdateAdmin([FromBody] Admin admin)
+    public async Task<IActionResult> UpdateAdmin([FromBody] Person updatedUser)
     {
-        try
-        {
-            var adminUpdate = await context.Admins.FirstOrDefaultAsync(x => x.Id == admin.Id) ?? throw new Exception
-            ($"Referee with Id {admin.Id} doesn't exist");
+        var user = await _userManager.FindByIdAsync(updatedUser.Id);
+        if (user == null)
+            return NotFound($"User with Id {updatedUser.Id} not found");
 
-            adminUpdate.FirstName = admin.FirstName;
-            adminUpdate.LastName = admin.LastName;
-            adminUpdate.Email = admin.Email;    
-            adminUpdate.UserName = admin.UserName;
-            adminUpdate.PhoneNumber = admin.PhoneNumber;
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+        if (!isAdmin)
+            return BadRequest("User is not an Admin");
 
-            context.Admins.Update(adminUpdate);
-            await context.SaveChangesAsync();
-            return Ok($"Admin with Id {admin.Id} updated succesfuly");
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        user.FirstName = updatedUser.FirstName;
+        user.LastName = updatedUser.LastName;
+        user.Email = updatedUser.Email;
+        user.UserName = updatedUser.UserName;
+        user.PhoneNumber = updatedUser.PhoneNumber;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok($"Admin with Id {user.Id} updated successfully");
     }
 
-    [HttpDelete("DeleteADmin/{id}")]
-    public async Task<ActionResult<Admin>> DeleteAdmin(string id)
+    [HttpDelete("DeleteAdmin/{id}")]
+    public async Task<IActionResult> DeleteAdmin(string id)
     {
-        try
-        {
-            var admin = await context.Admins.FindAsync(id) ?? throw new Exception
-            ($"Admin with Id {id} doesn't exist");
-            context.Admins.Remove(admin!);
-            await context.SaveChangesAsync();
-            return Ok(admin);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+            return NotFound($"User with Id {id} not found");
+
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+        if (!isAdmin)
+            return BadRequest("User is not an Admin");
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok($"Admin with Id {id} deleted successfully");
     }
 }

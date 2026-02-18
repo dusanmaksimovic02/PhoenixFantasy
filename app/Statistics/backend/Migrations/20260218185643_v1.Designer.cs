@@ -12,7 +12,7 @@ using StatsApi.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260212160735_v1")]
+    [Migration("20260218185643_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -292,11 +292,6 @@ namespace backend.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -364,10 +359,6 @@ namespace backend.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Person");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("StatsApi.Models.Player", b =>
@@ -502,27 +493,6 @@ namespace backend.Migrations
                     b.ToTable("Teams");
                 });
 
-            modelBuilder.Entity("StatsApi.Models.Admin", b =>
-                {
-                    b.HasBaseType("StatsApi.Models.Person");
-
-                    b.HasDiscriminator().HasValue("Admin");
-                });
-
-            modelBuilder.Entity("StatsApi.Models.Manager", b =>
-                {
-                    b.HasBaseType("StatsApi.Models.Person");
-
-                    b.HasDiscriminator().HasValue("Manager");
-                });
-
-            modelBuilder.Entity("StatsApi.Models.Referee", b =>
-                {
-                    b.HasBaseType("StatsApi.Models.Person");
-
-                    b.HasDiscriminator().HasValue("Referee");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -599,7 +569,7 @@ namespace backend.Migrations
                         .WithMany()
                         .HasForeignKey("HomeTeamId");
 
-                    b.HasOne("StatsApi.Models.Referee", "Referee")
+                    b.HasOne("StatsApi.Models.Person", "Referee")
                         .WithMany()
                         .HasForeignKey("RefereeId");
 

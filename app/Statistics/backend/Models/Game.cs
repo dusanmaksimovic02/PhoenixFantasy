@@ -10,5 +10,5 @@ public class Game
     public Team? GuestTeam { get; set; }
     public DateTime dateTime { get; set; }
     public string? Venue { get; set; }
-    public Referee? Referee { get; set; }
+    public Person? Referee { get; set; }
 }

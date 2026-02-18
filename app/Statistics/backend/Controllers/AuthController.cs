@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Email already exists" });
         }
 
-        var user = new Referee
+        var user = new Person
         {
             UserName = dto.UserName,
             Email = dto.Email,

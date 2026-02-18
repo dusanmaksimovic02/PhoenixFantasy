@@ -102,7 +102,7 @@ public class GameController : ControllerBase
                 .FirstOrDefaultAsync(g => g.Id == gameId)
                 ?? throw new Exception($"Game with Id {gameId} doesn't exist");
 
-            var referee = await context.Referees
+            var referee = await context.Persons
                 .FirstOrDefaultAsync(r => r.Id == refereeId)
                 ?? throw new Exception($"Referee with Id {refereeId} doesn't exist");
 

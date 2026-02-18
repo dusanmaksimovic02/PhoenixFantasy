@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
@@ -9,101 +10,96 @@ namespace StatsApi.Controllers;
 [Route("[controller]")]
 public class ManagerController : ControllerBase
 {
-    private DataContext context { get; set; }
+    private readonly DataContext _context;
+    private readonly UserManager<Person> _userManager;
 
-    public ManagerController(DataContext context)
+    public ManagerController(DataContext context, UserManager<Person> userManager)
     {
-        this.context = context;
+        _context = context;
+        _userManager = userManager;
     }
 
     [HttpGet("GetManagerById/{id}")]
     public async Task<IActionResult> GetManagerById(string id)
     {
-        try
-        {
-            var manager = await context.Managers
-                .FirstOrDefaultAsync(x => x.Id.ToString() == id)
-                ?? throw new Exception($"Manager with Id {id} doesn't exist");
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+            return NotFound($"User with Id {id} not found");
 
-            return Ok(manager);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+        if (!isManager)
+            return BadRequest("User is not a Manager");
+
+        return Ok(user);
     }
 
     [HttpGet("GetManagers")]
     public async Task<IActionResult> GetManagers()
     {
-        try
-        {
-            var managers = await context.Managers.ToListAsync();
-            return Ok(managers);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var managers = await _userManager.GetUsersInRoleAsync("Manager");
+        return Ok(managers);
     }
 
     [HttpPost("AddManager")]
-    public async Task<ActionResult<Manager>> AddManager([FromBody] Manager manager)
+    public async Task<IActionResult> AddManager([FromBody] RegisterDto dto)
     {
-        try
+        var user = new Person
         {
-            context.Managers.Add(manager);
-            await context.SaveChangesAsync();
-            return Ok(manager);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+            UserName = dto.UserName,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        await _userManager.AddToRoleAsync(user, "Manager");
+
+        return Ok(user);
     }
 
     [HttpPut("UpdateManager")]
-    public async Task<ActionResult> UpdateManager([FromBody] Manager manager)
+    public async Task<IActionResult> UpdateManager([FromBody] Person updatedUser)
     {
-        try
-        {
-            var managerUpdate = await context.Managers
-                .FirstOrDefaultAsync(x => x.Id == manager.Id)
-                ?? throw new Exception($"Manager with Id {manager.Id} doesn't exist");
+        var user = await _userManager.FindByIdAsync(updatedUser.Id);
+        if (user == null)
+            return NotFound($"User with Id {updatedUser.Id} not found");
 
-            managerUpdate.FirstName = manager.FirstName;
-            managerUpdate.LastName = manager.LastName;
-            managerUpdate.Email = manager.Email;
-            managerUpdate.UserName = manager.UserName;
-            managerUpdate.PhoneNumber = manager.PhoneNumber;
+        var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+        if (!isManager)
+            return BadRequest("User is not a Manager");
 
-            context.Managers.Update(managerUpdate);
-            await context.SaveChangesAsync();
+        user.FirstName = updatedUser.FirstName;
+        user.LastName = updatedUser.LastName;
+        user.Email = updatedUser.Email;
+        user.UserName = updatedUser.UserName;
+        user.PhoneNumber = updatedUser.PhoneNumber;
 
-            return Ok($"Manager with Id {manager.Id} updated successfully");
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok($"Manager with Id {user.Id} updated successfully");
     }
 
     [HttpDelete("DeleteManager/{id}")]
-    public async Task<ActionResult<Manager>> DeleteManager(string id)
+    public async Task<IActionResult> DeleteManager(string id)
     {
-        try
-        {
-            var manager = await context.Managers.FindAsync(id)
-                ?? throw new Exception($"Manager with Id {id} doesn't exist");
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+            return NotFound($"User with Id {id} not found");
 
-            context.Managers.Remove(manager);
-            await context.SaveChangesAsync();
+        var isManager = await _userManager.IsInRoleAsync(user, "Manager");
+        if (!isManager)
+            return BadRequest("User is not a Manager");
 
-            return Ok(manager);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok($"Manager with Id {id} deleted successfully");
     }
 }

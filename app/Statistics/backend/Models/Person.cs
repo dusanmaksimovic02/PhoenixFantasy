@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace StatsApi.Models;
 
-public abstract class Person : IdentityUser
+public class Person : IdentityUser
 {
     [MaxLength(30)]
     public required string FirstName { get; set; }

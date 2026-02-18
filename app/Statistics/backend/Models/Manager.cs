@@ -1,6 +1,6 @@
 namespace StatsApi.Models;
 
-public class Manager : Person
+/*public class Manager : Person
 {
     
-}
+}*/

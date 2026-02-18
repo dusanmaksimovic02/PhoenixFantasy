@@ -21,7 +21,7 @@ public class RefereeController : ControllerBase
     {
         try
         {
-            var referee = await context.Referees.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
+            var referee = await context.Persons.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
             ($"Referee with Id {id} doesn't exist");
             return Ok(referee);
         }
@@ -35,7 +35,7 @@ public class RefereeController : ControllerBase
     {
         try
         {
-            var referees = await context.Referees.ToListAsync();
+            var referees = await context.Persons.ToListAsync();
             return Ok(referees);
         }
         catch (Exception e)
@@ -44,11 +44,11 @@ public class RefereeController : ControllerBase
         }
     }
     [HttpPost("AddReferee")]
-    public async Task<ActionResult<Referee>> AddReferee([FromBody] Referee referee)
+    public async Task<ActionResult<Person>> AddReferee([FromBody] Person referee)
     {
         try
         {
-            context.Referees.Add(referee);
+            context.Persons.Add(referee);
             await context.SaveChangesAsync();
             return Ok(referee);
         }
@@ -59,11 +59,11 @@ public class RefereeController : ControllerBase
     }
 
     [HttpPut("UpdateReferee")]
-    public async Task<ActionResult<Referee>> UpdateReferee([FromBody] Referee referee)
+    public async Task<ActionResult<Person>> UpdateReferee([FromBody] Person referee)
     {
         try
         {
-            var refereeUpdate = await context.Referees.FirstOrDefaultAsync(x => x.Id == referee.Id) ?? throw new Exception
+            var refereeUpdate = await context.Persons.FirstOrDefaultAsync(x => x.Id == referee.Id) ?? throw new Exception
             ($"Referee with Id {referee.Id} doesn't exist");
 
             refereeUpdate.FirstName = referee.FirstName;
@@ -72,7 +72,7 @@ public class RefereeController : ControllerBase
             refereeUpdate.UserName = referee.UserName;
             refereeUpdate.PhoneNumber = referee.PhoneNumber;
 
-            context.Referees.Update(refereeUpdate);
+            context.Persons.Update(refereeUpdate);
             await context.SaveChangesAsync();
             return Ok($"Referee with Id {referee.Id} updated succesfuly");
         }
@@ -83,13 +83,13 @@ public class RefereeController : ControllerBase
     }
 
     [HttpDelete("DeleteReferee/{id}")]
-    public async Task<ActionResult<Referee>> DeleteReferee(string id)
+    public async Task<ActionResult<Person>> DeleteReferee(string id)
     {
         try
         {
-            var referee = await context.Referees.FindAsync(id) ?? throw new Exception
+            var referee = await context.Persons.FindAsync(id) ?? throw new Exception
             ($"Referee with Id {id} doesn't exist");
-            context.Referees.Remove(referee!);
+            context.Persons.Remove(referee!);
             await context.SaveChangesAsync();
             return Ok(referee);
         }
@@ -100,7 +100,7 @@ public class RefereeController : ControllerBase
     }
     
     [HttpGet("GetAllFreeReferees/{date}")]
-    public async Task<ActionResult<IEnumerable<Referee>>> GetAllFreeReferees(DateTime date)
+    public async Task<ActionResult<IEnumerable<Person>>> GetAllFreeReferees(DateTime date)
     {
         try
         {
@@ -109,7 +109,7 @@ public class RefereeController : ControllerBase
                 .Select(g => g.Referee!.Id)
                 .ToListAsync();
 
-            var freeReferees = await context.Referees
+            var freeReferees = await context.Persons
                 .Where(r => !busyRefereeIds.Contains(r.Id))
                 .ToListAsync();
 
@@ -126,7 +126,7 @@ public class RefereeController : ControllerBase
     {
         try
         {
-            var refereeExists = await context.Referees
+            var refereeExists = await context.Persons
                 .AnyAsync(r => r.Id == refereeId);
 
             if (!refereeExists)
