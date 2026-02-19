@@ -62,19 +62,58 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("RegisterWithRole")]
+    public async Task<IActionResult> RegisterWithRole(RegisterWithRoleDto dto)
+    {
+        var existingUser = await _userManager.FindByNameAsync(dto.UserName);
+        if (existingUser != null)
+        {
+            return BadRequest(new { message = "Username already exists" });
+        }
+
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingEmail != null)
+        {
+            return BadRequest(new { message = "Email already exists" });
+        }
+
+        var user = new Person
+        {
+            UserName = dto.UserName,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        await _userManager.AddToRoleAsync(user, dto.Role);
+
+        return Ok(new
+        {
+            message = "User registered successfully"
+        });
+    }
+
     [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
         var user = await _userManager.FindByNameAsync(dto.UserName);
         if (user == null)
         {
-            return Unauthorized(new { message = "Invalid credentials" });
+            return Unauthorized(new { message = "Invalid username" });
         }
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordValid)
         {
-            return Unauthorized(new { message = "Invalid credentials" });
+            return Unauthorized(new { message = "Invalid password" });
         }
 
         var roles = await _userManager.GetRolesAsync(user);
@@ -121,13 +160,13 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new Claim("id", user.Id),
-            new Claim(ClaimTypes.Name, user.UserName!),
-            new Claim(ClaimTypes.Email, user.Email!)
+            new Claim("username", user.UserName!),
+            new Claim("email", user.Email!)
         };
 
         foreach (var role in roles)
         {
-            claims.Add(new Claim(ClaimTypes.Role, role));
+            claims.Add(new Claim("role", role));
         }
 
         var key = new SymmetricSecurityKey(
@@ -160,6 +199,11 @@ public class RegisterDto
     public string LastName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public DateTime BirthDate { get; set; }
+}
+
+public class RegisterWithRoleDto : RegisterDto
+{
+    public string Role { get; set; } = string.Empty;
 }
 
 public class LoginDto

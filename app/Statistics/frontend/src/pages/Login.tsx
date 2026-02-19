@@ -93,7 +93,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         )}
       </label>
     );
-  }
+  },
 );
 
 const Login: FC = () => {
@@ -132,6 +132,7 @@ const Login: FC = () => {
           initial="initial"
           animate="animate"
           exit="exit"
+          key={location.pathname}
         >
           <div className="w-screen h-screen relative bg-center translate-y-8 bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center max-sm:w-100 max-sm:h-125">
             <form
@@ -181,15 +182,15 @@ const Login: FC = () => {
             </form>
           </div>
         </motion.div>
-        <button
-          className="cursor-pointer border-2 p-2 text-white rounded-md border-black hover:border-black bg-black/30 absolute right-5 bottom-5 hover:bg-black/50"
-          onClick={() => {
-            navigate("/");
-          }}
-        >
-          Go home
-        </button>
       </AnimatePresence>
+      <button
+        className="cursor-pointer border-2 p-2 text-white rounded-md border-black hover:border-black bg-black/30 absolute right-5 bottom-5 hover:bg-black/50"
+        onClick={() => {
+          navigate("/");
+        }}
+      >
+        Go home
+      </button>
     </div>
   );
 };

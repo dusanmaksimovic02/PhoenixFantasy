@@ -1,7 +1,9 @@
-import type { User } from "@/models/User";
-import { useState, type FC } from "react";
+import type { User } from "../../models/User";
+import { deleteManager, getMangers } from "../../services/api";
+import { useEffect, useState, type FC } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
+import Loading from "../Loading";
 
 const tableHead = [
   "Id",
@@ -11,144 +13,61 @@ const tableHead = [
   "Email",
   "BirthDate",
   "Phone",
-  "Gender",
   "Role",
   "",
 ];
 
 const AllManager: FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [managers, setManagers] = useState<User[]>([]);
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
 
-  const referees: User[] = [
-    {
-      id: "1",
-      email: "referee1@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "1",
-      username: "referee1",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "2",
-      email: "referee2@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "2",
-      username: "referee2",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "3",
-      email: "referee3@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "3",
-      username: "referee3",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "4",
-      email: "referee4@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "4",
-      username: "referee4",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "5",
-      email: "referee5@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "5",
-      username: "referee5",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "6",
-      email: "referee6@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "6",
-      username: "referee6",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "7",
-      email: "referee7@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "7",
-      username: "referee7",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "8",
-      email: "referee8@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "8",
-      username: "referee8",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "9",
-      email: "referee9@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "9",
-      username: "referee9",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-    {
-      id: "10",
-      email: "referee10@gmail.com",
-      password: "#Sifra123",
-      name: "Referee",
-      surname: "10",
-      username: "referee10",
-      birthDate: new Date(),
-      phone: "+381646353265",
-      gender: "male",
-      role: "referee",
-    },
-  ];
+  useEffect(() => {
+    const fetchManagers = async () => {
+      setIsLoading(true);
+      try {
+        const res = await getMangers();
+        if (res?.data) {
+          setManagers(res.data);
+        }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchManagers();
+  }, []);
 
-  const handleDeleteClick = () => {
-    toast.success("You deleted manager successfully!");
-    setIsOpen(false);
+  const handleDeleteClick = async () => {
+    if (selectedManagerId == "") return;
+
+    setIsLoading(true);
+    try {
+      const res = await deleteManager(selectedManagerId);
+      if (res?.status === 200) {
+        toast.success("Manager deleted successfully");
+        setManagers((prev) => prev.filter((m) => m.id !== selectedManagerId));
+      } else if (res?.status === 404) {
+        toast.error("Manager not found.");
+      } else if (res?.status === 400) {
+        toast.error("Cannot delete this manager.");
+      } else {
+        toast.error("Failed to delete manager. Please try again later.");
+      }
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to delete manager. Please try again later.");
+    } finally {
+      setIsLoading(false);
+      setIsOpen(false);
+      setSelectedManagerId("");
+    }
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <h3 className="text-center">All Managers</h3>
       <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
         <table className="w-full">
@@ -162,22 +81,29 @@ const AllManager: FC = () => {
             </tr>
           </thead>
           <tbody className="text-sm text-black dark:text-white ">
-            {referees.map((user: User) => (
+            {managers.map((user: User) => (
               <tr
                 key={user.id}
                 className="border-[3px] border-surface whitespace-nowrap"
               >
                 <td className="p-3">{user.id}</td>
-                <td className="p-3 ">{user.name}</td>
-                <td className="p-3">{user.surname}</td>
-                <td className="p-3">{user.username}</td>
+                <td className="p-3 ">{user.firstName}</td>
+                <td className="p-3">{user.lastName}</td>
+                <td className="p-3">{user.userName}</td>
                 <td className="p-3">{user.email}</td>
-                <td className="p-3">{user.birthDate.toString()}</td>
-                <td className="p-3">{user.phone}</td>
-                <td className="p-3">{user.gender}</td>
+                <td className="p-3">{""}</td>
+                <td className="p-3">{user.phoneNumber}</td>
                 <td className="p-3">{user.role}</td>
-                <td className="p-3" onClick={() => setIsOpen(true)}>
-                  {<FaTrashAlt className="text-error cursor-pointer" />}
+                <td className="p-3">
+                  {
+                    <FaTrashAlt
+                      onClick={() => {
+                        setSelectedManagerId(user.id);
+                        setIsOpen(true);
+                      }}
+                      className="text-error cursor-pointer"
+                    />
+                  }
                 </td>
               </tr>
             ))}
@@ -216,6 +142,7 @@ const AllManager: FC = () => {
           </div>
         </dialog>
       </div>
+      {isLoading && <Loading />}
     </div>
   );
 };

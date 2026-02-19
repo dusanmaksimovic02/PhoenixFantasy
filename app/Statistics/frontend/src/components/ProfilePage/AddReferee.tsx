@@ -1,13 +1,27 @@
+import { register } from "../../services/AuthService";
 import { useState, type FC } from "react";
+import { toast } from "react-toastify";
 import { z } from "zod";
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email"),
   username: z.string(),
+  email: z.string().email("Invalid email"),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .regex(/[a-z]/, {
+      message: "Password must include at least one lowercase letter.",
+    })
+    .regex(/[A-Z]/, {
+      message: "Password must include at least one uppercase letter.",
+    })
+    .regex(/[0-9]/, { message: "Password must include at least one number." })
+    .regex(/[@$!%*?&#]/, {
+      message: "Password must include at least one special character.",
+    }),
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
   birthDate: z.string(),
-  gender: z.string(),
   phoneNumber: z.string().regex(/^\+[1-9]\d{6,14}$/, "Invalid phone number"),
 });
 
@@ -22,8 +36,8 @@ const AddReferee: FC = () => {
     name: "",
     surname: "",
     birthDate: Date(),
-    gender: "",
     phoneNumber: "",
+    password: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +45,7 @@ const AddReferee: FC = () => {
     setProfile((p) => ({ ...p, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const result = formSchema.safeParse(profile);
 
     if (!result.success) {
@@ -43,7 +57,34 @@ const AddReferee: FC = () => {
       return;
     }
 
-    setErrors({});
+    try {
+      await register({
+        userName: profile.username,
+        email: profile.email,
+        password: profile.password,
+        firstName: profile.name,
+        lastName: profile.surname,
+        phoneNumber: profile.phoneNumber,
+        birthDate: new Date(profile.birthDate),
+        id: "",
+        role: "",
+      });
+
+      console.log("Referee created!");
+      toast.success("Referee created successfully!");
+      setErrors({});
+      setProfile({
+        email: "",
+        username: "",
+        name: "",
+        surname: "",
+        birthDate: Date(),
+        phoneNumber: "",
+        password: "",
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
   return (
     <div className="w-full max-w-2xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
@@ -54,10 +95,10 @@ const AddReferee: FC = () => {
           [
             ["email", "Email"],
             ["username", "Username"],
+            ["password", "Password"],
             ["name", "Name"],
             ["surname", "Surname"],
             ["birthDate", "Birth date"],
-            ["gender", "Gender"],
             ["phoneNumber", "Phone number"],
           ] as const
         ).map(([key, label]) => (

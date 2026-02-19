@@ -10,7 +10,6 @@ const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
   birthDate: z.string(),
-  gender: z.string(),
   phoneNumber: z.string().regex(/^\+[1-9]\d{6,14}$/, "Invalid phone number"),
 });
 
@@ -27,7 +26,6 @@ const ProfileInfo: FC = () => {
     name: user!.firstName,
     surname: user!.lastName,
     birthDate: new Date().toDateString(),
-    gender: user!.gender,
     phoneNumber: user!.phoneNumber,
   });
 
@@ -54,8 +52,7 @@ const ProfileInfo: FC = () => {
         email: profile.email,
         firstName: profile.name,
         lastName: profile.surname,
-        // "birthDate": profile.birthDate,
-        // "gender": profile.gender,
+        birthDate: profile.birthDate,
         phoneNumber: profile.phoneNumber,
         id: user!.id,
       });
@@ -99,7 +96,6 @@ const ProfileInfo: FC = () => {
               ["name", "Name"],
               ["surname", "Surname"],
               ["birthDate", "Birth date"],
-              ["gender", "Gender"],
               ["phoneNumber", "Phone number"],
             ] as const
           ).map(([key, label]) => (

@@ -6,7 +6,7 @@ import Login from "../pages/Login";
 import Profile from "../pages/Profile";
 import { ProtectedLoader } from "./ProtectedLoader";
 import GamePage from "../pages/GamePage";
-import { LoginLoader } from "./loginLoader";
+import { LoginLoader } from "./LoginLoader";
 
 export const router = createBrowserRouter([
   {

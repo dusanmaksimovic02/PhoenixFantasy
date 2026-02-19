@@ -9,7 +9,7 @@ import {
 } from "react";
 import { toast } from "react-toastify";
 import { AuthContext } from "./AuthContext";
-import { login } from "../../services/AuthService";
+import { getUserData, login } from "../../services/AuthService";
 import { jwtDecode } from "jwt-decode";
 import type { JwtPayload } from "../../models/jwt";
 import axios from "axios";
@@ -205,8 +205,7 @@ export const AuthProvider: FC<Props> = ({ children }) => {
           navigate("/profile");
         })
         .catch((e) => {
-          console.log("LOGIN ERROR" + e);
-          toast.error("Login failed!");
+          console.log("LOGIN ERROR: " + e);
         });
     } catch (e) {
       console.log(e);
@@ -235,13 +234,3 @@ export const AuthProvider: FC<Props> = ({ children }) => {
   );
 };
 
-const getUserData = async (id: string, role: string) => {
-  try {
-    const res = await axios.get(
-      `http://localhost:5086/${role}/Get${role}ById/${id}`,
-    );
-    return res.data;
-  } catch (e) {
-    console.log("Error getting user data: ", e);
-  }
-};

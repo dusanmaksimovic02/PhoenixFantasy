@@ -58,7 +58,7 @@ const ProfileContent: FC<{ section: string }> = ({ section }) => {
   }
 
   return (
-    <div className="rounded-xl mx-10 flex justify-center items-center overflow-auto p-6 mt-20 min-h-[calc(100vh-6rem)] bg-neutral-100 dark:bg-neutral-800">
+    <div className="rounded-xl mx-10 flex justify-center items-center overflow-auto p-6 mt-20 min-h-[calc(100vh-6rem)] ">
       {config.component}
     </div>
   );

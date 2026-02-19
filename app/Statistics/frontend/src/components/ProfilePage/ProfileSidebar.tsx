@@ -13,7 +13,7 @@ const PROFILE_TABS: ProfileTab[] = [
   {
     key: "#info",
     label: "Profile info",
-    roles: ["Referee", "Manager", "A`dmin"],
+    roles: ["Referee", "Manager", "Admin"],
   },
   {
     key: "#security",
