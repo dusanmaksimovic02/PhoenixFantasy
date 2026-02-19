@@ -70,7 +70,7 @@ const AddManager: FC = () => {
         phoneNumber: profile.phoneNumber,
         birthDate: new Date(profile.birthDate),
         id: "",
-        role: "",
+        role: profile.role,
       });
 
       console.log("Manager created!");

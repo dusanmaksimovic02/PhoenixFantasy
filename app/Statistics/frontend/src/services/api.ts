@@ -6,6 +6,7 @@ const API_URL = "http://localhost:5086/";
 export const registerUserWithRole = async (user: User) => {
   try {
     const data = await axios.post(API_URL + "api/Auth/RegisterWithRole", {
+      role: user.role,
       userName: user.userName,
       email: user.email,
       password: user.password,
@@ -13,7 +14,6 @@ export const registerUserWithRole = async (user: User) => {
       lastName: user.lastName,
       phoneNumber: user.phoneNumber,
       birthDate: user.birthDate,
-      role: user.role,
     });
     return data;
   } catch (e) {
