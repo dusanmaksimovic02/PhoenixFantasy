@@ -8,6 +8,12 @@ import AllGames from "./AllGames";
 import AllReferees from "./AllReferees";
 import AllManager from "./AllManager";
 import AddGame from "./AddGame";
+import AddTeam from "./AddTeam";
+import AddPlayer from "./AddPlayer";
+import AddCoach from "./AddCoach";
+import { toast } from "react-toastify";
+import AllCoach from "./AllCoach";
+import AllPlayers from "./AllPlayers";
 
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
@@ -34,6 +40,14 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
     component: <AllManager />,
     roles: ["Admin"],
   },
+  "#all-coaches": {
+    component: <AllCoach />,
+    roles: ["Admin", "Manager"],
+  },
+  "#all-players": {
+    component: <AllPlayers />,
+    roles: ["Admin", "Manager"],
+  },
   "#add-referee": {
     component: <AddReferee />,
     roles: ["Admin", "Manager"],
@@ -46,12 +60,29 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
     component: <AddGame />,
     roles: ["Admin"],
   },
+  "#add-team": {
+    component: <AddTeam />,
+    roles: ["Admin", "Manager"],
+  },
+  "#add-player": {
+    component: <AddPlayer />,
+    roles: ["Admin", "Manager"],
+  },
+  "#add-coach": {
+    component: <AddCoach />,
+    roles: ["Admin", "Manager"],
+  },
 };
 
 const ProfileContent: FC<{ section: string }> = ({ section }) => {
   const role = localStorage.getItem("role");
 
   const config = SECTION_MAP[section];
+
+  if (!config) {
+    toast.error("Invalid section");
+    return <div></div>;
+  }
 
   if (!config.roles.includes(role!)) {
     return;

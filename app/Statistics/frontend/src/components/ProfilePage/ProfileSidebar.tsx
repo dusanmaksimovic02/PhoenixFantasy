@@ -22,7 +22,7 @@ const PROFILE_TABS: ProfileTab[] = [
   },
   {
     key: "#your-matches",
-    label: "Your matches",
+    label: "Your Matches",
     roles: ["Referee"],
   },
   {
@@ -41,18 +41,43 @@ const PROFILE_TABS: ProfileTab[] = [
     roles: ["Manager", "Admin"],
   },
   {
+    key: "#all-players",
+    label: "All Players",
+    roles: ["Manager", "Admin"],
+  },
+  {
+    key: "#all-coaches",
+    label: "All Coaches",
+    roles: ["Manager", "Admin"],
+  },
+  {
+    key: "#add-team",
+    label: "Add Team",
+    roles: ["Admin", "Manager"],
+  },
+  {
+    key: "#add-player",
+    label: "Add Player",
+    roles: ["Admin", "Manager"],
+  },
+  {
+    key: "#add-coach",
+    label: "Add Coach",
+    roles: ["Admin", "Manager"],
+  },
+  {
     key: "#add-referee",
-    label: "Add referee",
+    label: "Add Referee",
     roles: ["Manager", "Admin"],
   },
   {
     key: "#add-manager",
-    label: "Add manager",
+    label: "Add Manager",
     roles: ["Admin"],
   },
   {
     key: "#add-game",
-    label: "Add game",
+    label: "Add Game",
     roles: ["Admin", "Manager"],
   },
 ];

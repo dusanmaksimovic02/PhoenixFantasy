@@ -1,4 +1,4 @@
-import { registerUserWithRole } from "../../services/api";
+import { registerUserWithRole } from "../../services/AuthService";
 import { useState, type FC } from "react";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -57,8 +57,7 @@ const AddManager: FC = () => {
       });
       setErrors(fieldErrors);
       return;
-    }
-
+    }       
     
     try {
       await registerUserWithRole({

@@ -1,12 +1,11 @@
 import type { LoginUser, User } from "@/models/User";
 import axios from "axios";
 import { toast } from "react-toastify";
-
-const API_URL = "http://localhost:5086/api/Auth/";
+import apiClient from "./client";
 
 const register = async (user: User) => {
   try {
-    const data = await axios.post(API_URL + "Register", {
+    const data = await apiClient.post("api/AuthRegister", {
       userName: user.userName,
       email: user.email,
       password: user.password,
@@ -23,7 +22,7 @@ const register = async (user: User) => {
 
 const login = async (user: LoginUser) => {
   try {
-    const data = await axios.post(API_URL + "Login", {
+    const data = await apiClient.post("api/Auth/Login", {
       userName: user.username,
       password: user.password,
     });
@@ -40,11 +39,27 @@ const login = async (user: LoginUser) => {
   }
 };
 
+export const registerUserWithRole = async (user: User) => {
+  try {
+    const data = await apiClient.post("api/Auth/RegisterWithRole", {
+      role: user.role,
+      userName: user.userName,
+      email: user.email,
+      password: user.password,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      birthDate: user.birthDate,
+    });
+    return data;
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 const getUserData = async (id: string, role: string) => {
   try {
-    const res = await axios.get(
-      `http://localhost:5086/${role}/Get${role}ById/${id}`,
-    );
+    const res = await apiClient.get(`api/${role}/Get${role}ById/${id}`);
     return res.data;
   } catch (e) {
     console.log("Error getting user data: ", e);

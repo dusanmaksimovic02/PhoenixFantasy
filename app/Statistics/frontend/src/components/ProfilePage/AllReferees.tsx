@@ -1,5 +1,5 @@
 import type { User } from "@/models/User";
-import { deleteReferee, getReferees } from "../../services/api";
+import { deleteReferee, getReferees } from "../../services/RefereeService";
 import { useEffect, useState, type FC } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -27,9 +27,9 @@ const AllReferees: FC = () => {
     const fetchReferees = async () => {
       setIsLoading(true);
       try {
-        const res = await getReferees();
-        if (res?.data) {
-          setReferees(res.data);
+        const data = await getReferees();
+        if (data) {
+          setReferees(data);
         }
       } catch (e) {
         console.log(e);

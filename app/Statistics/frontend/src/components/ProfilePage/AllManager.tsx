@@ -1,5 +1,5 @@
 import type { User } from "../../models/User";
-import { deleteManager, getMangers } from "../../services/api";
+import { deleteManager, getMangers } from "../../services/ManagerService";
 import { useEffect, useState, type FC } from "react";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -27,9 +27,9 @@ const AllManager: FC = () => {
     const fetchManagers = async () => {
       setIsLoading(true);
       try {
-        const res = await getMangers();
-        if (res?.data) {
-          setManagers(res.data);
+        const data = await getMangers();
+        if (data) {
+          setManagers(data);
         }
       } catch (e) {
         console.log(e);

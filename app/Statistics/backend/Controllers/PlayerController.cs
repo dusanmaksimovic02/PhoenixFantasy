@@ -65,9 +65,15 @@ public class PlayerController : ControllerBase
         {
             var playerUpdate = await context.Players.FirstOrDefaultAsync(x => x.Id == player.Id) ?? throw new Exception
             ($"Player with Id {player.Id} doesn't exist");
+
+            playerUpdate.FirstName = player.FirstName;
+            playerUpdate.LastName = player.LastName;
+            playerUpdate.DateOfBirth = player.DateOfBirth;
+            playerUpdate.JerseyNumber = player.JerseyNumber;
+
             context.Players.Update(playerUpdate);
             await context.SaveChangesAsync();
-            return Ok($"Player with Id {player.Id} updated succesfuly");
+            return Ok($"Player with Id {player.Id} updated successfully");
         }
         catch (Exception e)
         {
