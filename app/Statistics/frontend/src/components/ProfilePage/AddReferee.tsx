@@ -1,7 +1,10 @@
-import { register } from "../../services/AuthService";
-import { useState, type FC } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { registerUserWithRole } from "../../services/AuthService";
+import { type FC } from "react";
 import { toast } from "react-toastify";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const formSchema = z.object({
   username: z.string(),
@@ -28,110 +31,164 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const AddReferee: FC = () => {
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const queryClient = useQueryClient();
 
-  const [profile, setProfile] = useState<FormData>({
-    email: "",
-    username: "",
-    name: "",
-    surname: "",
-    birthDate: Date(),
-    phoneNumber: "",
-    password: "",
+  const {
+    register: registerField,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+      name: "",
+      surname: "",
+      birthDate: "",
+      phoneNumber: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfile((p) => ({ ...p, [name]: value }));
-  };
-
-  const handleSave = async () => {
-    const result = formSchema.safeParse(profile);
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((i) => {
-        fieldErrors[i.path[0] as string] = i.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    try {
-      await register({
-        userName: profile.username,
-        email: profile.email,
-        password: profile.password,
-        firstName: profile.name,
-        lastName: profile.surname,
-        phoneNumber: profile.phoneNumber,
-        birthDate: new Date(profile.birthDate),
+  const mutation = useMutation({
+    mutationFn: (data: FormData) =>
+      registerUserWithRole({
+        userName: data.username,
+        email: data.email,
+        password: data.password,
+        firstName: data.name,
+        lastName: data.surname,
+        phoneNumber: data.phoneNumber,
+        birthDate: new Date(data.birthDate),
         id: "",
-        role: "",
-      });
-
-      console.log("Referee created!");
+        role: "Referee",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["referees"] });
       toast.success("Referee created successfully!");
-      setErrors({});
-      setProfile({
-        email: "",
-        username: "",
-        name: "",
-        surname: "",
-        birthDate: Date(),
-        phoneNumber: "",
-        password: "",
-      });
-    } catch (err) {
+      reset();
+    },
+    onError: (err) => {
+      toast.error("Error creating referee");
       console.error(err);
-    }
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    mutation.mutate(data);
   };
+
   return (
     <div className="w-full max-w-2xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
       <h1 className="text-3xl font-bold mb-8 text-center">Add referee</h1>
 
-      <div className="space-y-5">
-        {(
-          [
-            ["email", "Email"],
-            ["username", "Username"],
-            ["password", "Password"],
-            ["name", "Name"],
-            ["surname", "Surname"],
-            ["birthDate", "Birth date"],
-            ["phoneNumber", "Phone number"],
-          ] as const
-        ).map(([key, label]) => (
-          <div key={key}>
-            <label className="block mb-1 font-medium">{label}</label>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div>
+          <label className="block mb-1 font-medium">Email</label>
+          <input
+            {...registerField("email")}
+            placeholder="example@mail.com"
+            className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.email ? "border-red-500" : "border-neutral-300"}`}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 font-medium">Username</label>
             <input
-              name={key}
-              type={key === "birthDate" ? "date" : "text"}
-              value={profile[key]}
-              onChange={handleChange}
-              className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-white dark:bg-neutral-700
-                  border border-neutral-300 dark:border-neutral-600
-                  disabled:opacity-70
-                "
+              {...registerField("username")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.username ? "border-red-500" : "border-neutral-300"}`}
             />
-            {errors[key] && (
-              <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.username.message}
+              </p>
             )}
           </div>
-        ))}
-      </div>
+          <div>
+            <label className="block mb-1 font-medium">Password</label>
+            <input
+              type="password"
+              {...registerField("password")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.password ? "border-red-500" : "border-neutral-300"}`}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+        </div>
 
-      <div className="flex justify-center mt-10">
-        <button
-          className="px-10 py-3 rounded-xl text-white font-semibold
-              bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer"
-          onClick={handleSave}
-        >
-          Add referee
-        </button>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 font-medium">Name</label>
+            <input
+              {...registerField("name")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.name ? "border-red-500" : "border-neutral-300"}`}
+            />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            )}
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">Surname</label>
+            <input
+              {...registerField("surname")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.surname ? "border-red-500" : "border-neutral-300"}`}
+            />
+            {errors.surname && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.surname.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block mb-1 font-medium">Birth date</label>
+            <input
+              type="date"
+              {...registerField("birthDate")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.birthDate ? "border-red-500" : "border-neutral-300"}`}
+            />
+            {errors.birthDate && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.birthDate.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">Phone number</label>
+            <input
+              placeholder="+381..."
+              {...registerField("phoneNumber")}
+              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.phoneNumber ? "border-red-500" : "border-neutral-300"}`}
+            />
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.phoneNumber.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-10">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="px-10 py-3 rounded-xl text-white font-semibold
+              bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50 w-full md:w-auto"
+          >
+            {mutation.isPending ? "Adding..." : "Add referee"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

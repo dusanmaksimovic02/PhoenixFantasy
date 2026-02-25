@@ -1,22 +1,23 @@
-import { useEffect, useState, type FC } from "react";
-import Loading from "../Loading";
-import { FaTrashAlt } from "react-icons/fa";
+import { useState, type FC } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
-import type { Player } from "../../models/Player";
+import Loading from "../Loading";
 import {
   deletePlayer,
   getPlayers,
   updatePlayer,
 } from "../../services/PlayerService";
-
-const tableHead = ["", "Id", "Name", "Surname", "BirthDate", "JN", ""];
+import type { Player } from "../../models/Player";
 
 const formSchema = z.object({
   id: z.string(),
   firstName: z.string().min(1, "Name is required"),
   lastName: z.string().min(1, "Surname is required"),
-  dateOfBirth: z.date("Birth date is required"),
+  dateOfBirth: z.string().min(1, "Birth date is required"),
   jerseyNumber: z
     .string()
     .regex(/^(0|[1-9][0-9]?|00)$/, "Jersey number must be between 00 and 99"),
@@ -25,276 +26,228 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>;
 
 const AllPlayers: FC = () => {
-  const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false);
-  const [isOpenEdit, setIsOpenEdit] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [selectedPlayerId, setSelectedPlayers] = useState<string>("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedPlayer, setSelectedPlayer] = useState<FormData>({
-    id: "",
-    firstName: "",
-    lastName: "",
-    dateOfBirth: new Date(),
-    jerseyNumber: "",
+  const queryClient = useQueryClient();
+  const [isOpenDelete, setIsOpenDelete] = useState(false);
+  const [isOpenEdit, setIsOpenEdit] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
+
+  const { data: players = [], isLoading } = useQuery({
+    queryKey: ["players"],
+    queryFn: getPlayers,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
 
-    setSelectedPlayer((c) => ({
-      ...c,
-      [name]: name === "dateOfBirth" ? new Date(value) : value,
-    }));
-  };
-
-  const handleSave = async () => {
-    const result = formSchema.safeParse(selectedPlayer);
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((i) => {
-        fieldErrors[i.path[0] as string] = i.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    try {
-      await updatePlayer({
-        id: selectedPlayer.id,
-        firstName: selectedPlayer.firstName,
-        lastName: selectedPlayer.lastName,
-        dateOfBirth: selectedPlayer.dateOfBirth.toISOString().split("T")[0],
-        jerseyNumber: selectedPlayer.jerseyNumber,
-      });
-
-      const updatedData = {
-        id: selectedPlayer.id,
-        firstName: selectedPlayer.firstName,
-        lastName: selectedPlayer.lastName,
-        dateOfBirth: selectedPlayer.dateOfBirth.toISOString().split("T")[0],
-      };
-
-      setPlayers((prevCoaches) =>
-        prevCoaches.map((c) =>
-          c.id === updatedData.id ? { ...c, ...updatedData } : c,
-        ),
-      );
-
-      console.log("Player updated!");
+  const updateMutation = useMutation({
+    mutationFn: (data: FormData) =>
+      updatePlayer({
+        ...data,
+        dateOfBirth: new Date(data.dateOfBirth).toISOString().split("T")[0],
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["players"] });
       toast.success("Player updated successfully!");
-      setErrors({});
-      setSelectedPlayer({
-        id: "",
-        firstName: "",
-        lastName: "",
-        dateOfBirth: new Date(),
-        jerseyNumber: "",
-      });
       setIsOpenEdit(false);
-      setIsLoading(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    },
+    onError: () => toast.error("Update failed"),
+  });
 
-  const formatDate = (date: Date) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
-    return date.toISOString().split("T")[0];
-  };
-
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getPlayers();
-        if (data) {
-          setPlayers(data);
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPlayers();
-  }, []);
-
-  const handleDeleteClick = async () => {
-    if (selectedPlayerId == "") return;
-
-    setIsLoading(true);
-    try {
-      const res = await deletePlayer(selectedPlayerId);
-      if (res?.status === 200) {
-        toast.success("Player deleted successfully");
-        setPlayers((prev) => prev.filter((c) => c.id !== selectedPlayerId));
-      } else if (res?.status === 404) {
-        toast.error("Player not found.");
-      } else if (res?.status === 400) {
-        toast.error("Cannot delete this player.");
-      } else {
-        toast.error("Failed to delete player. Please try again later.");
-      }
-    } catch (e) {
-      console.log(e);
-      toast.error("Failed to delete player. Please try again later.");
-    } finally {
-      setIsLoading(false);
+  const deleteMutation = useMutation({
+    mutationFn: deletePlayer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["players"] });
+      toast.success("Player deleted successfully");
       setIsOpenDelete(false);
-      setSelectedPlayers("");
-    }
+    },
+    onError: () => toast.error("Delete failed"),
+  });
+
+  const openEditModal = (player: Player) => {
+    reset({
+      id: player.id,
+      firstName: player.firstName,
+      lastName: player.lastName,
+      dateOfBirth: player.dateOfBirth.split("T")[0],
+      jerseyNumber: player.jerseyNumber.toString(),
+    });
+    setIsOpenEdit(true);
   };
+
+  if (isLoading) return <Loading />;
 
   return (
-    <div className="w-full relative">
-      <h3 className="text-center">All Players</h3>
-      <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
-        <table className="w-full">
-          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">
+    <div className="w-full relative p-4">
+      <h3 className="text-center text-2xl font-bold mb-6">All Players</h3>
+
+      <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
+        <table className="table w-full bg-white dark:bg-neutral-800">
+          <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
-              {tableHead.map((head) => (
-                <th key={head} className="px-2.5 py-2  text-start  font-medium">
-                  {head}
-                </th>
-              ))}
+              <th>ID</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Birth Date</th>
+              <th>JN</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-sm text-black dark:text-white ">
+          <tbody>
             {players.map((player: Player) => (
               <tr
                 key={player.id}
-                data-tip="click to edit player"
-                className="tooltip table-row border-[3px] border-surface whitespace-nowrap hover:cursor-pointer"
-                onClick={() => {
-                  const playerToEdit: FormData = {
-                    ...player,
-                    dateOfBirth: new Date(player.dateOfBirth),
-                  };
-
-                  setSelectedPlayer(playerToEdit);
-                  setIsOpenEdit(true);
-                }}
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
               >
-                <td className="p-3">{player.id}</td>
-                <td className="p-3 ">{player.firstName}</td>
-                <td className="p-3">{player.lastName}</td>
-                <td className="p-3">{player.dateOfBirth}</td>
-                <td className="p-3">{player.jerseyNumber}</td>
-                <td className="p-3">
-                  {
+                <td className="text-xs">{player.id}</td>
+                <td>{player.firstName}</td>
+                <td>{player.lastName}</td>
+                <td>{player.dateOfBirth.split("T")[0]}</td>
+                <td>
+                  <span className="badge badge-ghost font-bold">
+                    {player.jerseyNumber}
+                  </span>
+                </td>
+                <td>
+                  <div className="flex justify-center gap-4">
+                    <FaEdit
+                      className="text-blue-500 cursor-pointer hover:scale-120 transition-transform"
+                      onClick={() => openEditModal(player)}
+                    />
                     <FaTrashAlt
+                      className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
                       onClick={() => {
-                        setSelectedPlayers(player.id);
+                        setSelectedId(player.id);
                         setIsOpenDelete(true);
                       }}
-                      className="text-error cursor-pointer"
                     />
-                  }
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <dialog open={isOpenDelete} className="modal">
-          <div className="modal-box  bg-white dark:bg-custom-gray">
-            <div className="modal-action text flex flex-col gap-15">
-              <button
-                type="button"
-                className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
-                onClick={() => {
-                  setIsOpenDelete(false);
-                }}
-              >
-                ✕
-              </button>
-              <h3 className="w-full text-center">
-                Are you sure you want to delete this player?
-              </h3>
-              <div className="flex justify-between">
-                <button
-                  className="btn bg-transparent hover:border-black dark:hover:border-white border-black dark:border-black text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={() => setIsOpenDelete(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={handleDeleteClick}
-                >
-                  Delete it permanently
-                </button>
-              </div>
-            </div>
-          </div>
-        </dialog>
-        <dialog open={isOpenEdit} className="modal">
-          <div className="modal-box  bg-white dark:bg-custom-gray">
-            <div className="modal-action text flex flex-col gap-15">
-              <button
-                type="button"
-                className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
-                onClick={() => {
-                  setIsOpenEdit(false);
-                }}
-              >
-                ✕
-              </button>
-              <h3 className="w-full text-center text-phoenix">Edit Player</h3>
-
-              <div className="space-y-5">
-                {(
-                  [
-                    ["firstName", "First name"],
-                    ["lastName", "Last name"],
-                    ["dateOfBirth", "Birth date"],
-                    ["jerseyNumber", "Jersey number"],
-                  ] as const
-                ).map(([key, label]) => (
-                  <div key={key}>
-                    <label className="block mb-1 font-medium">{label}</label>
-                    <input
-                      name={key}
-                      type={key === "dateOfBirth" ? "date" : "text"}
-                      value={
-                        key === "dateOfBirth"
-                          ? formatDate(selectedPlayer[key] as Date)
-                          : (selectedPlayer[key] as string)
-                      }
-                      onChange={handleChange}
-                      className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-white dark:bg-neutral-700
-                  border border-neutral-300 dark:border-neutral-600
-                  disabled:opacity-70
-                "
-                    />
-                    {errors[key] && (
-                      <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex justify-between px-2">
-                <button
-                  className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
-                  onClick={() => setIsOpenEdit(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
-                  onClick={handleSave}
-                >
-                  Submit changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </dialog>
       </div>
-      {isLoading && <Loading />}
+
+      <dialog open={isOpenDelete} className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg text-center">Delete Player?</h3>
+          <p className="py-4 text-center">This action cannot be undone.</p>
+          <div className="modal-action flex justify-around">
+            <button
+              className="btn btn-outline"
+              onClick={() => setIsOpenDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-error text-white"
+              onClick={() => deleteMutation.mutate(selectedId)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete Permanently"}
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog open={isOpenEdit} className="modal">
+        <div className="modal-box bg-white dark:bg-neutral-800">
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={() => setIsOpenEdit(false)}
+          >
+            ✕
+          </button>
+          <h3 className="text-xl font-bold text-phoenix text-center mb-6">
+            Edit Player
+          </h3>
+
+          <form
+            onSubmit={handleSubmit((data) => updateMutation.mutate(data))}
+            className="space-y-4"
+          >
+            <div>
+              <label className="label-text font-medium">First Name</label>
+              <input
+                {...register("firstName")}
+                className="input input-bordered w-full"
+              />
+              {errors.firstName && (
+                <span className="text-red-500 text-xs">
+                  {errors.firstName.message}
+                </span>
+              )}
+            </div>
+
+            <div>
+              <label className="label-text font-medium">Last Name</label>
+              <input
+                {...register("lastName")}
+                className="input input-bordered w-full"
+              />
+              {errors.lastName && (
+                <span className="text-red-500 text-xs">
+                  {errors.lastName.message}
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label-text font-medium">Birth Date</label>
+                <input
+                  type="date"
+                  {...register("dateOfBirth")}
+                  className="input input-bordered w-full"
+                />
+                {errors.dateOfBirth && (
+                  <span className="text-red-500 text-xs">
+                    {errors.dateOfBirth.message}
+                  </span>
+                )}
+              </div>
+              <div>
+                <label className="label-text font-medium">Jersey Number</label>
+                <input
+                  {...register("jerseyNumber")}
+                  className="input input-bordered w-full"
+                  placeholder="0-99"
+                />
+                {errors.jerseyNumber && (
+                  <span className="text-red-500 text-xs">
+                    {errors.jerseyNumber.message}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-action flex justify-between gap-2">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setIsOpenEdit(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn bg-green-600 hover:bg-green-700 text-white"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </dialog>
+
+      {deleteMutation.isPending && <Loading />}
     </div>
   );
 };

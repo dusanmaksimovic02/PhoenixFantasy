@@ -40,8 +40,8 @@ const login = async (user: LoginUser) => {
 };
 
 export const registerUserWithRole = async (user: User) => {
-  try {
-    const data = await apiClient.post("api/Auth/RegisterWithRole", {
+  
+    const response = await apiClient.post("api/Auth/RegisterWithRole", {
       role: user.role,
       userName: user.userName,
       email: user.email,
@@ -51,18 +51,39 @@ export const registerUserWithRole = async (user: User) => {
       phoneNumber: user.phoneNumber,
       birthDate: user.birthDate,
     });
-    return data;
-  } catch (e) {
-    console.log(e);
-  }
+    return response.data;
 };
 
 const getUserData = async (id: string, role: string) => {
   try {
-    const res = await apiClient.get(`api/${role}/Get${role}ById/${id}`);
+    const res = await apiClient.get(`${role}/Get${role}ById/${id}`);
     return res.data;
   } catch (e) {
     console.log("Error getting user data: ", e);
+  }
+};
+
+export const updateUserWithRole = async (user: User, role: string) => {
+  try {
+    const response = await apiClient.put(`${role}/Update${role}`, {
+      id: user.id,
+      userName: user.userName,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phoneNumber: user.phoneNumber,
+      birthDate: user.birthDate,
+    });
+    return response;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || `Update for ${role} failed`;
+      toast.error(message);
+    } else {
+      toast.error("An unexpected error occurred during update.");
+      console.log(e);
+      throw e;
+    }
   }
 };
 

@@ -1,148 +1,98 @@
-import type { User } from "../../models/User";
-import { deleteManager, getMangers } from "../../services/ManagerService";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Loading from "../Loading";
-
-const tableHead = [
-  "Id",
-  "Name",
-  "Surname",
-  "Username",
-  "Email",
-  "BirthDate",
-  "Phone",
-  "Role",
-  "",
-];
+import { deleteManager, getMangers } from "../../services/ManagerService";
+import type { User } from "../../models/User";
 
 const AllManager: FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [managers, setManagers] = useState<User[]>([]);
-  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
+  const queryClient = useQueryClient();
+  const [isOpenDelete, setIsOpenDelete] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
 
-  useEffect(() => {
-    const fetchManagers = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getMangers();
-        if (data) {
-          setManagers(data);
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchManagers();
-  }, []);
+  const { data: managers = [], isLoading } = useQuery({
+    queryKey: ["managers"],
+    queryFn: getMangers,
+  });
 
-  const handleDeleteClick = async () => {
-    if (selectedManagerId == "") return;
+  const deleteMutation = useMutation({
+    mutationFn: deleteManager,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["managers"] });
+      toast.success("Manager deleted successfully");
+      setIsOpenDelete(false);
+    },
+    onError: () => toast.error("Delete failed"),
+  });
 
-    setIsLoading(true);
-    try {
-      const res = await deleteManager(selectedManagerId);
-      if (res?.status === 200) {
-        toast.success("Manager deleted successfully");
-        setManagers((prev) => prev.filter((m) => m.id !== selectedManagerId));
-      } else if (res?.status === 404) {
-        toast.error("Manager not found.");
-      } else if (res?.status === 400) {
-        toast.error("Cannot delete this manager.");
-      } else {
-        toast.error("Failed to delete manager. Please try again later.");
-      }
-    } catch (e) {
-      console.log(e);
-      toast.error("Failed to delete manager. Please try again later.");
-    } finally {
-      setIsLoading(false);
-      setIsOpen(false);
-      setSelectedManagerId("");
-    }
-  };
+  if (isLoading) return <Loading />;
 
   return (
-    <div className="w-full relative">
-      <h3 className="text-center">All Managers</h3>
-      <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
-        <table className="w-full">
-          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">
+    <div className="w-full relative p-4">
+      <h3 className="text-center text-2xl font-bold mb-6">All Managers</h3>
+
+      <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
+        <table className="table w-full bg-white dark:bg-neutral-800">
+          <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
-              {tableHead.map((head) => (
-                <th key={head} className="px-2.5 py-2  text-start  font-medium">
-                  {head}
-                </th>
-              ))}
+              <th>ID</th>
+              <th>First Name</th>
+              <th>Last Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-sm text-black dark:text-white ">
-            {managers.map((user: User) => (
+          <tbody>
+            {managers.map((manager: User) => (
               <tr
-                key={user.id}
-                className="border-[3px] border-surface whitespace-nowrap"
+                key={manager.id}
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors text-nowrap"
               >
-                <td className="p-3">{user.id}</td>
-                <td className="p-3 ">{user.firstName}</td>
-                <td className="p-3">{user.lastName}</td>
-                <td className="p-3">{user.userName}</td>
-                <td className="p-3">{user.email}</td>
-                <td className="p-3">{""}</td>
-                <td className="p-3">{user.phoneNumber}</td>
-                <td className="p-3">{user.role}</td>
-                <td className="p-3">
-                  {
+                <td className="text-xs">{manager.id}</td>
+                <td>{manager.firstName}</td>
+                <td>{manager.lastName}</td>
+                <td>{manager.email}</td>
+                <td>{manager.phoneNumber}</td>
+                <td>
+                  <div className="flex justify-center gap-4">
                     <FaTrashAlt
+                      className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
                       onClick={() => {
-                        setSelectedManagerId(user.id);
-                        setIsOpen(true);
+                        setSelectedId(manager.id);
+                        setIsOpenDelete(true);
                       }}
-                      className="text-error cursor-pointer"
                     />
-                  }
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <dialog open={isOpen} className="modal">
-          <div className="modal-box  bg-white dark:bg-custom-gray">
-            <div className="modal-action text flex flex-col gap-15">
-              <button
-                type="button"
-                className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
-              >
-                ✕
-              </button>
-              <h3 className="w-full text-center">
-                Are you sure you want to delete this manager?
-              </h3>
-              <div className="flex justify-between">
-                <button
-                  className="btn bg-transparent hover:border-black dark:hover:border-white border-black dark:border-black text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={handleDeleteClick}
-                >
-                  Delete it permanently
-                </button>
-              </div>
-            </div>
-          </div>
-        </dialog>
       </div>
-      {isLoading && <Loading />}
+
+      <dialog open={isOpenDelete} className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg text-center">Delete Manager?</h3>
+          <p className="py-4 text-center">This action cannot be undone.</p>
+          <div className="modal-action flex justify-around">
+            <button
+              className="btn btn-outline"
+              onClick={() => setIsOpenDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-error text-white"
+              onClick={() => deleteMutation.mutate(selectedId)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete Permanently"}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };

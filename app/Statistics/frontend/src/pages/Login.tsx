@@ -14,6 +14,7 @@ import {
   type InputHTMLAttributes,
 } from "react";
 import { useAuth } from "../context/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -112,11 +113,19 @@ const Login: FC = () => {
     },
   });
 
+  const mutation = useMutation({
+    mutationFn: async (data: FormInputs) => loginUser(data),
+    onError: (error) => {
+      console.error("Login failed:", error);
+    },
+  });
+
   const navigate = useNavigate();
 
   function onSubmit(data: FormInputs) {
     // console.log(data);
-    loginUser(data);
+    // loginUser(data);
+    mutation.mutate(data);
   }
 
   const nameError = errors.username?.message;
@@ -175,9 +184,10 @@ const Login: FC = () => {
               </div>
               <button
                 type="submit"
+                disabled={mutation.isPending}
                 className="w-full bg-phoenix hover:border-phoenix cursor-pointer hover:bg-phoenix/80 hover:border-2  p-2 rounded-md font-bold"
               >
-                Login
+                {mutation.isPending ? "Logging in..." : "Login"}
               </button>
             </form>
           </div>

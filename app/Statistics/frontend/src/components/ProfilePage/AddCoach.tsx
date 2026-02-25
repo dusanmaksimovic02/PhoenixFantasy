@@ -1,117 +1,119 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addCoach } from "../../services/CoachService";
-import { useState, type FC } from "react";
+import { type FC } from "react";
 import { toast } from "react-toastify";
 import z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "Name is required"),
   lastName: z.string().min(1, "Surname is required"),
-  dateOfBirth: z.date("Birth date is required"),
+  dateOfBirth: z.string().min(1, "Birth date is required"),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 const AddCoach: FC = () => {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const [coach, setCoach] = useState<FormData>({
-    firstName: "",
-    lastName: "",
-    dateOfBirth: new Date(),
+  const queryClient = useQueryClient();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    setCoach((c) => ({
-      ...c,
-      [name]: name === "dateOfBirth" ? new Date(value) : value,
-    }));
-  };
-
-  const handleSave = async () => {
-    const result = formSchema.safeParse(coach);
-
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((i) => {
-        fieldErrors[i.path[0] as string] = i.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    try {
-      await addCoach({
-        id: "3fa85f64-5717-4562-b3fc-2c963f66afa7",
-        firstName: coach.firstName,
-        lastName: coach.lastName,
-        dateOfBirth: coach.dateOfBirth.toISOString().split("T")[0],
-      });
-
-      console.log("Coach created!");
+  const mutation = useMutation({
+    mutationFn: (data: FormData) => {
+      const payload = {
+        ...data,
+        id: "3fa85f64-5717-4562-b3fc-2c963f66afa9",
+      };
+      return addCoach(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
       toast.success("Coach created successfully!");
-      setErrors({});
-      setCoach({
-        firstName: "",
-        lastName: "",
-        dateOfBirth: new Date(),
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+      reset();
+    },
+    onError: (error) => {
+      toast.error("Error creating coach");
+      console.error(error);
+    },
+  });
 
-  const formatDate = (date: Date) => {
-    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
-    return date.toISOString().split("T")[0];
+  const onSubmit = (data: FormData) => {
+    mutation.mutate(data);
   };
 
   return (
-    <div className="w-full max-w-2xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
+    <div className="w-full max-w-2xl rounded-2xl p-8 px-13 shadow-lg bg-neutral-100 dark:bg-neutral-800">
       <h1 className="text-3xl font-bold mb-8 text-center">Add Coach</h1>
 
-      <div className="space-y-5">
-        {(
-          [
-            ["firstName", "First name"],
-            ["lastName", "Last name"],
-            ["dateOfBirth", "Birth date"],
-          ] as const
-        ).map(([key, label]) => (
-          <div key={key}>
-            <label className="block mb-1 font-medium">{label}</label>
-            <input
-              name={key}
-              type={key === "dateOfBirth" ? "date" : "text"}
-              value={
-                key === "dateOfBirth"
-                  ? formatDate(coach[key] as Date)
-                  : (coach[key] as string)
-              }
-              onChange={handleChange}
-              className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-white dark:bg-neutral-700
-                  border border-neutral-300 dark:border-neutral-600
-                  disabled:opacity-70
-                "
-            />
-            {errors[key] && (
-              <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
-            )}
-          </div>
-        ))}
-      </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div>
+          <label className="block mb-1 font-medium">First Name</label>
+          <input
+            {...register("firstName")}
+            className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
+              errors.firstName ? "border-red-500" : "border-neutral-300"
+            }`}
+          />
+          {errors.firstName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.firstName.message}
+            </p>
+          )}
+        </div>
 
-      <div className="flex justify-center mt-10">
-        <button
-          className="px-10 py-3 rounded-xl text-white font-semibold
-              bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer"
-          onClick={handleSave}
-        >
-          Add coach
-        </button>
-      </div>
+        <div>
+          <label className="block mb-1 font-medium">Last Name</label>
+          <input
+            {...register("lastName")}
+            className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
+              errors.lastName ? "border-red-500" : "border-neutral-300"
+            }`}
+          />
+          {errors.lastName && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.lastName.message}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">Birth Date</label>
+          <input
+            type="date"
+            {...register("dateOfBirth")}
+            className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
+              errors.dateOfBirth ? "border-red-500" : "border-neutral-300"
+            }`}
+          />
+          {errors.dateOfBirth && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.dateOfBirth.message}
+            </p>
+          )}
+        </div>
+
+        <div className="flex justify-center mt-10">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="px-10 py-3 rounded-xl text-white font-semibold bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {mutation.isPending ? "Adding..." : "Add coach"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

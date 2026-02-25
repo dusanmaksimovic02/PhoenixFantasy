@@ -1,9 +1,10 @@
-import type { User } from "@/models/User";
-import { deleteReferee, getReferees } from "../../services/RefereeService";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Loading from "../Loading";
+import { deleteReferee, getReferees } from "../../services/RefereeService";
+import type { User } from "@/models/User";
 
 const tableHead = [
   "Id",
@@ -18,132 +19,106 @@ const tableHead = [
 ];
 
 const AllReferees: FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [referees, setReferees] = useState<User[]>([]);
-  const [selectedRefereeId, setSelectedRefereeId] = useState<string>("");
+  const queryClient = useQueryClient();
+  const [isOpenDelete, setIsOpenDelete] = useState(false);
+  const [selectedId, setSelectedId] = useState("");
 
-  useEffect(() => {
-    const fetchReferees = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getReferees();
-        if (data) {
-          setReferees(data);
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchReferees();
-  }, []);
+  const { data: referees = [], isLoading } = useQuery({
+    queryKey: ["referees"],
+    queryFn: getReferees,
+  });
 
-  const handleDeleteClick = async () => {
-    if (selectedRefereeId == "") return;
+  const deleteMutation = useMutation({
+    mutationFn: deleteReferee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["referees"] });
+      toast.success("Referee deleted successfully");
+      setIsOpenDelete(false);
+    },
+    onError: (err) => {
+      console.error(err);
+      toast.error("Delete failed");
+    },
+  });
 
-    setIsLoading(true);
-    try {
-      const res = await deleteReferee(selectedRefereeId);
-      if (res?.status === 200) {
-        toast.success("Referee deleted successfully");
-        setReferees((prev) => prev.filter((r) => r.id !== selectedRefereeId));
-      } else if (res?.status === 404) {
-        toast.error("Referee not found.");
-      } else if (res?.status === 400) {
-        toast.error("Cannot delete this referee.");
-      } else {
-        toast.error("Failed to delete referee. Please try again later.");
-      }
-    } catch (e) {
-      console.log(e);
-      toast.error("Failed to delete referee. Please try again later.");
-    } finally {
-      setIsLoading(false);
-      setIsOpen(false);
-      setSelectedRefereeId("");
-    }
-  };
+  if (isLoading) return <Loading />;
 
   return (
-    <div className="w-full">
-      <h3 className="text-center">All Referees</h3>
+    <div className="w-full relative p-4">
+      <h3 className="text-center text-2xl font-bold mb-6">All Referees</h3>
 
-      <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
-        <table className="w-full">
-          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">
+      <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
+        <table className="table w-full bg-white dark:bg-neutral-800">
+          <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
               {tableHead.map((head) => (
-                <th key={head} className="px-2.5 py-2  text-start  font-medium">
+                <th key={head} className={head === "" ? "text-center" : ""}>
                   {head}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="text-sm text-black dark:text-white ">
+          <tbody>
             {referees.map((user: User) => (
               <tr
                 key={user.id}
-                className="border-[3px] border-surface whitespace-nowrap"
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors text-nowrap"
               >
-                <td className="p-3">{user.id}</td>
-                <td className="p-3 ">{user.firstName}</td>
-                <td className="p-3">{user.lastName}</td>
-                <td className="p-3">{user.userName}</td>
-                <td className="p-3">{user.email}</td>
-                <td className="p-3">{""}</td>
-                <td className="p-3">{user.phoneNumber}</td>
-                <td className="p-3">{user.role}</td>
-                <td className="p-3">
-                  {
-                    <FaTrashAlt
-                      onClick={() => {
-                        setSelectedRefereeId(user.id);
-                        setIsOpen(true);
-                      }}
-                      className="text-error cursor-pointer"
-                    />
-                  }
+                <td className="text-xs">{user.id}</td>
+                <td>{user.firstName}</td>
+                <td>{user.lastName}</td>
+                <td className="font-mono text-xs">{user.userName}</td>
+                <td>{user.email}</td>
+                <td>
+                  {user.birthDate
+                    ? user.birthDate.toString().split("T")[0]
+                    : "-"}
+                </td>
+                <td>{user.phoneNumber}</td>
+                <td>
+                  <span className="badge badge-outline">{user.role}</span>
+                </td>
+                <td className="text-center">
+                  <FaTrashAlt
+                    className="text-red-500 cursor-pointer hover:scale-120 transition-transform mx-auto"
+                    onClick={() => {
+                      setSelectedId(user.id);
+                      setIsOpenDelete(true);
+                    }}
+                  />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <dialog open={isOpen} className="modal">
-          <div className="modal-box  bg-white dark:bg-custom-gray">
-            <div className="modal-action text flex flex-col gap-15">
-              <button
-                type="button"
-                className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
-              >
-                ✕
-              </button>
-              <h3 className="w-full text-center">
-                Are you sure you want to delete this referee?
-              </h3>
-              <div className="flex justify-between">
-                <button
-                  className="btn bg-transparent hover:border-black dark:hover:border-white border-black dark:border-black text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer shadow-inner drop-shadow rounded-xl text-xl"
-                  onClick={handleDeleteClick}
-                >
-                  Delete it permanently
-                </button>
-              </div>
-            </div>
-          </div>
-        </dialog>
       </div>
-      {isLoading && <Loading />}
+
+      <dialog open={isOpenDelete} className="modal">
+        <div className="modal-box bg-white dark:bg-neutral-800">
+          <h3 className="font-bold text-lg text-center">Delete Referee?</h3>
+          <p className="py-4 text-center">
+            Are you sure you want to delete this referee? This action cannot be
+            undone.
+          </p>
+          <div className="modal-action flex justify-around">
+            <button
+              className="btn btn-outline"
+              onClick={() => setIsOpenDelete(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-error text-white"
+              onClick={() => deleteMutation.mutate(selectedId)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete Permanently"}
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      {deleteMutation.isPending && <Loading />}
     </div>
   );
 };
