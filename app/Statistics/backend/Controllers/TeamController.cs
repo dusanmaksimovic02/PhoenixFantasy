@@ -44,12 +44,20 @@ public class TeamController : ControllerBase
         }
     }
     [HttpPost("AddTeam")]
-    public async Task<ActionResult<Team>> AddTeam([FromBody] Team team)
+    public async Task<ActionResult<Team>> AddTeam([FromBody] CreateTeamDto dto)
     {
         try
         {
+            var team = new Team
+            {
+                Name = dto.Name,
+                coach = null,
+                Players = new List<Player>()
+            };
+
             context.Teams.Add(team);
             await context.SaveChangesAsync();
+
             return Ok(team);
         }
         catch (Exception e)
@@ -95,30 +103,117 @@ public class TeamController : ControllerBase
     public async Task<ActionResult<Team>> AddPlayerToTeam(string playerId, string teamId)
     {
         try
-    {
-        var team = await context.Teams
-            .Include(t => t.Players)
-            .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
-            ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+        {
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-        var player = await context.Players
-            .FirstOrDefaultAsync(p => p.Id.ToString() == playerId)
-            ?? throw new Exception($"Player with Id {playerId} doesn't exist");
+            var player = await context.Players
+                .FirstOrDefaultAsync(p => p.Id.ToString() == playerId)
+                ?? throw new Exception($"Player with Id {playerId} doesn't exist");
 
-        if (team.Players == null)
-            team.Players = new List<Player>();
+            if (team.Players == null)
+                team.Players = new List<Player>();
 
-        if (team.Players.Any(p => p.Id == player.Id))
-            throw new Exception("Player is already in the team");
+            if (team.Players.Any(p => p.Id == player.Id))
+                throw new Exception("Player is already in the team");
 
-        team.Players.Add(player);
-        await context.SaveChangesAsync();
+            // 🔥 VALIDACIJA BROJA
+            if (!string.IsNullOrEmpty(player.JerseyNumber) &&
+                team.Players.Any(p => p.JerseyNumber!.ToUpper() == player.JerseyNumber.ToUpper()))
+            {
+                throw new Exception($"Jersey number {player.JerseyNumber} is already taken in this team");
+            }
 
-        return Ok($"Player with Id {playerId} added to team {teamId} successfully");
+            team.Players.Add(player);
+            await context.SaveChangesAsync();
+
+            return Ok($"Player with Id {playerId} added to team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
-    catch (Exception e)
+
+    [HttpPut("AddCoachToTeam/{coachId}/{teamId}")]
+    public async Task<ActionResult> AddCoachToTeam(string coachId, string teamId)
     {
-        return BadRequest(e.Message);
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.coach)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            var coach = await context.Coaches
+                .FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
+                ?? throw new Exception($"Coach with Id {coachId} doesn't exist");
+
+            if (team.coach != null)
+                throw new Exception("Team already has a coach");
+
+            team.coach = coach;
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Coach with Id {coachId} added to team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
+
+    [HttpPut("RemoveCoachFromTeam/{teamId}")]
+    public async Task<ActionResult> RemoveCoachFromTeam(string teamId)
+    {
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.coach)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            if (team.coach == null)
+                throw new Exception("Team does not have a coach");
+
+            team.coach = null;
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Coach removed from team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPut("RemovePlayerFromTeam/{playerId}/{teamId}")]
+    public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
+    {
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            var player = team.Players?
+                .FirstOrDefault(p => p.Id.ToString() == playerId)
+                ?? throw new Exception($"Player with Id {playerId} is not in the team");
+
+            team.Players.Remove(player);
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Player with Id {playerId} removed from team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }

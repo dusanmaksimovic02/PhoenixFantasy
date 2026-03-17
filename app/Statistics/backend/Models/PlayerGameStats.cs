@@ -5,7 +5,7 @@ namespace StatsApi.Models;
 public class PlayerGameStats
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Game? Game { get; set; }
     public Player? Player { get; set; }
 

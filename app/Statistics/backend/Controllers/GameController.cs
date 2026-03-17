@@ -44,12 +44,34 @@ public class GameController : ControllerBase
         }
     }
     [HttpPost("AddGame")]
-    public async Task<ActionResult<Game>> AddGame([FromBody] Game game)
+    public async Task<ActionResult> AddGame([FromBody] AddGameDto dto)
     {
         try
         {
+            var homeTeam = await context.Teams
+                .FirstOrDefaultAsync(t => t.Id == dto.HomeTeamId)
+                ?? throw new Exception("Home team not found");
+
+            var guestTeam = await context.Teams
+                .FirstOrDefaultAsync(t => t.Id == dto.GuestTeamId)
+                ?? throw new Exception("Guest team not found");
+
+            var referee = dto.RefereeId != null
+                ? await context.Persons.FirstOrDefaultAsync(r => r.Id == dto.RefereeId)
+                : null;
+
+            var game = new Game
+            {
+                HomeTeam = homeTeam,
+                GuestTeam = guestTeam,
+                dateTime = dto.dateTime,
+                Venue = dto.Venue,
+                Referee = referee
+            };
+
             context.Games.Add(game);
             await context.SaveChangesAsync();
+
             return Ok(game);
         }
         catch (Exception e)
@@ -142,15 +164,26 @@ public class GameController : ControllerBase
 
             var game = await context.Games
                 .Include(g => g.HomeTeam)
+                    .ThenInclude(t => t!.coach)
                 .Include(g => g.GuestTeam)
+                    .ThenInclude(t => t!.coach)
                 .FirstOrDefaultAsync(g => g.Id == dto.GameId)
                 ?? throw new Exception("Game not found");
+
+            if (game.HomeTeam?.coach == null || game.GuestTeam?.coach == null)
+                return BadRequest("Both teams must have a coach before starting the game");
 
             var alreadyStarted = await context.PlayerGameStats
                 .AnyAsync(pgs => pgs.Game!.Id == game.Id);
 
             if (alreadyStarted)
                 return BadRequest("Game already started");
+
+            var coachStatsExist = await context.CoachGameStats
+                .AnyAsync(cgs => cgs.Game!.Id == game.Id);
+
+            if (coachStatsExist)
+                return BadRequest("Coach stats already created for this game");
 
             var allPlayerIds = dto.HomeTeamPlayerIds
                 .Concat(dto.GuestTeamPlayerIds)
@@ -199,7 +232,31 @@ public class GameController : ControllerBase
                 });
             }
 
+            var coachStats = new List<CoachGameStats>
+            {
+                new CoachGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    Game = game,
+                    Coach = game.HomeTeam.coach,
+                    CoachTechnicalFouls = 0,
+                    BenchTechnicalFouls = 0,
+                    Difference = 0
+                },
+                new CoachGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    Game = game,
+                    Coach = game.GuestTeam.coach,
+                    CoachTechnicalFouls = 0,
+                    BenchTechnicalFouls = 0,
+                    Difference = 0
+                }
+            };
+
             context.PlayerGameStats.AddRange(stats);
+            context.CoachGameStats.AddRange(coachStats);
+
             await context.SaveChangesAsync();
 
             return Ok(new
@@ -216,15 +273,4 @@ public class GameController : ControllerBase
     }
 
 
-}
-
-public class StartGameDto
-{
-    public Guid GameId { get; set; }
-
-    public List<Guid> HomeTeamPlayerIds { get; set; } = new();
-    public List<Guid> HomeStartersIds { get; set; } = new();
-
-    public List<Guid> GuestTeamPlayerIds { get; set; } = new();
-    public List<Guid> GuestStartersIds { get; set; } = new();
 }

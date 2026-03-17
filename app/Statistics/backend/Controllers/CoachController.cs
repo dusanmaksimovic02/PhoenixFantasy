@@ -44,12 +44,20 @@ public class CoachController : ControllerBase
         }
     }
     [HttpPost("AddCoach")]
-    public async Task<ActionResult<Coach>> AddCoach([FromBody] Coach coach)
+    public async Task<ActionResult> AddCoach([FromBody] AddCoachDto dto)
     {
         try
         {
+            var coach = new Coach
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                DateOfBirth = dto.DateOfBirth
+            };
+
             context.Coaches.Add(coach);
             await context.SaveChangesAsync();
+
             return Ok(coach);
         }
         catch (Exception e)

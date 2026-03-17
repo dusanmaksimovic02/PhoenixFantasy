@@ -9,6 +9,7 @@ public class Person : IdentityUser
     public required string FirstName { get; set; }
     [MaxLength(50)]
     public required string LastName { get; set; }
+    public DateOnly dateOfBirth { get; set; }
     public string? TokenForgotPassword { get; internal set; }
     public DateTime ForgotPasswordExp { get; internal set; }
 

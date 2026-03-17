@@ -5,7 +5,7 @@ namespace StatsApi.Models;
 public class Team
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public required string Name { get; set; }
     public Coach? coach { get; set; }
     public List<Player>? Players { get; set; }

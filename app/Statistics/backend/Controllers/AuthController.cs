@@ -188,32 +188,3 @@ public class AuthController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-
-public class RegisterDto
-{
-    public string UserName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public DateTime BirthDate { get; set; }
-}
-
-public class RegisterWithRoleDto : RegisterDto
-{
-    public string Role { get; set; } = string.Empty;
-}
-
-public class LoginDto
-{
-    public string UserName { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
-
-public class ChangeUserRoleDto
-{
-    public string UserId { get; set; } = string.Empty;
-    public string NewRole { get; set; } = string.Empty;
-}

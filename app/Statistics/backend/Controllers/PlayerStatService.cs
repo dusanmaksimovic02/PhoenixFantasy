@@ -40,15 +40,6 @@ public class PlayerStatService
     }
 }
 
-public class UpdatePlayerStatDto
-{
-    public string? GameId { get; set; }
-    public string PlayerId { get; set; } = null!;
-    public List<StatChange> Changes { get; set; } = new();
-}
 
-public class StatChange
-{
-    public PlayerStatType StatType { get; set; }
-    public int Delta { get; set; }
-}
+
+

@@ -5,7 +5,7 @@ namespace StatsApi.Models;
 public class Game
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public Team? HomeTeam { get; set; }
     public Team? GuestTeam { get; set; }
     public DateTime dateTime { get; set; }

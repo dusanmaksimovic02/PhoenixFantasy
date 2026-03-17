@@ -44,12 +44,21 @@ public class PlayerController : ControllerBase
         }
     }
     [HttpPost("AddPlayer")]
-    public async Task<ActionResult<Player>> AddPlayer([FromBody] Player player)
+    public async Task<ActionResult> AddPlayer([FromBody] AddPlayerDto dto)
     {
         try
         {
+            var player = new Player
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                DateOfBirth = dto.DateOfBirth,
+                JerseyNumber = dto.JerseyNumber
+            };
+
             context.Players.Add(player);
             await context.SaveChangesAsync();
+
             return Ok(player);
         }
         catch (Exception e)
