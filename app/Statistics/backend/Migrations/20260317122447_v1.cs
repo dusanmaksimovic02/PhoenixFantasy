@@ -32,6 +32,7 @@ namespace backend.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    dateOfBirth = table.Column<DateOnly>(type: "date", nullable: false),
                     TokenForgotPassword = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ForgotPasswordExp = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),

@@ -345,6 +345,9 @@ namespace backend.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<DateOnly>("dateOfBirth")
+                        .HasColumnType("date");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")

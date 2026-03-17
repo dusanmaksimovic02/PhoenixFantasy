@@ -12,7 +12,7 @@ using StatsApi.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260218185643_v1")]
+    [Migration("20260317122447_v1")]
     partial class v1
     {
         /// <inheritdoc />
@@ -347,6 +347,9 @@ namespace backend.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateOnly>("dateOfBirth")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
