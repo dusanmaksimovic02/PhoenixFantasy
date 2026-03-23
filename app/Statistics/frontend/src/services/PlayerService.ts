@@ -20,3 +20,8 @@ export const updatePlayer = async (player: Player) => {
   const response = await apiClient.put(`Player/UpdatePlayer/`, player);
   return response.data;
 };
+
+export const getFreePlayers = async () => {
+  const response = await apiClient.get<Player[]>(`Player/GetFreePlayers`);
+  return response.data;
+};

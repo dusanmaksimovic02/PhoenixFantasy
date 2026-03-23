@@ -89,7 +89,7 @@ public class CoachController : ControllerBase
     }
 
     [HttpDelete("DeleteCoach/{id}")]
-    public async Task<ActionResult<Coach>> DeleteCoach(string id)
+    public async Task<ActionResult<Coach>> DeleteCoach(Guid id)
     {
         try
         {

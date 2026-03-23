@@ -43,6 +43,23 @@ public class PlayerController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("GetFreePlayers")]
+    public async Task<IActionResult> GetFreePlayers()
+    {
+        try
+        {
+            var freePlayers = await context.Players
+                .Where(p => context.Teams.All(t => t.Players!.All(tp => tp.Id != p.Id)))
+                .ToListAsync();
+            return Ok(freePlayers);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpPost("AddPlayer")]
     public async Task<ActionResult> AddPlayer([FromBody] AddPlayerDto dto)
     {
@@ -91,7 +108,7 @@ public class PlayerController : ControllerBase
     }
 
     [HttpDelete("DeletePlayer/{id}")]
-    public async Task<ActionResult<Player>> DeletePlayer(string id)
+    public async Task<ActionResult<Player>> DeletePlayer(Guid id)
     {
         try
         {

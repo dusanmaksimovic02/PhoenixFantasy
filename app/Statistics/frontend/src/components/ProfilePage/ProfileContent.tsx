@@ -14,6 +14,7 @@ import AddCoach from "./AddCoach";
 import { toast } from "react-toastify";
 import AllCoach from "./AllCoach";
 import AllPlayers from "./AllPlayers";
+import AllTeams from "./AllTeams";
 
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
@@ -46,6 +47,10 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   },
   "#all-players": {
     component: <AllPlayers />,
+    roles: ["Admin", "Manager"],
+  },
+  "#all-teams": {
+    component: <AllTeams />,
     roles: ["Admin", "Manager"],
   },
   "#add-referee": {

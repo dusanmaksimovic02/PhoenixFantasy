@@ -40,7 +40,7 @@ const AddPlayer: FC = () => {
     mutationFn: (data: FormData) => {
       const payload = {
         ...data,
-        id: "3fa85f64-5717-4562-b3fc-2c963f66afa7",
+        id: "",
         dateOfBirth: new Date(data.dateOfBirth).toISOString().split("T")[0],
       };
       return addPlayer(payload);

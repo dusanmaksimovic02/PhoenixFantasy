@@ -36,7 +36,7 @@ const Navbar: FC = () => {
                 onClick={() => setChatOpen(!chatOpen)}
                 className="cursor-pointer text-white hover:text-white/80 transition"
               >
-                <IoChatbubblesOutline className="w-9 h-9" />
+                <IoChatbubblesOutline className="w-9 h-9 dark:text-black" />
               </button>
             )}
             {isLoggedIn() ? (

@@ -35,7 +35,18 @@ public class GameController : ControllerBase
     {
         try
         {
-            var games = await context.Games.ToListAsync();
+            var games = await context.Games
+                .Include(g => g.HomeTeam)
+                .ThenInclude(t => t!.coach)
+                .Include(g => g.HomeTeam)
+                .ThenInclude(t => t!.Players)
+                .Include(g => g.GuestTeam)
+                .ThenInclude(t => t!.coach)
+                .Include(g => g.GuestTeam)
+                .ThenInclude(t => t!.Players)
+                .Include(g => g.Referee)
+                .ToListAsync();
+
             return Ok(games);
         }
         catch (Exception e)

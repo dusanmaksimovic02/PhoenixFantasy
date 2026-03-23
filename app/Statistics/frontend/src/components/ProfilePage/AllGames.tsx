@@ -1,630 +1,84 @@
-import type { User } from "../../models/User";
+import { useQuery } from "@tanstack/react-query";
 import { useState, type FC } from "react";
-
-const tableHead = [
-  "",
-  "Id",
-  "Home Team",
-  "Away Team",
-  "Date",
-  "Time",
-  "Venue",
-  "Referee",
-];
+import { getGames } from "../../services/GameService";
+import type { Game } from "@/models/Game";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import EditGameModal from "./EditGameModal";
+import DeleteGameModal from "./DeleteGameModal";
 
 const AllGames: FC = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenEditGame, setIsOpenEditGame] = useState<boolean>(false);
+  const [isOpenDeleteGame, setIsOpenDeleteGame] = useState<boolean>(false);
+  const [selectedGameId, setSelectedGameId] = useState<string>("");
 
-  const [selectedGame, setSelectedGame] = useState<{
-    id: string;
-    homeTeam: string;
-    awayTeam: string;
-    dateTime: Date;
-    venue: string;
-    referee: User;
-  } | null>(null);
-
-  const formatDate = (date: Date) => date.toISOString().slice(0, 10);
-
-  const formatTime = (date: Date) => date.toISOString().slice(11, 16);
-
-  const games: {
-    id: string;
-    homeTeam: string;
-    awayTeam: string;
-    dateTime: Date;
-    venue: string;
-    referee: User;
-  }[] = [
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-    {
-      id: "1",
-      homeTeam: "Home Team",
-      awayTeam: "Away Team",
-      dateTime: new Date(),
-      venue: "Venue",
-      referee: {
-        id: "1",
-        email: "referee1@gmail.com",
-        password: "#Sifra123",
-        name: "Referee",
-        surname: "1",
-        username: "referee1",
-        birthDate: new Date(),
-        phone: "+381646353265",
-        gender: "male",
-        role: "referee",
-      },
-    },
-  ];
+  const { data: games = [] } = useQuery({
+    queryKey: ["games"],
+    queryFn: getGames,
+  });
 
   return (
     <div className="w-full">
-      <h3 className="text-center">All Games</h3>
-      <div className="w-full h-fit mt-10 border border-surface overflow-x-auto">
-        <table className="w-full rounded-4xl">
-          <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium rounded-3xl text-foreground  dark:bg-surface-dark">
+      <h3 className="mb-8 text-center text-phoenix">All Games</h3>
+      <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
+        <table className="table w-full bg-white dark:bg-neutral-800">
+          <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
-              {tableHead.map((head) => (
-                <th key={head} className="px-2.5 py-2  text-start  font-medium">
-                  {head}
-                </th>
-              ))}
+              <th>ID</th>
+              <th>Home Team</th>
+              <th>Away Team</th>
+              <th>Date & Time</th>
+              <th>Venue</th>
+              <th>Referee</th>
+              <th className="text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="text-sm rounded-2xl text-black dark:text-white ">
-            {games.map((game) => (
+          <tbody>
+            {games.map((game: Game) => (
               <tr
                 key={game.id}
-                className="tooltip table-row  border-[3px] border-surface whitespace-nowrap cursor-pointer"
-                data-tip="click to edit game"
-                onClick={() => {
-                  setIsOpen(true);
-                  setSelectedGame(game);
-                }}
+                className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors text-nowrap"
               >
-                <td className="p-3 cursor-pointer">{game.id}</td>
-                <td className="p-3 cursor-pointer">{game.homeTeam}</td>
-                <td className="p-3 cursor-pointer">{game.awayTeam}</td>
-                <td className="p-3 cursor-pointer">
-                  {game.dateTime.toDateString()}
-                </td>
-                <td className="p-3 cursor-pointer">
-                  {game.dateTime.toTimeString()}
-                </td>
-                <td className="p-3 cursor-pointer">{game.venue}</td>
-                <td className="p-3 cursor-pointer">
-                  {game.referee.name} {game.referee.surname}{" "}
-                  {game.referee.username}
+                <td className="text-xs">{game.id}</td>
+                <td>{game.homeTeam.name}</td>
+                <td>{game.guestTeam.name}</td>
+                <td>{game.dateTime}</td>
+                <td>{game.venue}</td>
+                <td>{`${game.referee.firstName} ${game.referee.lastName}`}</td>
+                <td>
+                  <div className="flex justify-center gap-4">
+                    <FaEdit
+                      className="text-blue-500 cursor-pointer hover:scale-120 transition-transform"
+                      onClick={() => {
+                        setSelectedGameId(game.id);
+                        setIsOpenEditGame(true);
+                      }}
+                    />
+                    <FaTrashAlt
+                      className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
+                      onClick={() => {
+                        setSelectedGameId(game.id);
+                        setIsOpenDeleteGame(true);
+                      }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        {isOpen && selectedGame && (
-          <dialog open={isOpen} className="modal">
-            <div className="modal-box flex flex-col justify-center items-center bg-neutral-100 dark:bg-neutral-800">
-              <div className="modal-action text flex flex-col gap-10">
-                <button
-                  type="button"
-                  className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"
-                  onClick={() => {
-                    setIsOpen(false);
-                  }}
-                >
-                  ✕
-                </button>
-
-                <h3 className="text-nowrap w-full text-center">
-                  Edit game details
-                </h3>
-
-                <div className="flex flex-col justify-center w-100 gap-4">
-                  <div>
-                    <label>Date</label>
-                    <input
-                      type="date"
-                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100 scheme-light input-bordered w-full"
-                      value={formatDate(selectedGame.dateTime)}
-                      onChange={(e) =>
-                        setSelectedGame({
-                          ...selectedGame,
-                          dateTime: new Date(
-                            `${e.target.value}T${formatTime(
-                              selectedGame.dateTime
-                            )}`
-                          ),
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label>Time</label>
-                    <input
-                      type="time"
-                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100 input-bordered w-full scheme-light"
-                      value={formatTime(selectedGame.dateTime)}
-                      onChange={(e) =>
-                        setSelectedGame({
-                          ...selectedGame,
-                          dateTime: new Date(
-                            `${formatDate(selectedGame.dateTime)}T${
-                              e.target.value
-                            }`
-                          ),
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label>Venue</label>
-                    <input
-                      type="text"
-                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100  input-bordered w-full"
-                      value={selectedGame.venue}
-                      onChange={(e) =>
-                        setSelectedGame({
-                          ...selectedGame,
-                          venue: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label>Referee</label>
-                    <input
-                      type="text"
-                      className="input bg-white focus:outline-black dark:focus:outline-white dark:bg-base-100  input-bordered w-full"
-                      value={`${selectedGame.referee.name} ${selectedGame.referee.surname}`}
-                      onChange={(e) =>
-                        setSelectedGame({
-                          ...selectedGame,
-                          referee: {
-                            ...selectedGame.referee,
-                            name: e.target.value,
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between px-2">
-                  <button
-                    className="btn bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl">
-                    Submit changes
-                  </button>
-                </div>
-              </div>
-            </div>
-          </dialog>
-        )}
       </div>
+
+      <EditGameModal
+        isOpen={isOpenEditGame}
+        setIsOpen={setIsOpenEditGame}
+        gameId={selectedGameId}
+      />
+
+      <DeleteGameModal
+        isOpen={isOpenDeleteGame}
+        setIsOpen={setIsOpenDeleteGame}
+        gameId={selectedGameId}
+      />
     </div>
   );
 };

@@ -35,7 +35,7 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var teams = await context.Teams.ToListAsync();
+            var teams = await context.Teams.Include(t => t.Players).Include(t => t.coach).ToListAsync();
             return Ok(teams);
         }
         catch (Exception e)
@@ -48,12 +48,29 @@ public class TeamController : ControllerBase
     {
         try
         {
+            var coach = await context.Coaches
+                .FirstOrDefaultAsync(c => c.Id == dto.CoachId)
+                ?? throw new Exception($"Coach with Id {dto.CoachId} doesn't exist");
+
+            var players = new List<Player>();
+
+            foreach (var playerId in dto.PlayerIds)
+            {
+                var player = await context.Players
+                    .FirstOrDefaultAsync(p => p.Id == playerId)
+                    ?? throw new Exception($"Player with Id {playerId} doesn't exist");
+
+                players.Add(player);
+            }
+
             var team = new Team
             {
                 Name = dto.Name,
-                coach = null,
+                coach = coach,
                 Players = new List<Player>()
             };
+
+            team.Players = players;
 
             context.Teams.Add(team);
             await context.SaveChangesAsync();
@@ -137,6 +154,47 @@ public class TeamController : ControllerBase
         }
     }
 
+    [HttpPut("AddPlayersToTeam/{teamId}")]
+    public async Task<ActionResult<Team>> AddPlayersToTeam(string teamId, [FromBody] List<Guid> playerIds)
+    {
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            if (team.Players == null)
+                team.Players = new List<Player>();
+
+            foreach (var playerId in playerIds)
+            {
+                var player = await context.Players
+                    .FirstOrDefaultAsync(p => p.Id == playerId)
+                    ?? throw new Exception($"Player with Id {playerId} doesn't exist");
+
+                if (team.Players.Any(p => p.Id == player.Id))
+                    throw new Exception($"Player with Id {playerId} is already in the team");
+
+                if (!string.IsNullOrEmpty(player.JerseyNumber) &&
+                    team.Players.Any(p => p.JerseyNumber!.ToUpper() == player.JerseyNumber.ToUpper()))
+                {
+                    throw new Exception($"Jersey number {player.JerseyNumber} is already taken in this team");
+                }
+
+                team.Players.Add(player);
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Players added to team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpPut("AddCoachToTeam/{coachId}/{teamId}")]
     public async Task<ActionResult> AddCoachToTeam(string coachId, string teamId)
     {
@@ -165,6 +223,33 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpPut("UpdateCoach/{coachId}/{teamId}")]
+    public async Task<ActionResult> UpdateCoach(string coachId, string teamId)
+    {
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.coach)
+                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            var coach = await context.Coaches
+                .FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
+                ?? throw new Exception($"Coach with Id {coachId} doesn't exist");
+
+            team.coach = coach;
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Coach with Id {coachId} updated for team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
 
     [HttpPut("RemoveCoachFromTeam/{teamId}")]
     public async Task<ActionResult> RemoveCoachFromTeam(string teamId)

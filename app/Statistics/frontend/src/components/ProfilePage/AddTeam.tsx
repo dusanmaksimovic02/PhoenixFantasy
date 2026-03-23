@@ -2,20 +2,41 @@ import type { Player } from "../../models/Player";
 import { type FC } from "react";
 import { toast } from "react-toastify";
 import { addTeam } from "../../services/TeamService";
-import { IoIosArrowDown } from "react-icons/io";
+import { IoIosArrowDown, IoIosClose } from "react-icons/io";
 import { getPlayers } from "../../services/PlayerService";
-import type { Coach } from "../../models/Coach";
 import { getCoaches } from "../../services/CoachService";
 import z from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import type { Coach } from "@/models/Coach";
 
 const formSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   coach: z.custom<Coach>((v) => v !== undefined, {
     message: "Coach is required",
   }),
+  // coach: z
+  //   .object({
+  //     id: z.string(),
+  //     firstName: z.string(),
+  //     lastName: z.string(),
+  //     dateOfBirth: z.string().nullable().optional(),
+  //   })
+  //   .optional()
+  //   .refine((val) => val !== undefined, {
+  //     message: "Coach is required",
+  //     path: ["coach"],
+  //   }),
+  // players: z.array(
+  //   z.object({
+  //     id: z.string(),
+  //     firstName: z.string(),
+  //     lastName: z.string(),
+  //     dateOfBirth: z.string(),
+  //     jerseyNumber: z.string(),
+  //   }),
+  // ),
   players: z.array(z.custom<Player>()).min(1, "Select at least one player"),
 });
 
@@ -42,28 +63,27 @@ const AddTeam: FC = () => {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", players: [] },
+    defaultValues: { name: "", coach: undefined, players: [] },
   });
 
-  const selectedCoach = useWatch({
-    control,
-    name: "coach",
-  });
+  const selectedCoach =
+    useWatch({
+      control,
+      name: "coach",
+    }) ?? undefined;
 
-  const selectedPlayers = useWatch({
-    control,
-    name: "players",
-  });
+  const selectedPlayers =
+    useWatch({
+      control,
+      name: "players",
+    }) ?? [];
 
   const mutation = useMutation({
     mutationFn: (data: FormData) =>
       addTeam(
-        {
-          id: crypto.randomUUID(),
-          name: data.name,
-          coachId: data.coach.id,
-        },
-        data.players,
+        data.name,
+        data.coach!.id,
+        data.players.map((p) => p.id),
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -119,7 +139,10 @@ const AddTeam: FC = () => {
               {coaches.map((c) => (
                 <li
                   key={c.id}
-                  onClick={() => setValue("coach", c, { shouldValidate: true })}
+                  onClick={() => {
+                    setValue("coach", c, { shouldValidate: true });
+                    (document.activeElement as HTMLElement)?.blur();
+                  }}
                 >
                   <a>
                     {c.firstName} {c.lastName}
@@ -159,7 +182,7 @@ const AddTeam: FC = () => {
                     <tr
                       key={p.id}
                       onClick={() => togglePlayer(p)}
-                      className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-blue-50 dark:bg-blue-900" : ""}`}
+                      className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-phoenix" : ""}`}
                     >
                       <td>
                         {p.firstName} {p.lastName}
@@ -182,9 +205,13 @@ const AddTeam: FC = () => {
           {selectedPlayers.map((p) => (
             <span
               key={p.id}
-              className="bg-blue-100 dark:bg-blue-900 px-3 py-1 rounded-full text-xs"
+              className="flex gap-1 bg-phoenix px-3 py-1 rounded-full text-xs"
             >
               {p.firstName} {p.lastName}
+              <IoIosClose
+                className="cursor-pointer w-4 h-4"
+                onClick={() => togglePlayer(p)}
+              />
             </span>
           ))}
         </div>

@@ -51,6 +51,11 @@ const PROFILE_TABS: ProfileTab[] = [
     roles: ["Manager", "Admin"],
   },
   {
+    key: "#all-teams",
+    label: "All Teams",
+    roles: ["Manager", "Admin"],
+  },
+  {
     key: "#add-team",
     label: "Add Team",
     roles: ["Admin", "Manager"],
