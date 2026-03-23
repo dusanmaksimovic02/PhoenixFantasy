@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
 using StatsApi.Models;
+using StatsApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +36,7 @@ builder.Services.AddIdentity<Person, IdentityRole>()
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
-
+builder.Services.AddSingleton<RabbitMQService>();
 
 
 var app = builder.Build();

@@ -30,11 +30,16 @@ export const AuthProvider: FC<Props> = ({ children }) => {
     () => localStorage.getItem("role") ?? "",
   );
   const [id, setId] = useState<string>(() => {
+  try {
     const storedToken = localStorage.getItem("token");
     if (!storedToken) return "";
     const decoded = jwtDecode<JwtPayload>(storedToken);
     return decoded.id;
-  });
+  } catch {
+    localStorage.removeItem("token");
+    return "";
+  }
+});
 
   const logout = useCallback(
     (expired = false) => {

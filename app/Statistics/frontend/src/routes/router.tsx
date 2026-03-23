@@ -7,6 +7,7 @@ import Profile from "../pages/Profile";
 import { ProtectedLoader } from "./ProtectedLoader";
 import GamePage from "../pages/GamePage";
 import { LoginLoader } from "./LoginLoader";
+import Chat from "../pages/Chat";
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
         path: "profile",
         element: <Profile />,
         loader: ProtectedLoader,
+      },
+      {
+        path: "chat",
+        element: <Chat />,
       },
       {
         path: "/game/:team1/vs/:team2",

@@ -18,6 +18,7 @@ public class DataContext : IdentityDbContext<Person>
     public DbSet<PlayerGameStats> PlayerGameStats { get; set; }
     //public DbSet<Referee> Referees { get; set; }
     public DbSet<Team> Teams { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
 
