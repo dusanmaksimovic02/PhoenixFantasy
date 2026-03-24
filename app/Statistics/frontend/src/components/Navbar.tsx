@@ -12,15 +12,37 @@ const Navbar: FC = () => {
   const toNavigate = isLoggedIn() ? "profile" : "login";
   const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
   const [chatOpen, setChatOpen] = useState(false);
+  const [hasUnread, setHasUnread] = useState(false);
 
   const handleToggle = () => {
     setTheme(theme == "dark" ? "light" : "dark");
     setIsDarkMode((prevMode) => !prevMode);
   };
 
+  const handleChatOpen = () => {
+    setChatOpen(!chatOpen);
+    if (!chatOpen) setHasUnread(false);
+  };
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (!isLoggedIn()) return;
+
+    const eventSource = new EventSource("http://localhost:5086/api/chat/stream");
+
+    eventSource.onmessage = () => {
+      if (!chatOpen) setHasUnread(true);
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }, [chatOpen, isLoggedIn]);
 
   return (
     <>
@@ -33,10 +55,13 @@ const Navbar: FC = () => {
           <div className="flex gap-2 items-center">
             {isLoggedIn() && (
               <button
-                onClick={() => setChatOpen(!chatOpen)}
-                className="cursor-pointer text-white hover:text-white/80 transition"
+                onClick={handleChatOpen}
+                className="cursor-pointer text-white hover:text-white/80 transition relative"
               >
                 <IoChatbubblesOutline className="w-9 h-9 dark:text-black" />
+                {hasUnread && (
+                  <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-800 rounded-full border-2 border-phoenix" />
+                )}
               </button>
             )}
             {isLoggedIn() ? (

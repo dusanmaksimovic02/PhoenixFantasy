@@ -11,13 +11,19 @@ export interface ChatMessageDto {
   message: string;
 }
 
+interface RawChatMessage {
+  username: string;
+  message: string;
+  timestamp: string;
+}
+
 export const sendChatMessage = async (message: ChatMessageDto) => {
   await apiClient.post("api/chat/send", message);
 };
 
 export const getChatHistory = async (): Promise<ChatMessage[]> => {
   const res = await apiClient.get("api/chat/history");
-  return res.data.map((m: any) => ({
+  return res.data.map((m: RawChatMessage) => ({
     Username: m.username,
     Message: m.message,
     Timestamp: m.timestamp,

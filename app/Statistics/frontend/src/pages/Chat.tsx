@@ -23,7 +23,7 @@ export default function Chat() {
       try {
         const msg: ChatMessage = JSON.parse(event.data);
         setMessages((prev) => [...prev, msg]);
-      } catch (e) {
+      } catch {
         console.log("Failed to parse message:", event.data);
       }
     };
@@ -33,7 +33,7 @@ export default function Chat() {
     };
 
     return () => eventSource.close();
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
