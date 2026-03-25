@@ -17,12 +17,24 @@ public class GameController : ControllerBase
     }
 
     [HttpGet("GetGameById/{id}")]
-    public async Task<IActionResult> GetGameById(string id)
+    public async Task<IActionResult> GetGameById(Guid id)
     {
         try
         {
-            var game = await context.Games.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
-            ($"Game with Id {id} doesn't exist");
+                var game = await context.Games
+                // .AsNoTracking()
+                    // .Include(g => g.HomeTeam)
+                    // .ThenInclude(t => t!.coach)
+                    .Include(g => g.HomeTeam)
+                    // .ThenInclude(t => t!.Players)
+                    .Include(g => g.GuestTeam)
+                    // .ThenInclude(t => t!.coach)
+                    // .Include(g => g.GuestTeam)
+                    // .ThenInclude(t => t!.Players)
+                    .Include(g => g.Referee)
+                    .Where(g => g.Id == id)
+                    // .AsSplitQuery()
+                    .ToListAsync();
             return Ok(game);
         }
         catch (Exception e)
@@ -36,15 +48,17 @@ public class GameController : ControllerBase
         try
         {
             var games = await context.Games
+            // .AsNoTracking()
                 .Include(g => g.HomeTeam)
-                .ThenInclude(t => t!.coach)
-                .Include(g => g.HomeTeam)
-                .ThenInclude(t => t!.Players)
+                // .ThenInclude(t => t!.coach)
+                // .Include(g => g.HomeTeam)
+                // .ThenInclude(t => t!.Players)
+                // .Include(g => g.GuestTeam)
+                // .ThenInclude(t => t!.coach)
                 .Include(g => g.GuestTeam)
-                .ThenInclude(t => t!.coach)
-                .Include(g => g.GuestTeam)
-                .ThenInclude(t => t!.Players)
+                // .ThenInclude(t => t!.Players)
                 .Include(g => g.Referee)
+                // .AsSplitQuery()
                 .ToListAsync();
 
             return Ok(games);
@@ -92,15 +106,33 @@ public class GameController : ControllerBase
     }
 
     [HttpPut("UpdateGame")]
-    public async Task<ActionResult<Game>> UpdateGame([FromBody] Game game)
+    public async Task<ActionResult<Game>> UpdateGame([FromBody] UpdateGameDTO game)
     {
         try
         {
-            var gameUpdate = await context.Games.FirstOrDefaultAsync(x => x.Id == game.Id) ?? throw new Exception
-            ($"Game with Id {game.Id} doesn't exist");
+            var gameUpdate = await context.Games.FirstOrDefaultAsync(x => x.Id == game.GameId) ?? throw new Exception
+            ($"Game with Id {game.GameId} doesn't exist");
+
+            var homeTeam = await context.Teams.FirstOrDefaultAsync(x => x.Id == game.HomeTeamId);
+
+            var guestTeam = await context.Teams.FirstOrDefaultAsync(x => x.Id == game.GuestTeamId);
+
+            var referee = await context.Persons.FirstOrDefaultAsync(x => x.Id == game.RefereeId);
+            
+            if (homeTeam == null || guestTeam == null || referee == null)
+            {
+                return BadRequest("One entity doesn't exist!");
+            }
+
+            gameUpdate.HomeTeam = homeTeam;
+            gameUpdate.GuestTeam = guestTeam;
+            gameUpdate.dateTime = game.DateTime;
+            gameUpdate.Venue = game.Venue;
+            gameUpdate.Referee = referee;
+
             context.Games.Update(gameUpdate);
             await context.SaveChangesAsync();
-            return Ok($"Game with Id {game.Id} updated succesfuly");
+            return Ok($"Game with Id {game.GameId} updated successfully");
         }
         catch (Exception e)
         {
@@ -109,7 +141,7 @@ public class GameController : ControllerBase
     }
 
     [HttpDelete("DeleteGame/{id}")]
-    public async Task<ActionResult<Game>> DeleteGame(string id)
+    public async Task<ActionResult<Game>> DeleteGame(Guid id)
     {
         try
         {

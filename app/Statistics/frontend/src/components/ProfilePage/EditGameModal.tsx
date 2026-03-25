@@ -1,21 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Team } from "../../models/Team";
 import type { User } from "../../models/User";
-import { useEffect, type FC } from "react";
+import { type FC } from "react";
 import z from "zod";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getTeams } from "../../services/TeamService";
 import { getReferees } from "../../services/RefereeService";
 import { toast } from "react-toastify";
 import { IoIosArrowDown } from "react-icons/io";
-import { getGameById, updateGame } from "../../services/GameService";
-import Loading from "../Loading";
+import { updateGame } from "../../services/GameService";
+import type { Game } from "../../models/Game";
 
 interface EditGameModalProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   gameId: string;
+  game: Game;
 }
 
 const formSchema = z
@@ -44,6 +45,7 @@ const EditGameModal: FC<EditGameModalProps> = ({
   isOpen,
   setIsOpen,
   gameId,
+  game,
 }) => {
   const queryClient = useQueryClient();
 
@@ -51,26 +53,26 @@ const EditGameModal: FC<EditGameModalProps> = ({
     register,
     handleSubmit,
     reset,
-    control,
+    watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      homeTeam: undefined,
-      awayTeam: undefined,
-      date: "",
-      time: "",
-      venue: "",
-      referee: undefined,
-    },
-    mode: "onChange",
+    values: game
+      ? {
+          homeTeam: game.homeTeam,
+          awayTeam: game.guestTeam,
+          referee: game.referee,
+          venue: game.venue,
+          date: game.dateTime?.split("T")[0] ?? "",
+          time: game.dateTime?.split("T")[1]?.slice(0, 5) ?? "",
+        }
+      : undefined,
   });
 
-  const { data: game, isLoading } = useQuery({
-    queryKey: ["game", gameId],
-    queryFn: () => getGameById(gameId),
-    enabled: !!gameId && isOpen,
-  });
+  const homeTeam = watch("homeTeam");
+  const awayTeam = watch("awayTeam");
+  const referee = watch("referee");
 
   const { data: teams = [] } = useQuery({
     queryKey: ["teams"],
@@ -85,47 +87,30 @@ const EditGameModal: FC<EditGameModalProps> = ({
   const updateGameMutation = useMutation({
     mutationFn: (data: FormData) =>
       updateGame({
-        id: gameId,
-        homeTeam: data.homeTeam,
-        guestTeam: data.awayTeam,
+        gameId: gameId,
+        homeTeamId: data.homeTeam.id,
+        guestTeamId: data.awayTeam.id,
         dateTime: `${data.date}T${data.time}:00Z`,
         venue: data.venue,
-        referee: data.referee,
+        refereeId: data.referee.id,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["games"] });
       queryClient.invalidateQueries({ queryKey: ["game", gameId] });
       toast.success("Game updated successfully!");
       reset();
       setIsOpen(false);
     },
-    onError: () => toast.error("Error updating game"),
+    onError: (e) => {
+      toast.error("Error updating game");
+      console.log(e);
+    },
   });
 
   const onSubmit = (data: FormData) => {
-    const fullDateTime = `${data.date}T${data.time}:00Z`;
-    updateGameMutation.mutate({ ...data, date: fullDateTime });
+    updateGameMutation.mutate(data);
   };
-
-  useEffect(() => {
-    if (!game || teams.length === 0 || referees.length === 0) return;
-
-    const home = teams.find((t) => t.id === game.homeTeam?.id);
-    const away = teams.find((t) => t.id === game.guestTeam?.id);
-    const ref = referees.find((r) => r.id === game.referee?.id);
-
-    reset({
-      homeTeam: home ?? undefined,
-      awayTeam: away ?? undefined,
-      date: game.dateTime.split("T")[0],
-      time: game.dateTime.split("T")[1].substring(0, 5),
-      venue: game.venue,
-      referee: ref ?? undefined,
-    });
-  }, [game, teams, referees, reset]);
-
-  if (isLoading) return <Loading />;
-  if (!game) return null;
 
   return (
     <dialog open={isOpen} className="modal">
@@ -144,38 +129,35 @@ const EditGameModal: FC<EditGameModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1 font-medium">Home Team</label>
-              <Controller
-                control={control}
-                name="homeTeam"
-                render={({ field }) => (
-                  <div className="dropdown w-full">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+              <div className="dropdown w-full">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+                >
+                  {homeTeam ? `${homeTeam.name}` : "Select a team"}
+                  <IoIosArrowDown />
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
+                >
+                  {teams.map((t) => (
+                    <li
+                      key={t.id}
+                      onClick={() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                        setValue("homeTeam", t, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
                     >
-                      {field.value ? `${field.value.name}` : "Select a team"}
-                      <IoIosArrowDown />
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-                    >
-                      {teams.map((t) => (
-                        <li
-                          key={t.id}
-                          onClick={() => {
-                            field.onChange(t);
-                            (document.activeElement as HTMLElement)?.blur();
-                          }}
-                        >
-                          <a>{t.name}</a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              />
+                      <a>{t.name}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               {errors.homeTeam && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.homeTeam.message}
@@ -185,38 +167,35 @@ const EditGameModal: FC<EditGameModalProps> = ({
 
             <div>
               <label className="block mb-1 font-medium">Away Team</label>
-              <Controller
-                control={control}
-                name="awayTeam"
-                render={({ field }) => (
-                  <div className="dropdown w-full">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+              <div className="dropdown w-full">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+                >
+                  {awayTeam ? `${awayTeam.name}` : "Select a team"}{" "}
+                  <IoIosArrowDown />
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
+                >
+                  {teams.map((t) => (
+                    <li
+                      key={t.id}
+                      onClick={() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                        setValue("awayTeam", t, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
                     >
-                      {field.value ? `${field.value.name}` : "Select a team"}{" "}
-                      <IoIosArrowDown />
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-                    >
-                      {teams.map((t) => (
-                        <li
-                          key={t.id}
-                          onClick={() => {
-                            field.onChange(t);
-                            (document.activeElement as HTMLElement)?.blur();
-                          }}
-                        >
-                          <a>{t.name}</a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              />
+                      <a>{t.name}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               {errors.awayTeam && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.awayTeam.message}
@@ -276,42 +255,39 @@ const EditGameModal: FC<EditGameModalProps> = ({
 
             <div>
               <label className="block mb-1 font-medium">Referee</label>
-              <Controller
-                control={control}
-                name="referee"
-                render={({ field }) => (
-                  <div className="dropdown w-full">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+              <div className="dropdown w-full">
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
+                >
+                  {referee
+                    ? `${referee.firstName} ${referee.lastName}`
+                    : "Select a referee"}{" "}
+                  <IoIosArrowDown />
+                </div>
+                <ul
+                  tabIndex={0}
+                  className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
+                >
+                  {referees.map((r) => (
+                    <li
+                      key={r.id}
+                      onClick={() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                        setValue("referee", r, {
+                          // shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }}
                     >
-                      {field.value
-                        ? `${field.value.firstName} ${field.value.lastName}`
-                        : "Select a referee"}{" "}
-                      <IoIosArrowDown />
-                    </div>
-                    <ul
-                      tabIndex={0}
-                      className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-                    >
-                      {referees.map((r) => (
-                        <li
-                          key={r.id}
-                          onClick={() => {
-                            field.onChange(r);
-                            (document.activeElement as HTMLElement)?.blur();
-                          }}
-                        >
-                          <a>
-                            {r.firstName} {r.lastName}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              />
+                      <a>
+                        {r.firstName} {r.lastName}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               {errors.referee && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.referee.message}
@@ -324,7 +300,7 @@ const EditGameModal: FC<EditGameModalProps> = ({
             <button
               type="submit"
               disabled={!isDirty || updateGameMutation.isPending}
-              className="px-10 py-3 rounded-xl text-white font-semibold bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50 w-full md:w-auto"
+              className="px-10 py-3 rounded-xl text-white font-semibold bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50 w-full md:w-auto disabled:cursor-auto"
             >
               {updateGameMutation.isPending
                 ? "Updating Game..."

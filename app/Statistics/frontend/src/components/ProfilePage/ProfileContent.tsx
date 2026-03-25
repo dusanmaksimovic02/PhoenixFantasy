@@ -63,7 +63,7 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   },
   "#add-game": {
     component: <AddGame />,
-    roles: ["Admin"],
+    roles: ["Admin", "Manager"],
   },
   "#add-team": {
     component: <AddTeam />,

@@ -17,7 +17,7 @@ const DeleteGameModal: FC<DeleteGameModalProps> = ({
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: deleteGame,
+    mutationFn: (id: string) => deleteGame(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["games"] });
       toast.success("Game deleted successfully");

@@ -5,16 +5,20 @@ import type { Game } from "@/models/Game";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import EditGameModal from "./EditGameModal";
 import DeleteGameModal from "./DeleteGameModal";
+import Loading from "../Loading";
 
 const AllGames: FC = () => {
   const [isOpenEditGame, setIsOpenEditGame] = useState<boolean>(false);
   const [isOpenDeleteGame, setIsOpenDeleteGame] = useState<boolean>(false);
   const [selectedGameId, setSelectedGameId] = useState<string>("");
+  const [selectedGame, setSelectedGame] = useState<Game>();
 
-  const { data: games = [] } = useQuery({
+  const { data: games = [], isLoading } = useQuery({
     queryKey: ["games"],
     queryFn: getGames,
   });
+
+  if (isLoading) return <Loading />;
 
   return (
     <div className="w-full">
@@ -26,7 +30,8 @@ const AllGames: FC = () => {
               <th>ID</th>
               <th>Home Team</th>
               <th>Away Team</th>
-              <th>Date & Time</th>
+              <th>Date</th>
+              <th>Time</th>
               <th>Venue</th>
               <th>Referee</th>
               <th className="text-center">Actions</th>
@@ -41,7 +46,8 @@ const AllGames: FC = () => {
                 <td className="text-xs">{game.id}</td>
                 <td>{game.homeTeam.name}</td>
                 <td>{game.guestTeam.name}</td>
-                <td>{game.dateTime}</td>
+                <td>{game.dateTime?.split("T")[0]} </td>
+                <td>{game.dateTime?.split("T")[1]?.slice(0, 5)}</td>
                 <td>{game.venue}</td>
                 <td>{`${game.referee.firstName} ${game.referee.lastName}`}</td>
                 <td>
@@ -51,6 +57,7 @@ const AllGames: FC = () => {
                       onClick={() => {
                         setSelectedGameId(game.id);
                         setIsOpenEditGame(true);
+                        setSelectedGame(game);
                       }}
                     />
                     <FaTrashAlt
@@ -72,6 +79,7 @@ const AllGames: FC = () => {
         isOpen={isOpenEditGame}
         setIsOpen={setIsOpenEditGame}
         gameId={selectedGameId}
+        game={selectedGame!}
       />
 
       <DeleteGameModal
