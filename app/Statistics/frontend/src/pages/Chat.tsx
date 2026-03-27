@@ -15,7 +15,9 @@ export default function Chat() {
   useEffect(() => {
     if (!isLoggedIn()) return;
 
-    getChatHistory().then((data) => setMessages(data));
+    getChatHistory().then((data) => {
+      setMessages(data);
+    });
 
     const eventSource = new EventSource(SSE_URL);
 

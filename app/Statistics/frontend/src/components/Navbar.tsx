@@ -5,6 +5,7 @@ import { CgProfile } from "react-icons/cg";
 import { IoChatbubblesOutline } from "react-icons/io5";
 import { useAuth } from "../context/auth/useAuth";
 import Chat from "../pages/Chat";
+import { getChatHistory } from "../services/ChatService";
 
 const Navbar: FC = () => {
   const { theme, setTheme } = useTheme();
@@ -20,6 +21,9 @@ const Navbar: FC = () => {
   };
 
   const handleChatOpen = () => {
+    if (chatOpen) {
+      localStorage.setItem("chatLastSeen", new Date().toISOString());
+    }
     setChatOpen(!chatOpen);
     if (!chatOpen) setHasUnread(false);
   };
@@ -27,6 +31,29 @@ const Navbar: FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (!isLoggedIn()) return;
+
+    getChatHistory().then((data) => {
+      if (data.length === 0) return;
+
+      const lastSeen = localStorage.getItem("chatLastSeen");
+      const latestMessage = data[data.length - 1];
+
+      if (!lastSeen) {
+        setHasUnread(true);
+        return;
+      }
+
+      const lastSeenDate = new Date(lastSeen);
+      const latestMessageDate = new Date(latestMessage.Timestamp);
+
+      if (latestMessageDate > lastSeenDate) {
+        setHasUnread(true);
+      }
+    });
+  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!isLoggedIn()) return;

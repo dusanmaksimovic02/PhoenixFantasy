@@ -10,10 +10,10 @@ namespace StatsApi.Controllers
     [Route("api/[controller]")]
     public class ChatController : ControllerBase
     {
-        private readonly RabbitMQService _rabbitMQ;
+        private readonly IRabbitMQService _rabbitMQ;
         private readonly DataContext _context;
 
-        public ChatController(RabbitMQService rabbitMQ, DataContext context)
+        public ChatController(IRabbitMQService rabbitMQ, DataContext context)
         {
             _rabbitMQ = rabbitMQ;
             _context = context;
@@ -26,7 +26,7 @@ namespace StatsApi.Controllers
             {
                 Username = message.Username,
                 Message = message.Message,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
 
             _context.ChatMessages.Add(chatMessage);

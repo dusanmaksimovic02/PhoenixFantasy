@@ -36,7 +36,10 @@ builder.Services.AddIdentity<Person, IdentityRole>()
 
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
+
 builder.Services.AddSingleton<RabbitMQService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQService>());
+builder.Services.AddSingleton<IRabbitMQService>(sp => sp.GetRequiredService<RabbitMQService>());
 
 
 var app = builder.Build();
