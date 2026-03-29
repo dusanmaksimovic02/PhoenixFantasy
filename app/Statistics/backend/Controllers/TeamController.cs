@@ -101,7 +101,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpDelete("DeleteTeam/{id}")]
-    public async Task<ActionResult<Team>> DeleteTeam(string id)
+    public async Task<ActionResult<Team>> DeleteTeam(Guid id)
     {
         try
         {

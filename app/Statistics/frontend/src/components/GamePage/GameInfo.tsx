@@ -1,9 +1,12 @@
 import { useState, type FC } from "react";
-import { useParams } from "react-router-dom";
 import PlusMinusButtons from "./PlusMinusButtons";
+import type { Game } from "../../models/Game";
 
-const GameInfo: FC = () => {
-  const { team1, team2 } = useParams();
+interface GameInfoProps {
+  game: Game;
+}
+
+const GameInfo: FC<GameInfoProps> = (props) => {
   const [isStart, setIsStart] = useState<boolean>(false);
   const [isStopped, setIsStopped] = useState<boolean>(false);
   const [homeCouchTechnical, setHomeCouchTechnical] = useState<number>(0);
@@ -12,17 +15,17 @@ const GameInfo: FC = () => {
   const [awayBenchTechnical, setAwayBenchTechnical] = useState<number>(0);
 
   const game = {
-    homeTeam: team1,
+    homeTeam: props.game.homeTeam.name,
     homeLogo:
       "https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg",
-    awayTeam: team2,
+    awayTeam: props.game.guestTeam.name,
     awayLogo:
       "https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg",
-    date: "2024-10-15",
-    time: "19:00",
-    arena: "Footprint Center",
-    played: true,
-    result: { homeScore: 59, awayScore: 48 },
+    date: props.game.dateTime?.split("T")[0] ?? "",
+    time: props.game.dateTime?.split("T")[1]?.slice(0, 5) ?? "",
+    arena: props.game.venue,
+    played: false,
+    result: { homeScore: 0, awayScore: 0 },
   };
   return (
     <div className="pt-7 px-10 ">
@@ -82,16 +85,22 @@ const GameInfo: FC = () => {
             </div>
           </div>
           <div className=" flex flex-2 flex-col items-center justify-center gap-1">
+            <div className="text-center">
+              <p>{game.arena}</p>
+              <p>{game.date}</p>
+              <p>{game.time}</p>
+            </div>
+
             <div className="w-full flex justify-center">
               <p
                 className={`text-4xl w-fit px-7 border-2 border-black dark:border-white rounded-4xl f font-bold ${
                   isStopped ? "text-red-500" : ""
                 }`}
               >
-                6:34
+                10:00
               </p>
             </div>
-            <p className="text-2xl font-semibold">3rd quarter</p>
+            <p className="text-2xl font-semibold">1rd quarter</p>
 
             {!isStart ? (
               <button
@@ -129,7 +138,7 @@ const GameInfo: FC = () => {
                   {game.result.awayScore}
                 </p>
               </div>
-              <img src={game.awayLogo} alt="home logo" className="w-35 h-35" />
+              <img src={game.awayLogo} alt="away logo" className="w-35 h-35" />
             </div>
             <div className="flex flex-col justify-around h-full p-3 gap-3">
               <div className="flex justify-between items-center">

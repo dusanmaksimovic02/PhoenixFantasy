@@ -16,3 +16,13 @@ export const deleteReferee = async (id: string) => {
 
   return await apiClient.delete(`Referee/DeleteReferee/${id}`);
 };
+
+export const getAllFreeReferees = async (id: string) => {
+  const response = await apiClient.get(`Referee/GetAllFreeReferees/${id}`);
+  return response.data;
+};
+
+export const getAllGamesForReferee = async (id: string) => {
+  const response = await apiClient.get(`Referee/GetAllGamesForReferee/${id}`);
+  return response.data;
+};
