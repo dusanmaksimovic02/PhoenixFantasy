@@ -11,4 +11,5 @@ public class Game
     public DateTime dateTime { get; set; }
     public string? Venue { get; set; }
     public Person? Referee { get; set; }
+    public int? Round { get;set; }
 }
