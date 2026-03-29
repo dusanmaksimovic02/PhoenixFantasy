@@ -41,3 +41,8 @@ export const addPlayersToTeam = async (teamId: string, playerIds: string[]) => {
   );
   return response.data;
 };
+
+export const deleteTeam = async (id: string) => {
+  const response = await apiClient.delete(`Team/DeleteTeam/${id}`);
+  return response.data;
+};

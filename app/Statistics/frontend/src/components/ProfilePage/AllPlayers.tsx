@@ -87,7 +87,7 @@ const AllPlayers: FC = () => {
       <h3 className="text-center text-2xl font-bold mb-6">All Players</h3>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
-        <table className="table w-full bg-white dark:bg-neutral-800">
+        <table className="table w-full bg-white dark:bg-neutral-800 text-nowrap">
           <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
               <th>ID</th>

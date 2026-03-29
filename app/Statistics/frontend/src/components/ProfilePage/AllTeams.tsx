@@ -2,14 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { getTeams } from "../../services/TeamService";
 import { useState, type FC } from "react";
 import Loading from "../Loading";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import EditCoachModal from "./EditCoachModal";
 import EditPlayersModal from "./EditPlayersModal";
+import DeleteGameModal from "./DeleteGameModal";
 
 const AllTeams: FC = () => {
   const [isOpenCoach, setIsOpenCoach] = useState(false);
   const [isOpenPlayers, setIsOpenPlayers] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  const [isOpenDeleteGame, setIsOpenDeleteGame] = useState<boolean>(false);
 
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["teams"],
@@ -19,19 +21,20 @@ const AllTeams: FC = () => {
   if (isLoading) return <Loading />;
 
   return (
-    <div>
+    <div className="w-full">
       <h1 className="text-3xl font-bold mb-8 text-center text-phoenix">
         All Teams
       </h1>
 
       <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
-        <table className="table w-full bg-white dark:bg-neutral-800">
+        <table className="table w-full bg-white dark:bg-neutral-800 text-nowrap">
           <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
               <th>ID</th>
               <th>Name</th>
               <th>Coach</th>
-              <th className="text-center">Actions</th>
+              <th>Players</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -68,6 +71,15 @@ const AllTeams: FC = () => {
                     />
                   </div>
                 </td>
+                <td className="flex justify-center">
+                  <FaTrashAlt
+                    className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
+                    onClick={() => {
+                      setSelectedTeamId(team.id);
+                      setIsOpenDeleteGame(true);
+                    }}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -84,6 +96,12 @@ const AllTeams: FC = () => {
         teamId={selectedTeamId}
         setIsOpen={() => setIsOpenPlayers(false)}
         isOpen={isOpenPlayers}
+      />
+
+      <DeleteGameModal
+        isOpen={isOpenDeleteGame}
+        setIsOpen={(isOpen) => setIsOpenDeleteGame(isOpen)}
+        gameId={selectedTeamId}
       />
     </div>
   );
