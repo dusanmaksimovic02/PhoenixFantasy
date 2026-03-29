@@ -58,7 +58,7 @@ const Navbar: FC = () => {
   useEffect(() => {
     if (!isLoggedIn()) return;
 
-    const eventSource = new EventSource("http://localhost:5086/api/chat/stream");
+    const eventSource = new EventSource("https://localhost:7034/api/chat/stream");
 
     eventSource.onmessage = () => {
       if (!chatOpen) setHasUnread(true);

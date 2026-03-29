@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/auth/useAuth";
 import { sendChatMessage, getChatHistory, type ChatMessage } from "../services/ChatService";
 
-const SSE_URL = "http://localhost:5086/api/chat/stream";
+const SSE_URL = "https://localhost:7034/api/chat/stream";
 
 export default function Chat() {
   const { user, isLoggedIn } = useAuth();
