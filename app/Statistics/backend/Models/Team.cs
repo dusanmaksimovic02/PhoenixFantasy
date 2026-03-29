@@ -9,5 +9,6 @@ public class Team
     public required string Name { get; set; }
     public Coach? coach { get; set; }
     public List<Player>? Players { get; set; }
+    public string? logoPathURL { get; set; }
 
 }

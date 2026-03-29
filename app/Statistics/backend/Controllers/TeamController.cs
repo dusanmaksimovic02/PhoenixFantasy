@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
 using StatsApi.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace StatsApi.Controllers;
 
@@ -101,7 +104,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpDelete("DeleteTeam/{id}")]
-    public async Task<ActionResult<Team>> DeleteTeam(string id)
+    public async Task<ActionResult<Team>> DeleteTeam(Guid id)
     {
         try
         {
@@ -136,7 +139,6 @@ public class TeamController : ControllerBase
             if (team.Players.Any(p => p.Id == player.Id))
                 throw new Exception("Player is already in the team");
 
-            // 🔥 VALIDACIJA BROJA
             if (!string.IsNullOrEmpty(player.JerseyNumber) &&
                 team.Players.Any(p => p.JerseyNumber!.ToUpper() == player.JerseyNumber.ToUpper()))
             {
@@ -300,5 +302,48 @@ public class TeamController : ControllerBase
         {
             return BadRequest(e.Message);
         }
+    }
+
+    [HttpPost("upload-team-logo/{teamId}")]
+    public async Task<IActionResult> UploadTeamLogo(Guid teamId, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        if (!file.ContentType.StartsWith("image/"))
+            return BadRequest("Invalid file type");
+
+        var team = await context.Teams.FindAsync(teamId);
+        if (team == null)
+            return NotFound("Team not found");
+
+        var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/teams");
+
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        var fileName = $"{teamId}.webp";
+        var filePath = Path.Combine(folderPath, fileName);
+
+        using (var image = await Image.LoadAsync(file.OpenReadStream()))
+        {
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Size = new Size(300, 300),
+                Mode = ResizeMode.Max
+            }));
+
+            await image.SaveAsync(filePath, new WebpEncoder
+            {
+                Quality = 75
+            });
+        }
+
+        var relativePath = $"/images/teams/{fileName}";
+        team.logoPathURL = relativePath;
+
+        await context.SaveChangesAsync();
+
+        return Ok(new { imageUrl = relativePath });
     }
 }

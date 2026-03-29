@@ -42,6 +42,27 @@ public class GameController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("GetGameByRound/{round}")]
+    public async Task<IActionResult> GetGameByRound(int round)
+    {
+        try
+        {
+            var games = await context.Games
+                .Include(g => g.HomeTeam)
+                .Include(g => g.GuestTeam)
+                .Include(g => g.Referee)
+                .Where(g => g.Round == round)
+                .ToListAsync();
+
+            return Ok(games);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpGet("GetGames")]
     public async Task<IActionResult> GetGames()
     {

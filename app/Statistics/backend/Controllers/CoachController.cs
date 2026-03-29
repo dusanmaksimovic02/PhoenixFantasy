@@ -43,6 +43,24 @@ public class CoachController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("GetFreeCoaches")]
+    public async Task<IActionResult> GetFreeCoaches()
+    {
+        try
+        {
+            var freeCoaches = await context.Coaches
+                .Where(c => !context.Teams.Any(t => t.coach != null && t.coach.Id == c.Id))
+                .ToListAsync();
+    
+            return Ok(freeCoaches);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpPost("AddCoach")]
     public async Task<ActionResult> AddCoach([FromBody] AddCoachDto dto)
     {

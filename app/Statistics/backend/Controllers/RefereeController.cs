@@ -35,7 +35,14 @@ public class RefereeController : ControllerBase
     {
         try
         {
-            var referees = await context.Persons.ToListAsync();
+            var referees = await (
+                from user in context.Users
+                join userRole in context.UserRoles on user.Id equals userRole.UserId
+                join role in context.Roles on userRole.RoleId equals role.Id
+                where role.Name == "Referee"
+                select user
+            ).ToListAsync();
+
             return Ok(referees);
         }
         catch (Exception e)
@@ -43,6 +50,7 @@ public class RefereeController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+    
     [HttpPost("AddReferee")]
     public async Task<ActionResult<Person>> AddReferee([FromBody] Person referee)
     {
@@ -104,14 +112,17 @@ public class RefereeController : ControllerBase
     {
         try
         {
-            var busyRefereeIds = await context.Games
-                .Where(g => g.dateTime.Date == date.Date && g.Referee != null)
-                .Select(g => g.Referee!.Id)
-                .ToListAsync();
-
-            var freeReferees = await context.Persons
-                .Where(r => !busyRefereeIds.Contains(r.Id))
-                .ToListAsync();
+            var freeReferees = await (
+                from user in context.Users
+                join userRole in context.UserRoles on user.Id equals userRole.UserId
+                join role in context.Roles on userRole.RoleId equals role.Id
+                where role.Name == "Referee"
+                && !context.Games.Any(g =>
+                    g.dateTime.Date == date.Date &&
+                    g.Referee != null &&
+                    g.Referee.Id == user.Id)
+                select user
+            ).ToListAsync();
 
             return Ok(freeReferees);
         }
