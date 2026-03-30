@@ -6,12 +6,16 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import EditCoachModal from "./EditCoachModal";
 import EditPlayersModal from "./EditPlayersModal";
 import DeleteGameModal from "./DeleteGameModal";
+import RemoveCoachFromTeamModal from "./RemoveCoachFromTeamModal";
+import LogoUpload from "./UploadLogo";
 
 const AllTeams: FC = () => {
   const [isOpenCoach, setIsOpenCoach] = useState(false);
   const [isOpenPlayers, setIsOpenPlayers] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [isOpenDeleteGame, setIsOpenDeleteGame] = useState<boolean>(false);
+  const [isOpenRemoveCoach, setIsOpenRemoveCoach] = useState<boolean>(false);
+  const [logoUpdateKey, setLogoUpdateKey] = useState<number>(Date.now());
 
   const { data: teams = [], isLoading } = useQuery({
     queryKey: ["teams"],
@@ -31,6 +35,7 @@ const AllTeams: FC = () => {
           <thead className="bg-neutral-200 dark:bg-neutral-900">
             <tr>
               <th>ID</th>
+              <th>Logo</th>
               <th>Name</th>
               <th>Coach</th>
               <th>Players</th>
@@ -44,11 +49,24 @@ const AllTeams: FC = () => {
                 className="hover:bg-neutral-100 dark:hover:bg-neutral-700"
               >
                 <td>{team.id}</td>
+                <td className="flex items-center justify-between gap-2">
+                  <div className="w-15 h-25 overflow-hidden text-wrap">
+                    <img
+                      src={`https://localhost:7034${team.logoPathURL}?t=${logoUpdateKey}`}
+                      alt={team.name}
+                    />
+                  </div>
+                  <LogoUpload
+                    teamId={team.id}
+                    onUploadSuccess={() => setLogoUpdateKey(Date.now())}
+                  />
+                </td>
                 <td>{team.name}</td>
                 <td>
                   <div className="h-full flex gap-2 items-center justify-center">
                     <span>
-                      {team.coach.firstName} {team.coach.lastName}{" "}
+                      {team.coach ? team.coach.firstName : "No coach"}{" "}
+                      {team.coach ? team.coach.lastName : ""}{" "}
                     </span>
                     <FaEdit
                       className="text-blue-500 cursor-pointer hover:scale-120 transition-transform"
@@ -57,6 +75,16 @@ const AllTeams: FC = () => {
                         setSelectedTeamId(team.id);
                       }}
                     />
+
+                    {team.coach && (
+                      <FaTrashAlt
+                        className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
+                        onClick={() => {
+                          setSelectedTeamId(team.id);
+                          setIsOpenRemoveCoach(true);
+                        }}
+                      />
+                    )}
                   </div>
                 </td>
                 <td>
@@ -71,14 +99,16 @@ const AllTeams: FC = () => {
                     />
                   </div>
                 </td>
-                <td className="flex justify-center">
-                  <FaTrashAlt
-                    className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
-                    onClick={() => {
-                      setSelectedTeamId(team.id);
-                      setIsOpenDeleteGame(true);
-                    }}
-                  />
+                <td>
+                  <div className="h-full flex gap-2 items-center justify-center">
+                    <FaTrashAlt
+                      className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
+                      onClick={() => {
+                        setSelectedTeamId(team.id);
+                        setIsOpenDeleteGame(true);
+                      }}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -102,6 +132,12 @@ const AllTeams: FC = () => {
         isOpen={isOpenDeleteGame}
         setIsOpen={(isOpen) => setIsOpenDeleteGame(isOpen)}
         gameId={selectedTeamId}
+      />
+
+      <RemoveCoachFromTeamModal
+        isOpen={isOpenRemoveCoach}
+        setIsOpen={(isOpen) => setIsOpenRemoveCoach(isOpen)}
+        teamId={selectedTeamId}
       />
     </div>
   );

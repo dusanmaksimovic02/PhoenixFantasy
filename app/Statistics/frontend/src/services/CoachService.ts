@@ -20,3 +20,8 @@ export const updateCoach = async (coach: Coach) => {
   const response = await apiClient.put(`Coach/UpdateCoach/`, coach);
   return response.data;
 };
+
+export const getAllFreeCoaches = async () => {
+  const response = await apiClient.get<Coach[]>("Coach/GetFreeCoaches");
+  return response.data;
+};

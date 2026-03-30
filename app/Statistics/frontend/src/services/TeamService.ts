@@ -46,3 +46,24 @@ export const deleteTeam = async (id: string) => {
   const response = await apiClient.delete(`Team/DeleteTeam/${id}`);
   return response.data;
 };
+
+export const removeCoachFromTeam = async (teamId: string) => {
+  const response = await apiClient.put(`Team/RemoveCoachFromTeam/${teamId}`);
+  return response.data;
+};
+
+export const uploadTeamLogo = async (teamId: string, file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await apiClient.post(
+    `Team/upload-team-logo/${teamId}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return response.data;
+};

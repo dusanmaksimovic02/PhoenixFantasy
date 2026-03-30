@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getCoaches } from "../../services/CoachService";
+import { getAllFreeCoaches } from "../../services/CoachService";
 import { IoIosArrowDown } from "react-icons/io";
 import type { Coach } from "../../models/Coach";
 import { toast } from "react-toastify";
@@ -17,8 +17,8 @@ const EditCoachModal: FC<EditCoachModalProps> = (props) => {
   const [selectedCoach, setSelectedCoach] = useState<Coach>();
 
   const { data: coaches = [] } = useQuery({
-    queryKey: ["coaches"],
-    queryFn: getCoaches,
+    queryKey: ["freeCoaches"],
+    queryFn: getAllFreeCoaches,
   });
 
   const { data: teams = [] } = useQuery({
@@ -32,6 +32,7 @@ const EditCoachModal: FC<EditCoachModalProps> = (props) => {
     mutationFn: () => updateTeamCoach(props.teamId, selectedCoach!.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["freeCoaches"] });
       toast.success("Team Coach updated successfully");
     },
     onError: () => toast.error("Update coach failed"),
@@ -52,10 +53,12 @@ const EditCoachModal: FC<EditCoachModalProps> = (props) => {
             Change Coach
           </h3>
 
-          <p className="mt-4">
-            Current Coach of {team?.name} is {team?.coach.firstName}{" "}
-            {team?.coach.lastName}
-          </p>
+          {team?.coach && (
+            <p className="mt-4">
+              Current Coach of {team?.name} is {team?.coach.firstName}{" "}
+              {team?.coach.lastName}
+            </p>
+          )}
 
           <div className="dropdown w-full mt-10">
             <div
@@ -95,7 +98,7 @@ const EditCoachModal: FC<EditCoachModalProps> = (props) => {
             disabled={
               selectedCoach === undefined ||
               updateCoachMutation.isPending ||
-              selectedCoach?.id === team?.coach.id
+              (team?.coach && selectedCoach?.id === team?.coach.id)
             }
           >
             {updateCoachMutation.isPending ? "Saving..." : "Save New Coach"}
