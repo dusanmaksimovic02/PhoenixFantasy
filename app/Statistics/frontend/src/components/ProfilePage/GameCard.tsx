@@ -14,7 +14,7 @@ const GameCard: FC<Props> = (props) => {
     const homeTeam = props.game.homeTeam.name;
     const awayTeam = props.game.guestTeam.name;
 
-    navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
+    navigate(`/startGame/${homeTeam}/vs/${awayTeam}`, {
       state: { game },
     });
   };
@@ -26,7 +26,7 @@ const GameCard: FC<Props> = (props) => {
     >
       <div className="flex justify-center items-center gap-3">
         <img
-          src="https://media-cdn.incrowdsports.com/2681304e-77dd-4331-88b1-683078c0fb49.png?width=90&height=90&resizeType=fill&format=webp"
+          src={`${props.game.homeTeam.logoPathURL}`}
           alt={`${props.game.homeTeam.name} logo`}
           className="w-10 rounded-full"
         />
@@ -40,7 +40,7 @@ const GameCard: FC<Props> = (props) => {
 
       <div className="flex justify-center items-center gap-3 ">
         <img
-          src="https://media-cdn.incrowdsports.com/2681304e-77dd-4331-88b1-683078c0fb49.png?width=90&height=90&resizeType=fill&format=webp"
+          src={`${props.game.guestTeam.logoPathURL}`}
           alt={`${props.game.guestTeam.name} logo`}
           className="w-10 rounded-full"
         />

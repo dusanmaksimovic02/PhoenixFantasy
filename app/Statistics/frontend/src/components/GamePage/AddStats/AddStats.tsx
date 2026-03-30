@@ -13,7 +13,7 @@ type Props = {
   name: string;
   surname: string;
   position: string;
-  jerseyNumber: number;
+  jerseyNumber: string;
   time: Date;
 };
 

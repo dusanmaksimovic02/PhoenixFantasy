@@ -7,8 +7,7 @@ interface GameInfoProps {
 }
 
 const GameInfo: FC<GameInfoProps> = (props) => {
-  const [isStart, setIsStart] = useState<boolean>(false);
-  const [isStopped, setIsStopped] = useState<boolean>(false);
+  const [isStopped, setIsStopped] = useState<boolean>(true);
   const [homeCouchTechnical, setHomeCouchTechnical] = useState<number>(0);
   const [homeBenchTechnical, setHomeBenchTechnical] = useState<number>(0);
   const [awayCouchTechnical, setAwayCouchTechnical] = useState<number>(0);
@@ -16,11 +15,9 @@ const GameInfo: FC<GameInfoProps> = (props) => {
 
   const game = {
     homeTeam: props.game.homeTeam.name,
-    homeLogo:
-      "https://upload.wikimedia.org/wikipedia/en/d/dc/Phoenix_Suns_logo.svg",
+    homeLogo: `${props.game.homeTeam.logoPathURL}`,
     awayTeam: props.game.guestTeam.name,
-    awayLogo:
-      "https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg",
+    awayLogo: `${props.game.guestTeam.logoPathURL}`,
     date: props.game.dateTime?.split("T")[0] ?? "",
     time: props.game.dateTime?.split("T")[1]?.slice(0, 5) ?? "",
     arena: props.game.venue,
@@ -90,7 +87,6 @@ const GameInfo: FC<GameInfoProps> = (props) => {
               <p>{game.date}</p>
               <p>{game.time}</p>
             </div>
-
             <div className="w-full flex justify-center">
               <p
                 className={`text-4xl w-fit px-7 border-2 border-black dark:border-white rounded-4xl f font-bold ${
@@ -101,28 +97,17 @@ const GameInfo: FC<GameInfoProps> = (props) => {
               </p>
             </div>
             <p className="text-2xl font-semibold">1rd quarter</p>
-
-            {!isStart ? (
-              <button
-                disabled={isStart}
-                onClick={() => setIsStart(true)}
-                className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
-              >
-                Start Game
-              </button>
-            ) : (
-              <button
-                className={`btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl
+            <button
+              className={`btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl
                     ${
                       isStopped
                         ? "bg-red-600/80 hover:bg-red-600 hover:border-red-600 border-red-600"
                         : ""
                     }`}
-                onClick={() => setIsStopped(!isStopped)}
-              >
-                {isStopped ? "start" : "stop"}
-              </button>
-            )}
+              onClick={() => setIsStopped(!isStopped)}
+            >
+              {isStopped ? "start" : "stop"}
+            </button>
           </div>
           <div>
             <div className="flex flex-1 justify-center items-center gap-10 text-center">

@@ -4,11 +4,11 @@ import AddStats from "./AddStats/AddStats";
 import ChangePlayer from "./ChangePlayer";
 
 type Props = {
-  id: number;
+  id: string;
   name: string;
   surname: string;
   position: string;
-  jerseyNumber: number;
+  jerseyNumber: string;
   time: Date;
 };
 

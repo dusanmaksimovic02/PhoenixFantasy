@@ -197,6 +197,23 @@ public class TeamController : ControllerBase
         }
     }
 
+    [HttpGet("GetTeamPlayers/{teamId}")]
+    public async Task<ActionResult<List<Player>>> GetTeamPlayers(Guid teamId)
+    {
+        try
+        {
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id == teamId);
+
+            return Ok(team!.Players);
+        }
+        catch(Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpPut("AddCoachToTeam/{coachId}/{teamId}")]
     public async Task<ActionResult> AddCoachToTeam(string coachId, string teamId)
     {

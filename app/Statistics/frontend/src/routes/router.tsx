@@ -8,6 +8,7 @@ import { ProtectedLoader } from "./ProtectedLoader";
 import GamePage from "../pages/GamePage";
 import { LoginLoader } from "./LoginLoader";
 import Chat from "../pages/Chat";
+import StartGame from "../components/GamePage/StartGame";
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,11 @@ export const router = createBrowserRouter([
       {
         path: "/game/:team1/vs/:team2",
         element: <GamePage />,
+        loader: ProtectedLoader,
+      },
+      {
+        path: "/startGame/:team1/vs/:team2",
+        element: <StartGame />,
         loader: ProtectedLoader,
       },
       {

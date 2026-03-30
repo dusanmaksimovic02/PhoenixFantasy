@@ -52,7 +52,7 @@ const AllTeams: FC = () => {
                 <td className="flex items-center justify-between gap-2">
                   <div className="w-15 h-25 overflow-hidden text-wrap">
                     <img
-                      src={`https://localhost:7034${team.logoPathURL}?t=${logoUpdateKey}`}
+                      src={`${team.logoPathURL}?t=${logoUpdateKey}`}
                       alt={team.name}
                     />
                   </div>

@@ -1,3 +1,4 @@
+import type { Player } from "../models/Player";
 import type { Team } from "../models/Team";
 import apiClient from "./client";
 
@@ -64,6 +65,13 @@ export const uploadTeamLogo = async (teamId: string, file: File) => {
         "Content-Type": "multipart/form-data",
       },
     },
+  );
+  return response.data;
+};
+
+export const getTeamPlayers = async (teamId: string) => {
+  const response = await apiClient.get<Player[]>(
+    `Team/GetTeamPlayers/${teamId}`,
   );
   return response.data;
 };
