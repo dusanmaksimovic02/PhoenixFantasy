@@ -4,4 +4,5 @@ public class AddPlayerDto
     public string? LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? JerseyNumber { get; set; }
+    public string? Position { get; set; }
 }

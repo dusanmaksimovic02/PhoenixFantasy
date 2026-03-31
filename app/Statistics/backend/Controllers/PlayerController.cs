@@ -70,7 +70,8 @@ public class PlayerController : ControllerBase
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 DateOfBirth = dto.DateOfBirth,
-                JerseyNumber = dto.JerseyNumber
+                JerseyNumber = dto.JerseyNumber,
+                Position = dto.Position
             };
 
             context.Players.Add(player);
@@ -96,6 +97,7 @@ public class PlayerController : ControllerBase
             playerUpdate.LastName = player.LastName;
             playerUpdate.DateOfBirth = player.DateOfBirth;
             playerUpdate.JerseyNumber = player.JerseyNumber;
+            playerUpdate.Position = player.Position;
 
             context.Players.Update(playerUpdate);
             await context.SaveChangesAsync();

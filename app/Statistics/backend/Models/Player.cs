@@ -10,4 +10,5 @@ public class Player
     public string? LastName { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? JerseyNumber { get; set; } // string jer moze 0 i 00 u istom timu
+    public string? Position { get; set; }
 }
