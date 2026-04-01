@@ -84,7 +84,7 @@ const AddManager: FC = () => {
 
   return (
     <div className="w-full max-w-2xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
-      <h1 className="text-3xl font-bold mb-8 text-center">Add Manager</h1>
+      <h3 className="mb-8 text-center text-phoenix">Add Manager</h3>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="w-full">
@@ -92,7 +92,7 @@ const AddManager: FC = () => {
           <input
             {...register("email")}
             placeholder="example@mail.com"
-            className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.email ? "border-red-500" : "border-neutral-300"}`}
+            className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.email ? "border-red-500" : "border-neutral-300"}`}
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -104,7 +104,8 @@ const AddManager: FC = () => {
             <label className="block mb-1 font-medium">Username</label>
             <input
               {...register("username")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.username ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.username ? "border-red-500" : "border-neutral-300"}`}
+              placeholder="Username"
             />
             {errors.username && (
               <p className="text-red-500 text-sm mt-1">
@@ -117,7 +118,8 @@ const AddManager: FC = () => {
             <input
               type="password"
               {...register("password")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.password ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.password ? "border-red-500" : "border-neutral-300"}`}
+              placeholder="Password"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
@@ -129,20 +131,22 @@ const AddManager: FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block mb-1 font-medium">Name</label>
+            <label className="block mb-1 font-medium">First Name</label>
             <input
               {...register("name")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.name ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.name ? "border-red-500" : "border-neutral-300"}`}
+              placeholder="First Name"
             />
             {errors.name && (
               <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
             )}
           </div>
           <div>
-            <label className="block mb-1 font-medium">Surname</label>
+            <label className="block mb-1 font-medium">Last Name</label>
             <input
               {...register("surname")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.surname ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.surname ? "border-red-500" : "border-neutral-300"}`}
+              placeholder="Last Name"
             />
             {errors.surname && (
               <p className="text-red-500 text-sm mt-1">
@@ -158,7 +162,7 @@ const AddManager: FC = () => {
             <input
               type="date"
               {...register("birthDate")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.birthDate ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.birthDate ? "border-red-500" : "border-neutral-300"}`}
             />
             {errors.birthDate && (
               <p className="text-red-500 text-sm mt-1">
@@ -171,7 +175,7 @@ const AddManager: FC = () => {
             <input
               placeholder="+381..."
               {...register("phoneNumber")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${errors.phoneNumber ? "border-red-500" : "border-neutral-300"}`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.phoneNumber ? "border-red-500" : "border-neutral-300"}`}
             />
             {errors.phoneNumber && (
               <p className="text-red-500 text-sm mt-1">
@@ -185,10 +189,10 @@ const AddManager: FC = () => {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="px-10 py-3 rounded-xl text-white font-semibold
+            className="px-10 py-3 rounded text-white font-semibold
               bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50 w-full md:w-auto"
           >
-            {mutation.isPending ? "Creating..." : "Add manager"}
+            {mutation.isPending ? "Creating..." : "Add Manager"}
           </button>
         </div>
       </form>

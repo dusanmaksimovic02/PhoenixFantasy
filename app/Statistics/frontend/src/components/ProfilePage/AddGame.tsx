@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Team } from "../../models/Team";
 import { getTeams } from "../../services/TeamService";
 import { getReferees } from "../../services/RefereeService";
-import { IoIosArrowDown } from "react-icons/io";
 import { addGame } from "../../services/GameService";
 import { toast } from "react-toastify";
 
@@ -90,38 +89,32 @@ const AddGame: FC = () => {
 
   return (
     <div className="w-full max-w-2xl rounded-2xl p-8 px-13 shadow-lg bg-neutral-100 dark:bg-neutral-800">
-      <h1 className="text-3xl font-bold mb-8 text-center">Add new Game</h1>
+      <h3 className="mb-8 text-center text-phoenix">Add New Game</h3>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block mb-1 font-medium">Home Team</label>
-            <div className="dropdown w-full">
-              <div
-                tabIndex={0}
-                role="button"
-                className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-              >
-                {homeTeam ? `${homeTeam.name}` : "Select a team"}{" "}
-                <IoIosArrowDown />
-              </div>
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-              >
-                {teams.map((t) => (
-                  <li
-                    key={t.id}
-                    onClick={() => {
-                      setHomeTeam(t);
-                      (document.activeElement as HTMLElement)?.blur();
-                      setValue("homeTeam", t);
-                    }}
-                  >
-                    <a>{t.name}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+
+            <select
+              className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white${errors.homeTeam ? "select-error" : ""}`}
+            >
+              <option value="">Select Home Team</option>
+              {teams.map((t) => (
+                <option
+                  key={t.id}
+                  value={t.id}
+                  selected={homeTeam?.id === t.id}
+                  onClick={() => {
+                    setHomeTeam(t);
+                    (document.activeElement as HTMLElement)?.blur();
+                    setValue("homeTeam", t);
+                  }}
+                >
+                  {t.name}
+                </option>
+              ))}
+            </select>
             {errors.homeTeam && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.homeTeam.message}
@@ -131,33 +124,28 @@ const AddGame: FC = () => {
 
           <div>
             <label className="block mb-1 font-medium">Away Team</label>
-            <div className="dropdown w-full">
-              <div
-                tabIndex={0}
-                role="button"
-                className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-              >
-                {awayTeam ? `${awayTeam.name}` : "Select a team"}{" "}
-                <IoIosArrowDown />
-              </div>
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-              >
-                {teams.map((t) => (
-                  <li
-                    key={t.id}
-                    onClick={() => {
-                      setAwayTeam(t);
-                      (document.activeElement as HTMLElement)?.blur();
-                      setValue("awayTeam", t);
-                    }}
-                  >
-                    <a>{t.name}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+
+            <select
+              className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white${
+                errors.awayTeam ? "select-error" : ""
+              }`}
+            >
+              <option value="">Select Away Team</option>
+              {teams.map((t) => (
+                <option
+                  key={t.id}
+                  value={t.id}
+                  selected={awayTeam?.id === t.id}
+                  onClick={() => {
+                    setAwayTeam(t);
+                    (document.activeElement as HTMLElement)?.blur();
+                    setValue("awayTeam", t);
+                  }}
+                >
+                  {t.name}
+                </option>
+              ))}
+            </select>
             {errors.awayTeam && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.awayTeam.message}
@@ -172,7 +160,7 @@ const AddGame: FC = () => {
             <input
               type="date"
               {...register("date")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${
                 errors.date ? "border-red-500" : "border-neutral-300"
               }`}
             />
@@ -186,7 +174,7 @@ const AddGame: FC = () => {
             <input
               type="time"
               {...register("time")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${
                 errors.time ? "border-red-500" : "border-neutral-300"
               }`}
             />
@@ -202,9 +190,8 @@ const AddGame: FC = () => {
             <input
               type="text"
               {...register("venue")}
-              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border ${
-                errors.venue ? "border-red-500" : "border-neutral-300"
-              }`}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${errors.venue ? "border-red-500" : "border-neutral-300"}`}
+              placeholder="Venue"
             />
             {errors.venue && (
               <p className="text-red-500 text-sm mt-1">
@@ -215,37 +202,28 @@ const AddGame: FC = () => {
 
           <div>
             <label className="block mb-1 font-medium">Referee</label>
-            <div className="dropdown w-full">
-              <div
-                tabIndex={0}
-                role="button"
-                className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-              >
-                {referee
-                  ? `${referee.firstName} ${referee.lastName}`
-                  : "Select a referee"}{" "}
-                <IoIosArrowDown />
-              </div>
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-              >
-                {referees.map((r) => (
-                  <li
-                    key={r.id}
-                    onClick={() => {
-                      setReferee(r);
-                      (document.activeElement as HTMLElement)?.blur();
-                      setValue("referee", r);
-                    }}
-                  >
-                    <a>
-                      {r.firstName} {r.lastName}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+
+            <select
+              className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white${
+                errors.referee ? "select-error" : ""
+              }`}
+            >
+              <option value="">Select Referee</option>
+              {referees.map((r) => (
+                <option
+                  key={r.id}
+                  value={r.id}
+                  selected={referee?.id === r.id}
+                  onClick={() => {
+                    setReferee(r);
+                    (document.activeElement as HTMLElement)?.blur();
+                    setValue("referee", r);
+                  }}
+                >
+                  {r.firstName} {r.lastName}
+                </option>
+              ))}
+            </select>
             {errors.referee && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.referee.message}
@@ -258,7 +236,7 @@ const AddGame: FC = () => {
           <button
             type="submit"
             disabled={addGameMutation.isPending}
-            className="px-10 py-3 rounded-xl text-white font-semibold
+            className="px-10 py-3 rounded text-white font-semibold
               bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer disabled:opacity-50 w-full md:w-auto"
           >
             {addGameMutation.isPending ? "Creating Game..." : "Add Game"}

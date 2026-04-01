@@ -2,9 +2,9 @@ import type { Player } from "../../models/Player";
 import { type FC } from "react";
 import { toast } from "react-toastify";
 import { addTeam } from "../../services/TeamService";
-import { IoIosArrowDown, IoIosClose } from "react-icons/io";
-import { getPlayers } from "../../services/PlayerService";
-import { getCoaches } from "../../services/CoachService";
+import { IoIosClose } from "react-icons/io";
+import { getFreePlayers } from "../../services/PlayerService";
+import { getAllFreeCoaches } from "../../services/CoachService";
 import z from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,27 +16,6 @@ const formSchema = z.object({
   coach: z.custom<Coach>((v) => v !== undefined, {
     message: "Coach is required",
   }),
-  // coach: z
-  //   .object({
-  //     id: z.string(),
-  //     firstName: z.string(),
-  //     lastName: z.string(),
-  //     dateOfBirth: z.string().nullable().optional(),
-  //   })
-  //   .optional()
-  //   .refine((val) => val !== undefined, {
-  //     message: "Coach is required",
-  //     path: ["coach"],
-  //   }),
-  // players: z.array(
-  //   z.object({
-  //     id: z.string(),
-  //     firstName: z.string(),
-  //     lastName: z.string(),
-  //     dateOfBirth: z.string(),
-  //     jerseyNumber: z.string(),
-  //   }),
-  // ),
   players: z.array(z.custom<Player>()).min(1, "Select at least one player"),
 });
 
@@ -46,12 +25,12 @@ const AddTeam: FC = () => {
   const queryClient = useQueryClient();
 
   const { data: coaches = [] } = useQuery({
-    queryKey: ["coaches"],
-    queryFn: getCoaches,
+    queryKey: ["freeCoaches"],
+    queryFn: getAllFreeCoaches,
   });
   const { data: players = [] } = useQuery({
-    queryKey: ["players"],
-    queryFn: getPlayers,
+    queryKey: ["freePlayers"],
+    queryFn: getFreePlayers,
   });
 
   const {
@@ -65,12 +44,6 @@ const AddTeam: FC = () => {
     resolver: zodResolver(formSchema),
     defaultValues: { name: "", coach: undefined, players: [] },
   });
-
-  const selectedCoach =
-    useWatch({
-      control,
-      name: "coach",
-    }) ?? undefined;
 
   const selectedPlayers =
     useWatch({
@@ -104,15 +77,16 @@ const AddTeam: FC = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl rounded-2xl p-8 px-14 shadow-lg bg-neutral-100 dark:bg-neutral-800">
-      <h1 className="text-3xl font-bold mb-8 text-center">Add Team</h1>
+    <div className="w-full max-w-xl rounded-xl p-8 px-14 shadow-lg bg-neutral-100 dark:bg-neutral-800">
+      <h3 className="mb-8 text-center text-phoenix">Add Team</h3>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
           <label className="block mb-1 font-medium">Team name</label>
           <input
             {...register("name")}
-            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600"
+            className="input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white"
+            placeholder="Team Name"
           />
           {errors.name && (
             <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
@@ -121,36 +95,26 @@ const AddTeam: FC = () => {
 
         <div>
           <label className="block mb-1 font-medium">Team coach</label>
-          <div className="dropdown w-full">
-            <div
-              tabIndex={0}
-              role="button"
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-            >
-              {selectedCoach
-                ? `${selectedCoach.firstName} ${selectedCoach.lastName}`
-                : "Select a coach"}{" "}
-              <IoIosArrowDown />
-            </div>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-            >
-              {coaches.map((c) => (
-                <li
-                  key={c.id}
-                  onClick={() => {
-                    setValue("coach", c, { shouldValidate: true });
-                    (document.activeElement as HTMLElement)?.blur();
-                  }}
-                >
-                  <a>
-                    {c.firstName} {c.lastName}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+
+          <select
+            className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white${
+              errors.coach ? "select-error" : ""
+            }`}
+          >
+            <option value="">Select Coach</option>
+            {coaches.map((c) => (
+              <option
+                key={c.id}
+                value={c.id}
+                onClick={() => {
+                  setValue("coach", c, { shouldValidate: true });
+                  (document.activeElement as HTMLElement)?.blur();
+                }}
+              >
+                {c.firstName} {c.lastName}
+              </option>
+            ))}
+          </select>
           {errors.coach && (
             <p className="text-red-500 text-sm mt-1">{errors.coach.message}</p>
           )}
@@ -158,42 +122,35 @@ const AddTeam: FC = () => {
 
         <div>
           <label className="block mb-1 font-medium">Team players</label>
-          <div className="dropdown w-full cursor-pointer">
-            <div
-              tabIndex={0}
-              role="button"
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-            >
-              Select players ({selectedPlayers.length}) <IoIosArrowDown />
-            </div>
-            <div
-              tabIndex={0}
-              className="dropdown-content p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-            >
-              <table className="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>JN</th>
+
+          <select
+            className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white`}
+          >
+            <option value="">Select players ({selectedPlayers.length}) </option>
+
+            <table className="table table-sm ">
+              <thead className="text-neutral-700 dark:text-neutral-50">
+                <tr>
+                  <th>Name</th>
+                  <th>JN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((p) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => togglePlayer(p)}
+                    className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-phoenix" : ""}`}
+                  >
+                    <td>
+                      {p.firstName} {p.lastName}
+                    </td>
+                    <td>{p.jerseyNumber}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {players.map((p) => (
-                    <tr
-                      key={p.id}
-                      onClick={() => togglePlayer(p)}
-                      className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-phoenix" : ""}`}
-                    >
-                      <td>
-                        {p.firstName} {p.lastName}
-                      </td>
-                      <td>{p.jerseyNumber}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                ))}
+              </tbody>
+            </table>
+          </select>
           {errors.players && (
             <p className="text-red-500 text-sm mt-1">
               {errors.players.message}
@@ -220,9 +177,9 @@ const AddTeam: FC = () => {
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="px-10 py-3 rounded-xl text-white font-semibold bg-phoenix/60 hover:bg-phoenix/95 transition-all disabled:opacity-50"
+            className="px-10 py-3 rounded text-white font-semibold bg-phoenix/60 hover:bg-phoenix/95 transition-all disabled:opacity-50"
           >
-            {mutation.isPending ? "Creating..." : "Add team"}
+            {mutation.isPending ? "Creating..." : "Add Team"}
           </button>
         </div>
       </form>

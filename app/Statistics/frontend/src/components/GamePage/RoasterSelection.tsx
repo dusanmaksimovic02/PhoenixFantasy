@@ -62,7 +62,7 @@ const RoasterSelection: FC<RoasterSelectionProps> = ({
                   )}
                 </td>
 
-                <td>position</td>
+                <td>{player.position}</td>
 
                 <td className="text-center">
                   <button

@@ -8,8 +8,9 @@ import {
   removePlayerFromTeam,
 } from "../../services/TeamService";
 import { toast } from "react-toastify";
-import { IoIosArrowDown, IoIosClose } from "react-icons/io";
+import { IoIosClose } from "react-icons/io";
 import { getFreePlayers } from "../../services/PlayerService";
+import CustomTable from "./CustomTable";
 
 interface EditPlayersModalProps {
   //   team: Team;
@@ -79,7 +80,7 @@ const EditPlayersModal: FC<EditPlayersModalProps> = (props) => {
     <dialog open={props.isOpen} className="modal">
       <div className="modal-box w-11/12 max-w-5xl bg-white dark:bg-neutral-800">
         <button
-          className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+          className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 bg-white hover:text-black dark:bg-neutral-800 dark:hover:text-white dark:hover:border-white"
           onClick={() => props.setIsOpen()}
         >
           ✕
@@ -88,88 +89,69 @@ const EditPlayersModal: FC<EditPlayersModalProps> = (props) => {
           Edit {team?.name} Players
         </h3>
 
-        <div className="overflow-auto h-max-70 rounded-xl border border-neutral-300 dark:border-neutral-700">
-          <table className="table bg-white dark:bg-neutral-800">
-            <thead className="bg-neutral-200 dark:bg-neutral-900">
-              <tr>
-                <th>ID</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Birth Date</th>
-                <th>JN</th>
-                <th className="text-center">Remove Player</th>
-              </tr>
-            </thead>
-            <tbody>
-              {team?.players.map((player: Player) => (
-                <tr
-                  key={player.id}
-                  className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
-                >
-                  <td className="text-xs text-nowrap">{player.id}</td>
-                  <td>{player.firstName}</td>
-                  <td>{player.lastName}</td>
-                  <td>{player.dateOfBirth.split("T")[0]}</td>
-                  <td>
-                    <span className="badge badge-ghost font-bold">
-                      {player.jerseyNumber}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="flex justify-center gap-4">
-                      <FaTrashAlt
-                        className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
-                        onClick={() => {
-                          setSelectedPlayer(player);
-                          removePlayerMutation.mutate();
-                        }}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CustomTable
+          title={""}
+          thead={[
+            "ID",
+            "First Name",
+            "Last Name",
+            "Birth Date",
+            "JN",
+            "Actions",
+          ]}
+          data={team?.players ? team?.players : []}
+          renderRow={(player: Player) => (
+            <>
+              <td className="text-xs text-nowrap">{player.id}</td>
+              <td>{player.firstName}</td>
+              <td>{player.lastName}</td>
+              <td>{player.dateOfBirth.split("T")[0]}</td>
+              <td>{player.jerseyNumber}</td>
+              <td>
+                <div className="flex justify-center gap-4">
+                  <FaTrashAlt
+                    className="text-red-500 cursor-pointer hover:scale-120 transition-transform"
+                    onClick={() => {
+                      setSelectedPlayer(player);
+                      removePlayerMutation.mutate();
+                    }}
+                  />
+                </div>
+              </td>
+            </>
+          )}
+        />
 
         <div className="mt-10">
           <label className="block mb-1 font-medium">Select new players</label>
-          <div className="dropdown w-full cursor-pointer">
-            <div
-              tabIndex={0}
-              role="button"
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border border-neutral-300"
-            >
-              Select players ({selectedPlayers.length}) <IoIosArrowDown />
-            </div>
-            <div
-              tabIndex={0}
-              className="dropdown-content p-2 shadow bg-base-100 rounded-box w-full max-h-60 overflow-y-auto z-10"
-            >
-              <table className="table table-sm">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>JN</th>
+          <select
+            className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white`}
+          >
+            <option value="">Select players ({selectedPlayers.length}) </option>
+
+            <table className="table table-sm ">
+              <thead className="text-neutral-700 dark:text-neutral-50">
+                <tr>
+                  <th>Name</th>
+                  <th>JN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {players.map((p) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => togglePlayer(p)}
+                    className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-phoenix" : ""}`}
+                  >
+                    <td>
+                      {p.firstName} {p.lastName}
+                    </td>
+                    <td>{p.jerseyNumber}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {players.map((p) => (
-                    <tr
-                      key={p.id}
-                      onClick={() => togglePlayer(p)}
-                      className={`cursor-pointer ${selectedPlayers.some((sp) => sp.id === p.id) ? "bg-phoenix" : ""}`}
-                    >
-                      <td>
-                        {p.firstName} {p.lastName}
-                      </td>
-                      <td>{p.jerseyNumber}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                ))}
+              </tbody>
+            </table>
+          </select>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-5">
@@ -189,7 +171,7 @@ const EditPlayersModal: FC<EditPlayersModalProps> = (props) => {
 
         <button
           type="submit"
-          className="btn w-full bg-green-600 hover:bg-green-700 text-white mt-5"
+          className="btn w-full bg-green-600 hover:bg-green-700 text-white mt-5 border-none"
           onClick={() => addNewPlayersMutation.mutate()}
           disabled={
             selectedPlayers.length === 0 || addNewPlayersMutation.isPending

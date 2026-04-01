@@ -8,7 +8,6 @@ interface ActivePlayersProps {
 }
 
 const ActivePlayers: FC<ActivePlayersProps> = (props) => {
-
   return (
     <div className="p-10 flex gap-15">
       <div className="h-fit w-[50%]">
@@ -17,7 +16,7 @@ const ActivePlayers: FC<ActivePlayersProps> = (props) => {
             id={player.id}
             name={player.firstName}
             surname={player.lastName}
-            position={"position"}
+            position={player.position}
             jerseyNumber={player.jerseyNumber}
             time={new Date()}
           />
@@ -29,7 +28,7 @@ const ActivePlayers: FC<ActivePlayersProps> = (props) => {
             id={player.id}
             name={player.firstName}
             surname={player.lastName}
-            position={"position"}
+            position={player.position}
             jerseyNumber={player.jerseyNumber}
             time={new Date()}
           />

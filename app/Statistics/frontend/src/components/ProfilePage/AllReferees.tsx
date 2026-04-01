@@ -5,18 +5,8 @@ import { toast } from "react-toastify";
 import Loading from "../Loading";
 import { deleteReferee, getReferees } from "../../services/RefereeService";
 import type { User } from "@/models/User";
-
-const tableHead = [
-  "Id",
-  "Name",
-  "Surname",
-  "Username",
-  "Email",
-  "BirthDate",
-  "Phone",
-  "Role",
-  "",
-];
+import CustomTable from "./CustomTable";
+import DeleteModal from "./DeleteModal";
 
 const AllReferees: FC = () => {
   const queryClient = useQueryClient();
@@ -45,78 +35,51 @@ const AllReferees: FC = () => {
 
   return (
     <div className="w-full relative p-4">
-      <h3 className="text-center text-2xl font-bold mb-6">All Referees</h3>
+      <CustomTable
+        title={"All Referees"}
+        thead={[
+          "ID",
+          "First Name",
+          "Last Name",
+          "Username",
+          "Email",
+          "Birth Date",
+          "Phone",
+          "Actions",
+        ]}
+        data={referees}
+        renderRow={(reff: User) => (
+          <>
+            <td className="text-xs">{reff.id}</td>
+            <td>{reff.firstName}</td>
+            <td>{reff.lastName}</td>
+            <td className="font-mono text-xs">{reff.userName}</td>
+            <td>{reff.email}</td>
+            <td>
+              {reff.birthDate ? reff.birthDate.toString().split("T")[0] : "-"}
+            </td>
+            <td>{reff.phoneNumber}</td>
+            <td className="text-center">
+              <FaTrashAlt
+                className="text-red-500 cursor-pointer hover:scale-120 transition-transform mx-auto"
+                onClick={() => {
+                  setSelectedId(reff.id);
+                  setIsOpenDelete(true);
+                }}
+              />
+            </td>
+          </>
+        )}
+      />
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
-        <table className="table w-full bg-white dark:bg-neutral-800">
-          <thead className="bg-neutral-200 dark:bg-neutral-900">
-            <tr>
-              {tableHead.map((head) => (
-                <th key={head} className={head === "" ? "text-center" : ""}>
-                  {head}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {referees.map((user: User) => (
-              <tr
-                key={user.id}
-                className="hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors text-nowrap"
-              >
-                <td className="text-xs">{user.id}</td>
-                <td>{user.firstName}</td>
-                <td>{user.lastName}</td>
-                <td className="font-mono text-xs">{user.userName}</td>
-                <td>{user.email}</td>
-                <td>
-                  {user.birthDate
-                    ? user.birthDate.toString().split("T")[0]
-                    : "-"}
-                </td>
-                <td>{user.phoneNumber}</td>
-                <td>
-                  <span className="badge badge-outline">{user.role}</span>
-                </td>
-                <td className="text-center">
-                  <FaTrashAlt
-                    className="text-red-500 cursor-pointer hover:scale-120 transition-transform mx-auto"
-                    onClick={() => {
-                      setSelectedId(user.id);
-                      setIsOpenDelete(true);
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <dialog open={isOpenDelete} className="modal">
-        <div className="modal-box bg-white dark:bg-neutral-800">
-          <h3 className="font-bold text-lg text-center">Delete Referee?</h3>
-          <p className="py-4 text-center">
-            Are you sure you want to delete this referee? This action cannot be
-            undone.
-          </p>
-          <div className="modal-action flex justify-around">
-            <button
-              className="btn btn-outline"
-              onClick={() => setIsOpenDelete(false)}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-error text-white"
-              onClick={() => deleteMutation.mutate(selectedId)}
-              disabled={deleteMutation.isPending}
-            >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Permanently"}
-            </button>
-          </div>
-        </div>
-      </dialog>
+      <DeleteModal
+        isOpen={isOpenDelete}
+        onClose={() => setIsOpenDelete(false)}
+        onConfirm={() => deleteMutation.mutate(selectedId)}
+        isLoading={deleteMutation.isPending}
+        title="Delete Referee?"
+        description="Are you sure you want to delete this referee? This action cannot be undone."
+      />
 
       {deleteMutation.isPending && <Loading />}
     </div>
