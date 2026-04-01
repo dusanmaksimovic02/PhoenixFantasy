@@ -224,3 +224,4 @@ C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\app\Fantasy\backend\obj\Deb
 C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\app\Fantasy\backend\obj\Debug\net10.0\backend.csproj.Up2Date
 C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\app\Fantasy\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\app\Fantasy\backend\obj\Debug\net10.0\ref\backend.dll
+C:\Users\User\Desktop\Phoenix Fantasy\PhoenixFantasy\app\Fantasy\backend\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
