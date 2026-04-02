@@ -6,6 +6,6 @@ public class FantasyLeague
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
-    public FantasyUser leagueAdmin { get; set; }
+    public Person leagueAdmin { get; set; }
     public List<FantasyTeam>? fantasyTeams { get; set; }
 }

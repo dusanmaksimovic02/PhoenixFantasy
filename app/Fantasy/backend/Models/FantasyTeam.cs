@@ -7,10 +7,9 @@ public class FantasyTeam
     [Key]
     public Guid Id { get; set; }
     public Guid? LeagueId { get; set; }
-    public string? UserId { get; set; }
     public string Name { get; set; }
-    public FantasyPlayer? fantasyPlayerCaptain { get; set; }
-    public List<FantasyPlayer>? fantasyPlayersStart { get; set; }
-    public List<FantasyPlayer>? fantasyPlayersBench { get; set; }
-    public List<FantasyCoach>? fantasyCoach { get; set; }
+    public List<FantasyTeamPlayer> Players { get; set; }
+    public List<FantasyTeamCoach>? Coach { get; set; }
+    public Person User { get; set; }
+    public string? UserId { get; set; }
 }

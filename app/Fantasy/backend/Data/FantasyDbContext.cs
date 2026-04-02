@@ -8,11 +8,11 @@ namespace FantasyApi.Data;
 
 public class FantasyDbContext : IdentityDbContext<Person>
 {
-    //public DbSet<Person> Persons { get; set; }
-    public DbSet<FantasyUser> FantasyUsers { get; set; }
-    public DbSet<FantasyCoach> FantasyCoaches { get; set; }
+    public DbSet<Person> Persons { get; set; }
+    //public DbSet<FantasyUser> FantasyUsers { get; set; }
+    public DbSet<FantasyTeamCoach> FantasyTeamCoaches { get; set; }
     public DbSet<FantasyLeague> FantasyLeagues { get; set; }
-    public DbSet<FantasyPlayer> FantasyPlayers { get; set; }
+    public DbSet<FantasyTeamPlayer> FantasyTeamPlayers { get; set; }
     public DbSet<FantasyTeam> FantasyTeams { get; set; }
     public DbSet<FantasyTeamRound> FantasyTeamRounds { get; set; }
     public DbSet<FantasyPlayerRound> FantasyPlayerRounds { get; set; }
@@ -31,7 +31,33 @@ public class FantasyDbContext : IdentityDbContext<Person>
         modelBuilder.Entity<IdentityPasskeyData>(entity =>
         {
             entity.HasNoKey();
-            entity.ToView(null); //ne treba tabela
+            entity.ToView(null);
         });
+
+        //player
+        modelBuilder.Entity<FantasyTeamPlayer>()
+            .HasKey(x => new { x.FantasyTeamId, x.PlayerId });
+
+        modelBuilder.Entity<FantasyTeamPlayer>()
+            .HasOne(x => x.FantasyTeam)
+            .WithMany(t => t.Players)
+            .HasForeignKey(x => x.FantasyTeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FantasyTeamPlayer>()
+            .HasIndex(x => x.PlayerId);
+
+        //coach
+        modelBuilder.Entity<FantasyTeamCoach>()
+            .HasKey(x => new { x.FantasyTeamId, x.CoachId });
+
+        modelBuilder.Entity<FantasyTeamCoach>()
+            .HasOne(x => x.FantasyTeam)
+            .WithMany(t => t.Coach)
+            .HasForeignKey(x => x.FantasyTeamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FantasyTeamCoach>()
+            .HasIndex(x => x.CoachId);
     }
 }

@@ -1,0 +1,190 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using FantasyApi.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+
+namespace FantasyApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AuthController : ControllerBase
+{
+    private readonly UserManager<Person> _userManager;
+    private readonly IConfiguration _configuration;
+
+    public AuthController(
+        UserManager<Person> userManager,
+        IConfiguration configuration)
+    {
+        _userManager = userManager;
+        _configuration = configuration;
+    }
+
+    [HttpPost("Register")]
+    public async Task<IActionResult> Register(RegisterDto dto)
+    {
+        var existingUser = await _userManager.FindByNameAsync(dto.UserName);
+        if (existingUser != null)
+        {
+            return BadRequest(new { message = "Username already exists" });
+        }
+
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingEmail != null)
+        {
+            return BadRequest(new { message = "Email already exists" });
+        }
+
+        var user = new Person
+        {
+            UserName = dto.UserName,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        await _userManager.AddToRoleAsync(user, "Referee");
+
+        return Ok(new
+        {
+            message = "User registered successfully"
+        });
+    }
+
+    [HttpPost("RegisterWithRole")]
+    public async Task<IActionResult> RegisterWithRole(RegisterWithRoleDto dto)
+    {
+        var existingUser = await _userManager.FindByNameAsync(dto.UserName);
+        if (existingUser != null)
+        {
+            return BadRequest(new { message = "Username already exists" });
+        }
+
+        var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
+        if (existingEmail != null)
+        {
+            return BadRequest(new { message = "Email already exists" });
+        }
+
+        var user = new Person
+        {
+            UserName = dto.UserName,
+            Email = dto.Email,
+            PhoneNumber = dto.PhoneNumber,
+
+            FirstName = dto.FirstName,
+            LastName = dto.LastName
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        await _userManager.AddToRoleAsync(user, dto.Role);
+
+        return Ok(new
+        {
+            message = "User registered successfully"
+        });
+    }
+
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login(LoginDto dto)
+    {
+        var user = await _userManager.FindByNameAsync(dto.UserName);
+        if (user == null)
+        {
+            return Unauthorized(new { message = "Invalid username" });
+        }
+
+        var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
+        if (!passwordValid)
+        {
+            return Unauthorized(new { message = "Invalid password" });
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var token = GenerateJwtToken(user, roles);
+
+        return Ok(new
+        {
+            token,
+            roles,
+            userId = user.Id,
+            username = user.UserName
+        });
+    }
+
+    [HttpPut("ChangeUserRole")]
+    public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null)
+        {
+            return NotFound(new { message = "User not found" });
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        if (currentRoles.Any())
+        {
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+        }
+
+        var result = await _userManager.AddToRoleAsync(user, dto.NewRole);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(new
+        {
+            message = $"Role successfully changed to {dto.NewRole}"
+        });
+    }
+
+    private string GenerateJwtToken(Person user, IList<string> roles)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim("id", user.Id),
+            new Claim("username", user.UserName!),
+            new Claim("email", user.Email!)
+        };
+
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim("role", role));
+        }
+
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
+        );
+
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(
+                int.Parse(_configuration["Jwt:ExpiresInMinutes"]!)
+            ),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
