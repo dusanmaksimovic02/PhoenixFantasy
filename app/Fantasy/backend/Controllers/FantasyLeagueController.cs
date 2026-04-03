@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using FantasyApi.Data;
 using FantasyApi.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FantasyApi.Controllers;
 
@@ -32,6 +33,7 @@ public class FantasyLeagueController : ControllerBase
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
+    [Authorize]
     [HttpPost("CreateLeagueWithTeam")]
     public async Task<IActionResult> CreateLeagueWithTeam([FromBody] CreateLeagueWithTeamDTO dto)
     {
@@ -39,7 +41,7 @@ public class FantasyLeagueController : ControllerBase
 
         try
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst("id")?.Value;
 
             if (userId == null)
                 return Unauthorized();
@@ -104,7 +106,7 @@ public class FantasyLeagueController : ControllerBase
             if (string.IsNullOrWhiteSpace(dto.JoinCode) || string.IsNullOrWhiteSpace(dto.TeamName))
                 return BadRequest("JoinCode i TeamName are obligatory");
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst("id")?.Value;
 
             if (userId == null)
                 return Unauthorized();
