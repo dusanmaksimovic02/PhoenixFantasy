@@ -17,25 +17,27 @@ public class PlayerStatService
 
     public async Task UpdateStatAsync(UpdatePlayerStatDto dto)
     {
+        // 1. Parsiramo stringove u Guid-ove VAN upita
+        // Ako ovo ne uradiš, SQL nekada ne može da iskoristi indeks (Index Scan vs Index Seek)
+        if (!Guid.TryParse(dto.PlayerId, out var pId) || !Guid.TryParse(dto.GameId, out var gId))
+        {
+            throw new Exception("ID format nije validan.");
+        }
+
+        // 2. Upit koji je sada munjevito brz zbog indeksa
         var stats = await _context.PlayerGameStats
-            .Include(x => x.Player)
-            .Include(x => x.Game)
-            .FirstOrDefaultAsync(x =>
-                x.Player!.Id.ToString() == dto.PlayerId &&
-                x.Game!.Id.ToString() == dto.GameId
-            );
+            .Include(x => x.Game).ThenInclude(g => g!.HomeTeam)
+            .Include(x => x.Game).ThenInclude(g => g!.GuestTeam)
+            // BITNO: Poredimo Guid sa Guid-om, bez .ToString()
+            .FirstOrDefaultAsync(x => x.PlayerId == pId && x.GameId == gId);
 
         if (stats == null)
-            throw new Exception("Stats for player and game not found");
+            throw new Exception("Statistika nije pronađena.");
 
+        // 3. Logika komande ostaje ista
         foreach (var change in dto.Changes)
         {
-            var command = new UpdatePlayerStatCommand(
-                stats,
-                change.StatType,
-                change.Delta
-            );
-
+            var command = new UpdatePlayerStatCommand(stats, change.StatType, change.Delta);
             command.Execute();
         }
 

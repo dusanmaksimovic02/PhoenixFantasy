@@ -8,6 +8,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 //using Microsoft.OpenApi.Models;
+//using Microsoft.OpenApi.Models; // Proveri da li je ovo na vrhu, ako i dalje pravi grešku, obriši
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,21 +32,48 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Dodaj i ovu liniju
 })
 .AddJwtBearer(options =>
 {
+    options.SaveToken = true; // OBAVEZNO: Ovo omogućava da token bude dostupan u context-u
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        ClockSkew = TimeSpan.Zero // Eliminiše kašnjenje od 5 minuta
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context => 
+        {
+            // LOG 1: Proveravamo da li token uopšte stiže do middleware-a
+            var authHeader = context.Request.Headers["Authorization"];
+            Console.WriteLine($"[DEBUG] Stigao Authorization Header: {authHeader}");
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            // LOG 2: Ako ovo ispiše, claimovi MORAJU biti tu
+            Console.WriteLine("[DEBUG] Token uspešno VALIDIRAN!");
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            // LOG 3: Ako pukne, ovde će pisati zašto
+            Console.WriteLine($"[DEBUG] Auth greška: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
     };
 });
+
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddSwaggerGen();

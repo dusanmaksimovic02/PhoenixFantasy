@@ -99,7 +99,7 @@ const StartGame: FC<startGameProps> = () => {
             starterHomeIds.length !== 5 ||
             starterGuestIds.length !== 5
           }
-          // onClick={() => startGameMutation.mutate()}
+          //onClick={() => startGameMutation.mutate()}
           onClick={() => {
             const homeTeam = game.homeTeam.name;
             const awayTeam = game.guestTeam.name;

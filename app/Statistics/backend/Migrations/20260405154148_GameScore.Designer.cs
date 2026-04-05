@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StatsApi.Data;
 
@@ -11,9 +12,11 @@ using StatsApi.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260405154148_GameScore")]
+    partial class GameScore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -440,7 +443,7 @@ namespace backend.Migrations
                     b.Property<int?>("DefensiveRebounds")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("GameId")
+                    b.Property<Guid?>("GameId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool?>("IsStarter")
@@ -473,7 +476,7 @@ namespace backend.Migrations
                     b.Property<int?>("Pir")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("PlayerId")
+                    b.Property<Guid?>("PlayerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("Points")
@@ -507,8 +510,7 @@ namespace backend.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex(new[] { "PlayerId", "GameId" }, "IX_Player_Game_Unique")
-                        .IsUnique();
+                    b.HasIndex("PlayerId");
 
                     b.ToTable("PlayerGameStats");
                 });
@@ -634,15 +636,11 @@ namespace backend.Migrations
                 {
                     b.HasOne("StatsApi.Models.Game", "Game")
                         .WithMany()
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("GameId");
 
                     b.HasOne("StatsApi.Models.Player", "Player")
                         .WithMany()
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("PlayerId");
 
                     b.Navigation("Game");
 

@@ -18,7 +18,8 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
 
     public void Execute()
     {
-        // 1. Ažuriraj osnovnu statistiku
+        int oldPoints = _stats.Points ?? 0;
+
         switch (_statType)
         {
             case PlayerStatType.Points:
@@ -83,6 +84,11 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
                 throw new ArgumentOutOfRangeException();
         }
         RecalculateTotals();
+
+        int newPoints = _stats.Points ?? 0;
+        int diff = newPoints - oldPoints;
+
+        UpdateGameScore(diff);
     }
 
     private void RecalculateTotals()
@@ -111,4 +117,23 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
 
         
     }
+
+    private void UpdateGameScore(int diff)
+{
+    if (diff == 0 || _stats.Game == null || _stats.Player == null)
+        return;
+
+    var game = _stats.Game;
+    
+    var playerTeamId = _stats.Player.TeamId;
+
+    if (game.HomeTeam?.Id == playerTeamId)
+    {
+        game.HomeTeamScore += diff;
+    }
+    else if (game.GuestTeam?.Id == playerTeamId)
+    {
+        game.GuestTeamScore += diff;
+    }
+}
 }

@@ -216,6 +216,108 @@ public class GameController : ControllerBase
     {
         try
         {
+            // 1. Validacije (ostaju iste, one su brze jer su u memoriji)
+            if (dto.HomeTeamPlayerIds.Count > 12 || dto.GuestTeamPlayerIds.Count > 12)
+                return BadRequest("Maximum 12 players per team allowed");
+            if (dto.HomeStartersIds.Count != 5 || dto.GuestStartersIds.Count != 5)
+                return BadRequest("Each team must have exactly 5 starters");
+    
+            // Parsiranje ID-a pre upita sprečava timeout
+            if (!Guid.TryParse(dto.GameId.ToString(), out var gameGuid))
+                 return BadRequest("Invalid Game ID");
+    
+            // 2. Optimizovan upit za utakmicu
+            var game = await context.Games
+                .Include(g => g.HomeTeam).ThenInclude(t => t!.coach)
+                .Include(g => g.GuestTeam).ThenInclude(t => t!.coach)
+                .AsSplitQuery() // Sprečava "Cartesian Explosion" i timeout
+                .FirstOrDefaultAsync(g => g.Id == gameGuid)
+                ?? throw new Exception("Game not found");
+    
+            if (game.HomeTeam?.coach == null || game.GuestTeam?.coach == null)
+                return BadRequest("Both teams must have a coach before starting the game");
+    
+            // 3. Brze provere bez JOIN-ovanja tabela (koristi GameId direktno)
+            var alreadyStarted = await context.PlayerGameStats
+                .AnyAsync(pgs => pgs.GameId == gameGuid); 
+    
+            if (alreadyStarted)
+                return BadRequest("Game already started");
+    
+            var coachStatsExist = await context.CoachGameStats
+                .AnyAsync(cgs => cgs.Game!.Id == gameGuid);
+    
+            if (coachStatsExist)
+                return BadRequest("Coach stats already created");
+    
+            // 4. Masovno učitavanje igrača
+            var allPlayerIds = dto.HomeTeamPlayerIds
+                .Concat(dto.GuestTeamPlayerIds)
+                .Distinct()
+                .ToList();
+    
+            var players = await context.Players
+                .Where(p => allPlayerIds.Contains(p.Id))
+                .ToListAsync();
+    
+            // 5. Kreiranje statistike
+            var stats = new List<PlayerGameStats>();
+            foreach (var player in players)
+            {
+                bool isHomePlayer = dto.HomeTeamPlayerIds.Contains(player.Id);
+                
+                stats.Add(new PlayerGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    GameId = game.Id, // Bolje koristiti ID direktno
+                    PlayerId = player.Id,
+                    TeamId = isHomePlayer ? game.HomeTeam!.Id : game.GuestTeam!.Id,
+                    IsStarter = dto.HomeStartersIds.Contains(player.Id) || dto.GuestStartersIds.Contains(player.Id),
+                    // Ostala polja na 0 (EF će to uraditi i sam ako su int)
+                });
+            }
+    
+            var coachStats = new List<CoachGameStats>
+            {
+                new CoachGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    Game = game,
+                    Coach = game.HomeTeam.coach,
+                    CoachTechnicalFouls = 0,
+                    BenchTechnicalFouls = 0,
+                    Difference = 0
+                },
+                new CoachGameStats
+                {
+                    Id = Guid.NewGuid(),
+                    Game = game,
+                    Coach = game.GuestTeam.coach,
+                    CoachTechnicalFouls = 0,
+                    BenchTechnicalFouls = 0,
+                    Difference = 0
+                }
+            };
+    
+            context.PlayerGameStats.AddRange(stats);
+            context.CoachGameStats.AddRange(coachStats);
+    
+            await context.SaveChangesAsync();
+    
+            return Ok(new { message = "Game started successfully" });
+        }
+        catch (Exception e)
+        {
+            // Ispiši InnerException za bolji debug
+            return BadRequest(e.InnerException?.Message ?? e.Message);
+        }
+    }
+
+    /*[HttpPost("StartGame")]
+    public async Task<IActionResult> StartGame([FromBody] StartGameDto dto)
+    {
+        try
+        {
             if (dto.HomeTeamPlayerIds.Count > 12 || dto.GuestTeamPlayerIds.Count > 12)
                 return BadRequest("Maximum 12 players per team allowed");
 
@@ -266,11 +368,16 @@ public class GameController : ControllerBase
                     dto.HomeStartersIds.Contains(player.Id) ||
                     dto.GuestStartersIds.Contains(player.Id);
 
+                bool isHomePlayer = dto.HomeTeamPlayerIds.Contains(player.Id);
+
                 stats.Add(new PlayerGameStats
                 {
                     Id = Guid.NewGuid(),
                     Game = game,
                     Player = player,
+                    TeamId = isHomePlayer 
+                        ? game.HomeTeam.Id 
+                        : game.GuestTeam.Id,
                     IsStarter = isStarter,
                     SecondsPlayed = 0,
 
@@ -329,6 +436,53 @@ public class GameController : ControllerBase
                 homePlayers = dto.HomeTeamPlayerIds.Count,
                 guestPlayers = dto.GuestTeamPlayerIds.Count
             });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }*/
+
+    [HttpPut("EndGame")]
+    public async Task<IActionResult> EndGame(Guid gameId)
+    {
+        try
+        {
+            var game = await context.Games
+                .Include(g => g.HomeTeam)
+                    .ThenInclude(t => t!.coach)
+                .Include(g => g.GuestTeam)
+                    .ThenInclude(t => t!.coach)
+                .FirstOrDefaultAsync(g => g.Id == gameId)
+                ?? throw new Exception("Game not found");
+
+            if (game.HomeTeamScore == 0 || game.GuestTeamScore == 0)
+                return BadRequest("Game score is not set");
+
+            var coachStats = await context.CoachGameStats
+                .Where(cgs => cgs.Game!.Id == gameId)
+                .Include(cgs => cgs.Coach)
+                .ToListAsync();
+
+            if (coachStats.Count != 2)
+                return BadRequest("Coach stats not properly initialized");
+
+            foreach (var stat in coachStats)
+            {
+                if (stat.Coach!.Id == game.HomeTeam!.coach!.Id)
+                {
+                    stat.Difference = game.HomeTeamScore - game.GuestTeamScore;
+                }
+                else if (stat.Coach.Id == game.GuestTeam!.coach!.Id)
+                {
+                    stat.Difference = game.GuestTeamScore - game.HomeTeamScore;
+                }
+            }
+
+            context.CoachGameStats.UpdateRange(coachStats);
+            await context.SaveChangesAsync();
+
+            return Ok("Game ended successfully and coach differences calculated");
         }
         catch (Exception e)
         {

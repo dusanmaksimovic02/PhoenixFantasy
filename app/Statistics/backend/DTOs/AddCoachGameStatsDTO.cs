@@ -4,4 +4,5 @@ public class AddCoachGameStatsDto
     public Guid CoachId { get; set; }
     public int? CoachTechnicalFouls { get; set; }
     public int? BenchTechnicalFouls { get; set; }
+    public int? Difference { get; set; }
 }

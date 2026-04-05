@@ -188,7 +188,7 @@ public class AuthController : ControllerBase
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     [HttpGet("GetUserIdByUsername/{username}")]
-    public string GetUserIdByUsername(string username)
+    public async Task<IActionResult> GetUserIdByUsername(string username)
     {
         var user = await _userManager.FindByNameAsync(username);
 

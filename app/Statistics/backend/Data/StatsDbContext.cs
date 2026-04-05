@@ -33,6 +33,11 @@ public class DataContext : IdentityDbContext<Person>
             entity.HasNoKey();
             entity.ToView(null); //ne treba tabela
         });
+        modelBuilder.Entity<Team>()
+            .HasMany(t => t.Players)
+            .WithOne() 
+            .HasForeignKey(p => p.TeamId);
+        
     }
 }
 

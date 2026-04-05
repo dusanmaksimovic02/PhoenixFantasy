@@ -25,20 +25,18 @@ public class FantasyLeagueController : ControllerBase
     }*/
     [Authorize]
     [HttpGet("GetToken")]
-public IActionResult GetToken()
-{
-    // 1. Pokušaj da uzmeš ID
-    var userId = User.FindFirst("id")?.Value;
-
-    if (userId == null)
+    public IActionResult GetToken()
     {
-        // 2. Ako je NULL, vrati listu svih claimova koji su stigli (za debug)
-        var debugClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-        return Ok(new { message = "ID nije nađen", stigliClaims = debugClaims });
-    }
+        var userId = User.FindFirst("id")?.Value;
 
-    return Ok(new { message = "Uspeh!", userId = userId });
-}
+        if (userId == null)
+        {
+            var debugClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(new { message = "ID nije nađen", stigliClaims = debugClaims });
+        }
+
+        return Ok(new { message = "Uspeh!", userId = userId });
+    }
 
     private string GenerateJoinCode(int length = 6)
     {
@@ -49,18 +47,35 @@ public IActionResult GetToken()
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
-    [Authorize]
+    //[Authorize]
     [HttpPost("CreateLeagueWithTeam")]
     public async Task<IActionResult> CreateLeagueWithTeam([FromBody] CreateLeagueWithTeamDTO dto)
     {
+        Console.WriteLine($"Korisnik autentifikovan: {User.Identity?.IsAuthenticated}");
+        Console.WriteLine($"Tip autentifikacije: {User.Identity?.AuthenticationType}");
+
+        var userId = User.FindFirst("id")?.Value 
+              ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            // Ako i dalje ne nalazi, ispiši u konzolu sve claimove da vidimo šta je unutra
+            var claims = string.Join(", ", User.Claims.Select(c => $"{c.Type}:{c.Value}"));
+            Console.WriteLine($"Stigli claimovi: {claims}");
+            return Unauthorized("ID nije pronađen u tokenu. Proveri konzolu bekenda.");
+        }
+
         using var transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
-            var userId = User.FindFirst("id")?.Value;
+            //var userId = User.FindFirst("id")?.Value;
+            /*var userId = User.FindFirst("id")?.Value;
 
-            if (userId == null)
-                return Unauthorized();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Token je validan, ali ID nije pronađen unutar njega.");
+            }*/
 
             var user = await context.Users.FindAsync(userId);
 

@@ -1,13 +1,18 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace StatsApi.Models;
 
+[Index(nameof(PlayerId), nameof(GameId), Name = "IX_Player_Game_Unique", IsUnique = true)]
 public class PlayerGameStats
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid PlayerId { get; set; }
+    public Guid GameId { get; set; }
     public Game? Game { get; set; }
     public Player? Player { get; set; }
+    public Guid? TeamId { get; set; }
 
     public int? Points { get; set; }
     public int? Made1p { get; set; }

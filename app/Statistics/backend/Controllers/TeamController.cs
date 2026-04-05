@@ -120,6 +120,85 @@ public class TeamController : ControllerBase
         }
     }
     [HttpPut("AddPlayerToTeam/{playerId}/{teamId}")]
+    public async Task<ActionResult> AddPlayerToTeam(string playerId, string teamId)
+    {
+        try
+        {
+            if (!Guid.TryParse(playerId, out var pGuid) || !Guid.TryParse(teamId, out var tGuid))
+                return BadRequest("Invalid ID format");
+
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id == tGuid)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            var player = await context.Players
+                .FirstOrDefaultAsync(p => p.Id == pGuid)
+                ?? throw new Exception($"Player with Id {playerId} doesn't exist");
+
+            if (team.Players!.Any(p => p.Id == player.Id))
+                throw new Exception("Player is already in the team");
+
+            if (!string.IsNullOrEmpty(player.JerseyNumber) &&
+                team.Players!.Any(p => p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()))
+            {
+                throw new Exception($"Jersey number {player.JerseyNumber} is already taken in this team");
+            }
+
+            player.TeamId = tGuid;
+            team.Players!.Add(player);
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Player with Id {playerId} added to team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpPut("AddPlayersToTeam/{teamId}")]
+    public async Task<ActionResult> AddPlayersToTeam(string teamId, [FromBody] List<Guid> playerIds)
+    {
+        try
+        {
+            if (!Guid.TryParse(teamId, out var tGuid))
+                return BadRequest("Invalid Team ID format");
+
+            var team = await context.Teams
+                .Include(t => t.Players)
+                .FirstOrDefaultAsync(t => t.Id == tGuid)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+            var playersToAdd = await context.Players
+                .Where(p => playerIds.Contains(p.Id))
+                .ToListAsync();
+
+            foreach (var player in playersToAdd)
+            {
+                if (team.Players!.Any(p => p.Id == player.Id))
+                    continue;
+
+                if (!string.IsNullOrEmpty(player.JerseyNumber) &&
+                    team.Players!.Any(p => p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()))
+                {
+                    throw new Exception($"Jersey number {player.JerseyNumber} is already taken");
+                }
+
+                player.TeamId = tGuid; 
+                team.Players!.Add(player);
+            }
+
+            await context.SaveChangesAsync();
+
+            return Ok($"Players added to team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    /*[HttpPut("AddPlayerToTeam/{playerId}/{teamId}")]
     public async Task<ActionResult<Team>> AddPlayerToTeam(string playerId, string teamId)
     {
         try
@@ -195,7 +274,7 @@ public class TeamController : ControllerBase
         {
             return BadRequest(e.Message);
         }
-    }
+    }*/
 
     [HttpGet("GetTeamPlayers/{teamId}")]
     public async Task<ActionResult<List<Player>>> GetTeamPlayers(Guid teamId)
@@ -296,6 +375,37 @@ public class TeamController : ControllerBase
     }
 
     [HttpPut("RemovePlayerFromTeam/{playerId}/{teamId}")]
+public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
+{
+    try
+    {
+        if (!Guid.TryParse(playerId, out var pGuid) || !Guid.TryParse(teamId, out var tGuid))
+            return BadRequest("Invalid ID format");
+
+        var team = await context.Teams
+            .Include(t => t.Players)
+            .FirstOrDefaultAsync(t => t.Id == tGuid)
+            ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+
+        var player = team.Players?
+            .FirstOrDefault(p => p.Id == pGuid)
+            ?? throw new Exception($"Player with Id {playerId} is not in the team");
+
+        team.Players.Remove(player);
+        
+        player.TeamId = Guid.Empty; 
+
+        await context.SaveChangesAsync();
+
+        return Ok($"Player with Id {playerId} removed from team {teamId} successfully");
+    }
+    catch (Exception e)
+    {
+        return BadRequest(e.Message);
+    }
+}
+
+    /*[HttpPut("RemovePlayerFromTeam/{playerId}/{teamId}")]
     public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
     {
         try
@@ -319,7 +429,7 @@ public class TeamController : ControllerBase
         {
             return BadRequest(e.Message);
         }
-    }
+    }*/
 
     [HttpPost("upload-team-logo/{teamId}")]
     public async Task<IActionResult> UploadTeamLogo(Guid teamId, IFormFile file)

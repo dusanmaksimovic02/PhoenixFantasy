@@ -2,10 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FantasyApi.Models;
 
+[Index(nameof(PlayerId), nameof(GameId), Name = "IX_Player_Game_Unique", IsUnique = true)]
 public class PlayerGameStats
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid PlayerId { get; set; }
+    public Guid GameId { get; set; }
     public Game? Game { get; set; }
     public Player? Player { get; set; }
 
