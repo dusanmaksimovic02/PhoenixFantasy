@@ -23,6 +23,22 @@ public class FantasyLeagueController : ControllerBase
     {
         
     }*/
+    [Authorize]
+    [HttpGet("GetToken")]
+public IActionResult GetToken()
+{
+    // 1. Pokušaj da uzmeš ID
+    var userId = User.FindFirst("id")?.Value;
+
+    if (userId == null)
+    {
+        // 2. Ako je NULL, vrati listu svih claimova koji su stigli (za debug)
+        var debugClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+        return Ok(new { message = "ID nije nađen", stigliClaims = debugClaims });
+    }
+
+    return Ok(new { message = "Uspeh!", userId = userId });
+}
 
     private string GenerateJoinCode(int length = 6)
     {

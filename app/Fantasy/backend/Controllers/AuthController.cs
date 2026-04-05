@@ -159,7 +159,7 @@ public class AuthController : ControllerBase
     {
         var claims = new List<Claim>
         {
-            new Claim("id", user.Id),
+            new Claim("id", user.Id), // Koristimo običan string "id"
             new Claim("username", user.UserName!),
             new Claim("email", user.Email!)
         };
@@ -186,5 +186,17 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    [HttpGet("GetUserIdByUsername/{username}")]
+    public string GetUserIdByUsername(string username)
+    {
+        var user = await _userManager.FindByNameAsync(username);
+
+        if (user == null)
+        {
+            return NotFound($"Korisnik sa imenom {username} nije pronađen.");
+        }
+    
+        return Ok(new { userId = user.Id });
     }
 }
