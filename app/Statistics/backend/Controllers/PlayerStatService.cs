@@ -2,17 +2,22 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
+
 using StatsApi.Models;
+using StatsApi.Services;
+using System.Text.Json;
 
 namespace StatsApi.Controllers;
 
 public class PlayerStatService
 {
     private readonly DataContext _context;
+    private readonly IRabbitMQService _rabbitMQ;
 
-    public PlayerStatService(DataContext context)
+    public PlayerStatService(DataContext context, IRabbitMQService rabbitMQ)
     {
         _context = context;
+        _rabbitMQ = rabbitMQ;
     }
 
     public async Task UpdateStatAsync(UpdatePlayerStatDto dto)
@@ -42,6 +47,53 @@ public class PlayerStatService
         }
 
         await _context.SaveChangesAsync();
+var playerEvent = new PlayerStatsUpdatedEvent
+{
+    PlayerId = stats.PlayerId,
+    GameId = stats.GameId,
+
+    Points = stats.Points ?? 0,
+
+    Made1p = stats.Made1p ?? 0,
+    Miss1p = stats.Miss1p ?? 0,
+
+    Made2p = stats.Made2p ?? 0,
+    Miss2p = stats.Miss2p ?? 0,
+
+    Made3p = stats.Made3p ?? 0,
+    Miss3p = stats.Miss3p ?? 0,
+
+    Assists = stats.Assists ?? 0,
+
+    Rebounds = stats.Rebounds ?? 0,
+    OffensiveRebounds = stats.OffensiveRebounds ?? 0,
+    DefensiveRebounds = stats.DefensiveRebounds ?? 0,
+
+    Steals = stats.Steals ?? 0,
+    Blocks = stats.Blocks ?? 0,
+    RecievedBlocks = stats.RecievedBlocks ?? 0,
+
+    Turnovers = stats.Turnovers ?? 0,
+
+    PersonalFouls = stats.PersonalFouls ?? 0,
+    RecievedFouls = stats.RecievedFouls ?? 0,
+    TechnicalFouls = stats.TechnicalFouls ?? 0,
+
+    Pir = stats.Pir ?? 0,
+    SecondsPlayed = stats.SecondsPlayed ?? 0,
+
+    IsStarter = stats.IsStarter ?? false,
+
+    Timestamp = DateTime.Now
+};
+
+        var json = JsonSerializer.Serialize(playerEvent);
+
+        await _rabbitMQ.PublishToExchangeAsync(
+            exchangeName: "stats.topic",
+            routingKey: "player.stats.updated",
+            message: json
+        );
     }
 
     public async Task<IEnumerable<PlayerGameStats>> GetTeamPlayersFromGame(Guid teamId, Guid gameId)
@@ -59,13 +111,14 @@ public class PlayerStatService
 
         // return players!;
 
-        return  await _context.PlayerGameStats
+        return await _context.PlayerGameStats
             .Where(x => x.Game!.Id == gameId &&
                 _context.Teams.Any(t => t.Id == teamId && t.Players!.Any(p => p.Id == x.Player!.Id)))
-                .Include(x=>x.Player)
+                .Include(x => x.Player)
             // .Select(x => x.Player!)
             .ToListAsync();
     }
+
     public async Task<IEnumerable<Player>> GetTeamStartersFromGame(Guid teamId, Guid gameId)
     {
         var team = await _context.Teams
@@ -152,7 +205,3 @@ public class PlayerStatService
         await _context.SaveChangesAsync();
     }
 }
-
-
-
-

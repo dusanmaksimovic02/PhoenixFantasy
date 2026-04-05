@@ -11,6 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 //using Microsoft.OpenApi.Models; // Proveri da li je ovo na vrhu, ako i dalje pravi grešku, obriši
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -75,6 +76,7 @@ builder.Services.AddAuthentication(options =>
 
 
 builder.Services.AddAuthorization();
+builder.Services.AddHostedService<StatsConsumerService>();
 
 builder.Services.AddSwaggerGen();
 

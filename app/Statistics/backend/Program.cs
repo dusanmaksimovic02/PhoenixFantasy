@@ -3,12 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
 using StatsApi.Models;
 using StatsApi.Services;
+using StatsApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
+
 
 
 builder.Services.AddDbContext<DataContext>(options =>
