@@ -1,4 +1,12 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Player } from "../../models/Player";
 import type { FC } from "react";
+import {
+  getTeamNonStartersFromGame,
+  updateStarter,
+} from "../../services/LiveGameService";
+import { toast } from "react-toastify";
+import Loading from "../Loading";
 
 type Props = {
   isOpenChange: boolean;
@@ -8,16 +16,12 @@ type Props = {
   position: string;
   jerseyNumber: string;
   time: Date;
+  selectedPlayer: Player;
+  gameId: string;
+  teamId: string;
 };
 
-const tableHead = [
-  "Id",
-  "Name",
-  "Surname",
-  "Position",
-  "JerseyNumber",
-  "Time played",
-];
+const tableHead = ["Name", "Surname", "Position", "JN"];
 
 const ChangePlayer: FC<Props> = ({
   isOpenChange,
@@ -26,22 +30,31 @@ const ChangePlayer: FC<Props> = ({
   surname,
   position,
   jerseyNumber,
-  time,
+  selectedPlayer,
+  gameId,
+  teamId,
 }) => {
-  const players = Array.from({ length: 7 }, (_, index) => ({
-    id: index + 1,
-    name: `Player${index + 1}`,
-    surname: `State`,
-    position: [
-      "Point Guard",
-      "Shouting Guard",
-      "Small Forward",
-      "Power Forward",
-      "Center",
-    ][index % 5],
-    jerseyNumber: (index + 3) * 4,
-    time: new Date(),
-  }));
+  const queryClient = useQueryClient();
+  const { data: teamNonStarters = [], isLoading } = useQuery({
+    queryKey: ["teamNonStarters", teamId, gameId],
+    queryFn: () => getTeamNonStartersFromGame(teamId, gameId),
+  });
+
+  const changeStarterMutation = useMutation({
+    mutationFn: (newStarter: string) =>
+      updateStarter(gameId, selectedPlayer.id, newStarter),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["homeTeamStarters", teamId, gameId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["guestTeamStarters", teamId, gameId],
+      });
+      toast.success("Player changed successfully!");
+      setIsOpenChange(false);
+    },
+    onError: () => toast.error("Error changing player"),
+  });
 
   return (
     <dialog open={isOpenChange} className="modal">
@@ -75,10 +88,10 @@ const ChangePlayer: FC<Props> = ({
                 </p>
                 <p>{position}</p>
               </div>
-              <div className="">
+              {/* <div className="">
                 <p>Time played</p>
                 <p>{time.toLocaleTimeString()}</p>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -97,19 +110,23 @@ const ChangePlayer: FC<Props> = ({
                 </tr>
               </thead>
               <tbody className="text-sm text-black dark:text-white rounded-4xl ">
-                {players.map((player) => (
-                  <tr
-                    key={player.id}
-                    className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer"
-                  >
-                    <td className="p-3">{player.id}</td>
-                    <td className="p-3 ">{player.name}</td>
-                    <td className="p-3">{player.surname}</td>
-                    <td className="p-3">{player.position}</td>
-                    <td className="p-3">{player.jerseyNumber}</td>
-                    <td className="p-3">{player.time.toLocaleTimeString()}</td>
-                  </tr>
-                ))}
+                {isLoading ? (
+                  <Loading />
+                ) : (
+                  teamNonStarters.map((player) => (
+                    <tr
+                      key={player.id}
+                      className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer"
+                      onClick={() => changeStarterMutation.mutate(player.id)}
+                    >
+                      {/* <td className="p-3">{player.id}</td> */}
+                      <td className="p-3 ">{player.firstName}</td>
+                      <td className="p-3">{player.lastName}</td>
+                      <td className="p-3">{player.position}</td>
+                      <td className="p-3">{player.jerseyNumber}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

@@ -14,9 +14,9 @@ const GamePage: FC = () => {
 
   const game = location.state?.game as Game;
   const selectedHomeIds = location.state?.selectedHomeIds;
-  const starterHomeIds = location.state?.starterHomeIds;
+  // const starterHomeIds = location.state?.starterHomeIds;
   const selectedGuestIds = location.state?.selectedGuestIds;
-  const starterGuestIds = location.state?.starterGuestIds;
+  // const starterGuestIds = location.state?.starterGuestIds;
 
   const { data: homePlayers } = useQuery({
     queryKey: ["homePlayers"],
@@ -41,9 +41,12 @@ const GamePage: FC = () => {
       <ActivePlayers
         homePlayers={homeActivePlayers}
         awayPlayers={awayActivePlayers}
+        homeTeamId={game.homeTeam.id}
+        guestTeamId={game.guestTeam.id}
+        gameId={game.id}
       />
-      <TeamTable team={team1!} />
-      <TeamTable team={team2!} />
+      <TeamTable team={team1!} teamId={game.homeTeam.id} gameId={game.id} />
+      <TeamTable team={team2!} teamId={game.guestTeam.id} gameId={game.id} />
     </div>
   );
 };

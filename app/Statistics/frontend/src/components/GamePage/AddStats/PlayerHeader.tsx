@@ -15,14 +15,13 @@ const PlayerHeader: FC<Props> = ({
   surname,
   position,
   jerseyNumber,
-  time,
 }) => {
   return (
     <div
       className="w-full flex items-center gap-10 p-5 py-1"
       onClick={() => setIsOpenStats(true)}
     >
-      <div className="bg-jersey bg-contain bg-no-repeat h-20 w-25 flex justify-center items-center">
+      <div className="bg-jersey bg-contain bg-no-repeat h-20 w-20 flex justify-center items-center">
         <p className="text-black pt-4 pr-1 font-bold text-xl">
           {jerseyNumber.toString()}
         </p>
@@ -34,14 +33,7 @@ const PlayerHeader: FC<Props> = ({
           </p>
           <p>{position}</p>
         </div>
-        <div className="">
-          <p>Time played</p>
-          <p>{time.toLocaleTimeString()}</p>
-        </div>
       </div>
-      <button className="btn bg-phoenix/80 hover:bg-phoenix hover:border-phoenix border-phoenix hover:border-4 hover:cursor-pointer shadow-inner drop-shadow w-25 h-12 rounded-xl text-2xl">
-        Save
-      </button>
     </div>
   );
 };

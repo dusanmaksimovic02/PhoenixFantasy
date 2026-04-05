@@ -1,8 +1,11 @@
-import { useState, type FC } from "react";
+import type { PlayerGameStats } from "../../models/PlayerGameStats";
+import { getTeamPlayersFromGame } from "../../services/LiveGameService";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, type FC } from "react";
 
 const tableHead = [
   "Player",
-  "MIN",
+  // "MIN",
   "PTS",
   "1pts m/a",
   "1pts %",
@@ -22,182 +25,73 @@ const tableHead = [
   "FD",
   "T",
   "PIR",
-  "+/-",
+  // "+/-",
 ];
 
 type Props = {
   team: string;
+  teamId: string;
+  gameId: string;
 };
 
-const TeamTable: FC<Props> = ({ team }) => {
-  const [players] = useState(() =>
-    Array.from({ length: 12 }, (_, index) => ({
-      id: index + 1,
-      name: `Player${index + 1}`,
-      surname: `State`,
-      jerseyNumber: (index + 3) * 4,
-      minutes: `${Math.floor(Math.random() * 31) + 5}:${Math.floor(
-        Math.random() * 60,
-      )
-        .toString()
-        .padStart(2, "0")}`,
+const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
+  const { data: teamPlayers = [] } = useQuery({
+    queryKey: ["teamPlayers", teamId, gameId],
+    queryFn: () => getTeamPlayersFromGame(teamId, gameId),
+  });
 
-      shooting: {
-        oneMade: Math.floor(Math.random() * 4),
-        oneAttempt:
-          Math.floor(Math.random() * 4) + Math.floor(Math.random() * 3),
+  const totals = useMemo(() => {
+    return teamPlayers.reduce(
+      (acc, curr) => {
+        const oneAtt = curr.made1p + curr.miss1p;
+        const twoAtt = curr.made2p + curr.miss2p;
+        const threeAtt = curr.made3p + curr.miss3p;
 
-        twoMade: Math.floor(Math.random() * 6),
-        twoAttempt:
-          Math.floor(Math.random() * 6) + Math.floor(Math.random() * 4),
-
-        threeMade: Math.floor(Math.random() * 5),
-        threeAttempt:
-          Math.floor(Math.random() * 5) + Math.floor(Math.random() * 4),
-
-        points:
-          Math.floor(Math.random() * 4) * 1 +
-          Math.floor(Math.random() * 6) * 2 +
-          Math.floor(Math.random() * 5) * 3,
-
-        get onePct() {
-          return this.oneAttempt === 0
-            ? 0
-            : Math.round((this.oneMade / this.oneAttempt) * 100);
-        },
-
-        get twoPct() {
-          return this.twoAttempt === 0
-            ? 0
-            : Math.round((this.twoMade / this.twoAttempt) * 100);
-        },
-
-        get threePct() {
-          return this.threeAttempt === 0
-            ? 0
-            : Math.round((this.threeMade / this.threeAttempt) * 100);
-        },
-
-        get missedShots() {
-          return (
-            this.oneAttempt -
-            this.oneMade +
-            this.twoAttempt -
-            this.twoMade +
-            this.threeAttempt -
-            this.threeMade
-          );
-        },
+        return {
+          points: acc.points + curr.points,
+          oneMade: acc.oneMade + curr.made1p,
+          oneAttempt: acc.oneAttempt + oneAtt,
+          twoMade: acc.twoMade + curr.made2p,
+          twoAttempt: acc.twoAttempt + twoAtt,
+          threeMade: acc.threeMade + curr.made3p,
+          threeAttempt: acc.threeAttempt + threeAtt,
+          rebTotal: acc.rebTotal + curr.rebounds,
+          rebOff: acc.rebOff + curr.offensiveRebounds,
+          rebDef: acc.rebDef + curr.defensiveRebounds,
+          assists: acc.assists + curr.assists,
+          steals: acc.steals + curr.steals,
+          turnovers: acc.turnovers + curr.turnovers,
+          blocksFor: acc.blocksFor + curr.blocks,
+          blocksAgainst: acc.blocksAgainst + curr.recievedBlocks,
+          foulsComm: acc.foulsComm + curr.personalFouls,
+          foulsDrawn: acc.foulsDrawn + curr.recievedFouls,
+          tech: acc.tech + curr.technicalFouls,
+          pir: acc.pir + curr.pir,
+        };
       },
-
-      rebounds: {
-        offensive: Math.floor(Math.random() * 4),
-        defensive: Math.floor(Math.random() * 7),
-        total: Math.floor(Math.random() * 4) + Math.floor(Math.random() * 7),
+      {
+        points: 0,
+        oneMade: 0,
+        oneAttempt: 0,
+        twoMade: 0,
+        twoAttempt: 0,
+        threeMade: 0,
+        threeAttempt: 0,
+        rebTotal: 0,
+        rebOff: 0,
+        rebDef: 0,
+        assists: 0,
+        steals: 0,
+        turnovers: 0,
+        blocksFor: 0,
+        blocksAgainst: 0,
+        foulsComm: 0,
+        foulsDrawn: 0,
+        tech: 0,
+        pir: 0,
       },
-
-      defense: {
-        blocksFor: Math.floor(Math.random() * 3),
-        blocksAgainst: Math.floor(Math.random() * 2),
-        steals: Math.floor(Math.random() * 4),
-        turnovers: Math.floor(Math.random() * 5),
-      },
-
-      fouls: {
-        committed: Math.floor(Math.random() * 5),
-        drawn: Math.floor(Math.random() * 4),
-        technical: Math.floor(Math.random() * 2),
-      },
-
-      assists: Math.floor(Math.random() * 8),
-
-      get pir() {
-        return (
-          this.shooting.points +
-          this.rebounds.total +
-          this.assists +
-          this.defense.steals +
-          this.defense.blocksFor +
-          this.fouls.drawn -
-          this.shooting.missedShots -
-          this.defense.turnovers -
-          this.fouls.committed -
-          this.defense.blocksAgainst
-        );
-      },
-
-      get plusMinus() {
-        return (
-          this.shooting.points +
-          this.assists +
-          this.rebounds.total +
-          this.defense.steals -
-          this.defense.turnovers -
-          this.fouls.committed
-        );
-      },
-    })),
-  );
-
-  const totals = players.reduce(
-    (acc, p) => {
-      acc.points += p.shooting.points;
-
-      acc.oneMade += p.shooting.oneMade;
-      acc.oneAttempt += p.shooting.oneAttempt;
-
-      acc.twoMade += p.shooting.twoMade;
-      acc.twoAttempt += p.shooting.twoAttempt;
-
-      acc.threeMade += p.shooting.threeMade;
-      acc.threeAttempt += p.shooting.threeAttempt;
-
-      acc.rebTotal += p.rebounds.total;
-      acc.rebOff += p.rebounds.offensive;
-      acc.rebDef += p.rebounds.defensive;
-
-      acc.assists += p.assists;
-      acc.steals += p.defense.steals;
-      acc.turnovers += p.defense.turnovers;
-      acc.blocksFor += p.defense.blocksFor;
-      acc.blocksAgainst += p.defense.blocksAgainst;
-
-      acc.foulsComm += p.fouls.committed;
-      acc.foulsDrawn += p.fouls.drawn;
-      acc.tech += p.fouls.technical;
-
-      acc.pir += p.pir;
-      acc.plusMinus += p.plusMinus;
-
-      acc.minutes +=
-        Number(p.minutes.split(":")[0]) * 60 + Number(p.minutes.split(":")[1]);
-
-      return acc;
-    },
-    {
-      points: 0,
-      oneMade: 0,
-      oneAttempt: 0,
-      twoMade: 0,
-      twoAttempt: 0,
-      threeMade: 0,
-      threeAttempt: 0,
-      rebTotal: 0,
-      rebOff: 0,
-      rebDef: 0,
-      assists: 0,
-      steals: 0,
-      turnovers: 0,
-      blocksFor: 0,
-      blocksAgainst: 0,
-      foulsComm: 0,
-      foulsDrawn: 0,
-      tech: 0,
-      pir: 0,
-      plusMinus: 0,
-      minutes: 0,
-    },
-  );
+    );
+  }, [teamPlayers]);
 
   return (
     <div className="p-10 pt-0">
@@ -217,52 +111,78 @@ const TeamTable: FC<Props> = ({ team }) => {
             </tr>
           </thead>
           <tbody className="text-sm text-black dark:text-white ">
-            {players.map((player) => (
+            {teamPlayers.map((playerStats: PlayerGameStats) => (
               <tr
-                key={player.id}
+                key={playerStats.id}
                 className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer"
               >
                 <td className="p-3 text-center">
-                  {player.jerseyNumber} {player.name}
-                  {player.surname}
+                  {playerStats.player.jerseyNumber}{" "}
+                  {playerStats.player.firstName}
+                  {playerStats.player.lastName}
                 </td>
-                <td className="p-3 text-center">{player.minutes}</td>
-                <td className="p-3 text-center">{player.shooting.points}</td>
+                {/* <td className="p-3 text-center">{}</td> */}
+                <td className="p-3 text-center">{playerStats.points}</td>
                 <td className="p-3 text-center">
-                  {player.shooting.oneMade}/{player.shooting.oneAttempt}
-                </td>
-                <td className="p-3 text-center">{player.shooting.onePct} %</td>
-                <td className="p-3 text-center">
-                  {player.shooting.twoMade}/{player.shooting.twoAttempt}
-                </td>
-                <td className="p-3 text-center">{player.shooting.twoPct} %</td>
-                <td className="p-3 text-center">
-                  {player.shooting.threeMade}/{player.shooting.threeAttempt}
+                  {playerStats.made1p}/{playerStats.miss1p + playerStats.made1p}
                 </td>
                 <td className="p-3 text-center">
-                  {player.shooting.threePct} %
+                  {Math.round(
+                    (playerStats.made1p /
+                      (playerStats.miss1p + playerStats.made1p)) *
+                      100,
+                  )}{" "}
+                  %
                 </td>
-                <td className="p-3 text-center">{player.rebounds.total}</td>
-                <td className="p-3 text-center">{player.rebounds.offensive}</td>
-                <td className="p-3 text-center">{player.rebounds.defensive}</td>
-                <td className="p-3 text-center">{player.assists}</td>
-                <td className="p-3 text-center">{player.defense.steals}</td>
-                <td className="p-3 text-center">{player.defense.turnovers}</td>
-                <td className="p-3 text-center">{player.defense.blocksFor}</td>
                 <td className="p-3 text-center">
-                  {player.defense.blocksAgainst}
+                  {playerStats.made2p}/{playerStats.miss2p + playerStats.made2p}
                 </td>
-                <td className="p-3 text-center">{player.fouls.committed}</td>
-                <td className="p-3 text-center">{player.fouls.drawn}</td>
-                <td className="p-3 text-center">{player.fouls.technical}</td>
-                <td className="p-3 text-center">{player.pir}</td>
-                <td className="p-3 text-center">{player.plusMinus}</td>
+                <td className="p-3 text-center">
+                  {Math.round(
+                    (playerStats.made2p /
+                      (playerStats.miss2p + playerStats.made2p)) *
+                      100,
+                  )}{" "}
+                  %
+                </td>
+                <td className="p-3 text-center">
+                  {playerStats.made3p}/{playerStats.miss3p + playerStats.made3p}
+                </td>
+                <td className="p-3 text-center">
+                  {Math.round(
+                    (playerStats.made3p /
+                      (playerStats.miss3p + playerStats.made3p)) *
+                      100,
+                  )}{" "}
+                  %
+                </td>
+                <td className="p-3 text-center">{playerStats.rebounds}</td>
+                <td className="p-3 text-center">
+                  {playerStats.offensiveRebounds}
+                </td>
+                <td className="p-3 text-center">
+                  {playerStats.defensiveRebounds}
+                </td>
+                <td className="p-3 text-center">{playerStats.assists}</td>
+                <td className="p-3 text-center">{playerStats.steals}</td>
+                <td className="p-3 text-center">{playerStats.turnovers}</td>
+                <td className="p-3 text-center">{playerStats.blocks}</td>
+                <td className="p-3 text-center">
+                  {playerStats.recievedBlocks}
+                </td>
+                <td className="p-3 text-center">{playerStats.personalFouls}</td>
+                <td className="p-3 text-center">{playerStats.recievedFouls}</td>
+                <td className="p-3 text-center">
+                  {playerStats.technicalFouls}
+                </td>
+                <td className="p-3 text-center">{playerStats.pir}</td>
+                {/* <td className="p-3 text-center">{}</td> */}
               </tr>
             ))}
 
-            <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
+            {/* <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
               <td className="p-3 text-center">Team</td>
-              <td className="p-3 text-center"></td>
+              <td className="p-3 text-center"></td> 
               <td className="p-3 text-center"></td>
               <td className="p-3 text-center"></td>
               <td className="p-3 text-center"></td>
@@ -282,8 +202,8 @@ const TeamTable: FC<Props> = ({ team }) => {
               <td className="p-3 text-center">1</td>
               <td className="p-3 text-center">0</td>
               <td className="p-3 text-center">10</td>
-              <td className="p-3 text-center">54</td>
-            </tr>
+              <td className="p-3 text-center">54</td> 
+            </tr> */}
 
             <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
               {Array.from({ length: tableHead.length }).map((_, i) => (
@@ -304,10 +224,10 @@ const TeamTable: FC<Props> = ({ team }) => {
             </tr>
             <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
               <td className="p-3 text-center">Total</td>
-              <td className="p-3 text-center">
+              {/* <td className="p-3 text-center">
                 {Math.floor(totals.minutes / 60)}:
                 {(totals.minutes % 60).toString().padStart(2, "0")}
-              </td>
+              </td> */}
               <td className="p-3 text-center">{totals.points}</td>
               <td className="p-3 text-center">
                 {totals.oneMade} / {totals.oneAttempt}
@@ -340,7 +260,6 @@ const TeamTable: FC<Props> = ({ team }) => {
               <td className="p-3 text-center">{totals.foulsDrawn}</td>
               <td className="p-3 text-center">{totals.tech}</td>
               <td className="p-3 text-center">{totals.pir}</td>
-              <td className="p-3 text-center">{totals.plusMinus}</td>
             </tr>
           </tbody>
         </table>

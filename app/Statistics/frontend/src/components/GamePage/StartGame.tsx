@@ -2,10 +2,14 @@ import type { Game } from "../../models/Game";
 import { useState, type FC } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import RoasterSelection from "./RoasterSelection";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { startGame } from "../../services/LiveGameService";
 
 interface startGameProps {}
 
 const StartGame: FC<startGameProps> = () => {
+  const queryClient = useQueryClient();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -17,20 +21,34 @@ const StartGame: FC<startGameProps> = () => {
   const [selectedGuestIds, setSelectedGuestIds] = useState<string[]>([]);
   const [starterGuestIds, setStarterGuestIds] = useState<string[]>([]);
 
-  const toggleStartGame = () => {
-    const homeTeam = game.homeTeam.name;
-    const awayTeam = game.guestTeam.name;
-
-    navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
-      state: {
-        game,
+  const startGameMutation = useMutation({
+    mutationFn: () =>
+      startGame(
+        game.id,
         selectedHomeIds,
         starterHomeIds,
         selectedGuestIds,
         starterGuestIds,
-      },
-    });
-  };
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      toast.success("Game started successfully!");
+
+      const homeTeam = game.homeTeam.name;
+      const awayTeam = game.guestTeam.name;
+
+      navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
+        state: {
+          game,
+          selectedHomeIds,
+          starterHomeIds,
+          selectedGuestIds,
+          starterGuestIds,
+        },
+      });
+    },
+    onError: () => toast.error("Error while starting game"),
+  });
 
   return (
     <div className="w-screen h-fit min-h-screen pt-23 pl-10 pr-13 ">
@@ -81,7 +99,21 @@ const StartGame: FC<startGameProps> = () => {
             starterHomeIds.length !== 5 ||
             starterGuestIds.length !== 5
           }
-          onClick={toggleStartGame}
+          // onClick={() => startGameMutation.mutate()}
+          onClick={() => {
+            const homeTeam = game.homeTeam.name;
+            const awayTeam = game.guestTeam.name;
+
+            navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
+              state: {
+                game,
+                selectedHomeIds,
+                starterHomeIds,
+                selectedGuestIds,
+                starterGuestIds,
+              },
+            });
+          }}
           className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
         >
           Start Game

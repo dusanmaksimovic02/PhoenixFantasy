@@ -10,7 +10,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-//builder.Services.AddScoped<PlayerStatService>();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -41,6 +40,7 @@ builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQService>());
 builder.Services.AddSingleton<IRabbitMQService>(sp => sp.GetRequiredService<RabbitMQService>());
 
+builder.Services.AddScoped<StatsApi.Controllers.PlayerStatService>();
 
 var app = builder.Build();
 

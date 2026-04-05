@@ -4,6 +4,7 @@ type Props = {
   onPlusClick: () => void;
   onMinusClick: () => void;
   minusDisable: () => boolean;
+  plusDisabled: () => boolean;
 };
 
 const PlusMinusButtons: FC<Props> = (props) => {
@@ -13,6 +14,7 @@ const PlusMinusButtons: FC<Props> = (props) => {
       <button
         className="text-xl cursor-pointer btn btn-ghost hover:bg-transparent rounded-xl border border-black dark:border-white dark:hover:text-white hover:text-black border-r-0 rounded-r-none"
         onClick={() => props.onPlusClick()}
+        disabled={props.plusDisabled()}
       >
         +
       </button>

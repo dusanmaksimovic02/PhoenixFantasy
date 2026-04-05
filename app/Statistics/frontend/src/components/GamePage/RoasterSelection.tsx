@@ -83,7 +83,6 @@ const RoasterSelection: FC<RoasterSelectionProps> = ({
 
                 <td className="text-center">
                   <button
-                    disabled={!isInRoster || starterIds.length === 5}
                     onClick={() =>
                       setStarterIds(
                         starterIds.includes(player.id)

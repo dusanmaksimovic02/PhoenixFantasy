@@ -2,6 +2,7 @@ import { useState, type FC } from "react";
 import { LuArrowDownUp } from "react-icons/lu";
 import AddStats from "./AddStats/AddStats";
 import ChangePlayer from "./ChangePlayer";
+import type { Player } from "../../models/Player";
 
 type Props = {
   id: string;
@@ -10,6 +11,9 @@ type Props = {
   position: string;
   jerseyNumber: string;
   time: Date;
+  gameId: string;
+  selectedPlayer: Player;
+  teamId: string;
 };
 
 const PlayerCard: FC<Props> = (props) => {
@@ -34,10 +38,10 @@ const PlayerCard: FC<Props> = (props) => {
             </p>
             <p>{props.position}</p>
           </div>
-          <div className="">
+          {/* <div className="">
             <p>Time played</p>
             <p>{props.time.toLocaleTimeString()}</p>
-          </div>
+          </div> */}
           <LuArrowDownUp
             className="w-10 h-10 cursor-pointer hover:text-phoenix hover:rotate-180"
             onClick={(e) => {
@@ -56,6 +60,9 @@ const PlayerCard: FC<Props> = (props) => {
           position={props.position}
           jerseyNumber={props.jerseyNumber}
           time={props.time}
+          gameId={props.gameId}
+          selectedPlayer={props.selectedPlayer}
+          teamId={props.teamId}
         />
       )}
       {isOpenChange && (
@@ -67,6 +74,9 @@ const PlayerCard: FC<Props> = (props) => {
           position={props.position}
           jerseyNumber={props.jerseyNumber}
           time={props.time}
+          selectedPlayer={props.selectedPlayer}
+          gameId={props.gameId}
+          teamId={props.teamId}
         />
       )}
     </>

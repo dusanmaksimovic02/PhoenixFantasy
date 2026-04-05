@@ -1,11 +1,14 @@
-import { useReducer, type FC } from "react";
-import { initialStats, statsReducer } from "../../../models/reducer";
+import { type FC } from "react";
 import PlayerHeader from "./PlayerHeader";
 import PointsSection from "./PointsSection";
-import ReboundsSection from "./ReboundsSection";
-import FoulsSection from "./FoulsSection";
-import BlocksSection from "./BlocksSection";
-import TATSSection from "./TATSSection";
+// import ReboundsSection from "./ReboundsSection";
+// import FoulsSection from "./FoulsSection";
+// import BlocksSection from "./BlocksSection";
+// import TATSSection from "./TATSSection";
+import type { Player } from "../../../models/Player";
+import { useQuery } from "@tanstack/react-query";
+import { getPlayerStatsFromGame } from "../../../services/LiveGameService";
+import Loading from "../../Loading";
 
 type Props = {
   isOpenStats: boolean;
@@ -15,6 +18,9 @@ type Props = {
   position: string;
   jerseyNumber: string;
   time: Date;
+  gameId: string;
+  selectedPlayer: Player;
+  teamId: string;
 };
 
 const AddStats: FC<Props> = ({
@@ -25,10 +31,18 @@ const AddStats: FC<Props> = ({
   position,
   jerseyNumber,
   time,
+  gameId,
+  selectedPlayer,
+  teamId,
 }) => {
-  const [stats, dispatch] = useReducer(statsReducer, initialStats);
+  const { data: playerStats, isLoading } = useQuery({
+    queryKey: ["playerStats"],
+    queryFn: () => getPlayerStatsFromGame(selectedPlayer.id, gameId),
+  });
 
-  return (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <dialog open={isOpenStats} className="modal">
       <div className="modal-box flex flex-col justify-center items-center w-5/12 max-w-5xl rounded-4xl bg-surface-light dark:bg-surface-dark overflow-hidden ">
         <div className="modal-action text flex flex-col gap-10 w-full">
@@ -54,25 +68,31 @@ const AddStats: FC<Props> = ({
 
             <hr />
 
-            <PointsSection stats={stats} dispatch={dispatch} />
+            <PointsSection
+              gameId={gameId}
+              selectedPlayer={selectedPlayer}
+              teamId={teamId}
+              playerStats={playerStats!}
+              isLoading={isLoading}
+            />
 
-            <hr />
+            {/* <hr />
 
             <div className="flex">
-              <ReboundsSection stats={stats} dispatch={dispatch} />
+              <ReboundsSection  />
 
               <div className="border-l" />
 
-              <FoulsSection stats={stats} dispatch={dispatch} />
+              <FoulsSection  />
             </div>
 
             <hr />
 
             <div className="flex ">
-              <BlocksSection stats={stats} dispatch={dispatch} />
+              <BlocksSection  />
 
-              <TATSSection stats={stats} dispatch={dispatch} />
-            </div>
+              <TATSSection  />
+            </div> */}
           </div>
         </div>
       </div>
