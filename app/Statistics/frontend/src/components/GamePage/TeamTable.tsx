@@ -127,33 +127,39 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
                   {playerStats.made1p}/{playerStats.miss1p + playerStats.made1p}
                 </td>
                 <td className="p-3 text-center">
-                  {Math.round(
-                    (playerStats.made1p /
-                      (playerStats.miss1p + playerStats.made1p)) *
-                      100,
-                  )}{" "}
+                  {playerStats.made1p > 0
+                    ? Math.round(
+                        (playerStats.made1p /
+                          (playerStats.miss1p + playerStats.made1p)) *
+                          100,
+                      )
+                    : 0}{" "}
                   %
                 </td>
                 <td className="p-3 text-center">
                   {playerStats.made2p}/{playerStats.miss2p + playerStats.made2p}
                 </td>
                 <td className="p-3 text-center">
-                  {Math.round(
-                    (playerStats.made2p /
-                      (playerStats.miss2p + playerStats.made2p)) *
-                      100,
-                  )}{" "}
+                  {playerStats.made2p > 0
+                    ? Math.round(
+                        (playerStats.made2p /
+                          (playerStats.miss2p + playerStats.made2p)) *
+                          100,
+                      )
+                    : 0}{" "}
                   %
                 </td>
                 <td className="p-3 text-center">
                   {playerStats.made3p}/{playerStats.miss3p + playerStats.made3p}
                 </td>
                 <td className="p-3 text-center">
-                  {Math.round(
-                    (playerStats.made3p /
-                      (playerStats.miss3p + playerStats.made3p)) *
-                      100,
-                  )}{" "}
+                  {playerStats.made3p > 0
+                    ? Math.round(
+                        (playerStats.made3p /
+                          (playerStats.miss3p + playerStats.made3p)) *
+                          100,
+                      )
+                    : 0}{" "}
                   %
                 </td>
                 <td className="p-3 text-center">{playerStats.rebounds}</td>
@@ -214,6 +220,7 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
                 </td>
               ))}
             </tr>
+
             <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
               {Array.from({ length: tableHead.length }).map((_, i) => (
                 <td key={i} className="p-3 text-center">
@@ -222,6 +229,7 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
                 </td>
               ))}
             </tr>
+
             <tr className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer">
               <td className="p-3 text-center">Total</td>
               {/* <td className="p-3 text-center">
@@ -233,20 +241,29 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
                 {totals.oneMade} / {totals.oneAttempt}
               </td>
               <td className="p-3 text-center">
-                {Math.round((totals.oneMade / totals.oneAttempt) * 100)} %
+                {totals.oneMade > 0
+                  ? Math.round((totals.oneMade / totals.oneAttempt) * 100)
+                  : 0}{" "}
+                %
               </td>
               <td className="p-3 text-center">
                 {totals.twoMade} / {totals.twoAttempt}
               </td>
               <td className="p-3 text-center">
-                {Math.round((totals.twoMade / totals.twoAttempt) * 100)} %
+                {totals.twoMade > 0
+                  ? Math.round((totals.twoMade / totals.twoAttempt) * 100)
+                  : 0}{" "}
+                %
               </td>
               <td className="p-3 text-center">
                 {" "}
                 {totals.threeMade} / {totals.threeAttempt}
               </td>
               <td className="p-3 text-center">
-                {Math.round((totals.threeMade / totals.threeAttempt) * 100)} %
+                {totals.threeMade > 0
+                  ? Math.round((totals.threeMade / totals.threeAttempt) * 100)
+                  : 0}{" "}
+                %
               </td>
               <td className="p-3 text-center">{totals.rebTotal}</td>
               <td className="p-3 text-center">{totals.rebOff}</td>

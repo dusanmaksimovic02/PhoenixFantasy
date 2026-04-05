@@ -1,95 +1,114 @@
-// import type { FC } from "react";
-// import PlusMinusButtons from "../PlusMinusButtons";
-// import type { StatsState } from "../../../models/Stats";
-// import type { Action } from "@/models/reducer";
+import type { FC } from "react";
+import PlusMinusButtons from "../PlusMinusButtons";
+import type { Player } from "../../../models/Player";
+import type { PlayerGameStats } from "../../../models/PlayerGameStats";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateStats } from "../../../services/LiveGameService";
 
-// type Props = {
-//   stats: StatsState;
-//   dispatch: React.Dispatch<Action>;
-// };
+type Props = {
+  gameId: string;
+  selectedPlayer: Player;
+  teamId: string;
+  playerStats: PlayerGameStats;
+  isLoading: boolean;
+};
 
-// const TATSSection: FC<Props> = ({ stats, dispatch }) => {
-//   const gridStats = [
-//     {
-//       key: "technical",
-//       label: "Technical",
-//       value: () => stats.fouls.technical,
-//       onPlus: () =>
-//         dispatch({
-//           type: "foul",
-//           payload: { kind: "technical", delta: 1 },
-//         }),
-//       onMinus: () =>
-//         dispatch({
-//           type: "foul",
-//           payload: { kind: "technical", delta: -1 },
-//         }),
-//     },
-//     {
-//       key: "assists",
-//       label: "Assists",
-//       value: () => stats.assists,
-//       onPlus: () =>
-//         dispatch({
-//           type: "assists",
-//           delta: 1,
-//         }),
-//       onMinus: () =>
-//         dispatch({
-//           type: "assists",
-//           delta: -1,
-//         }),
-//     },
-//     {
-//       key: "turnovers",
-//       label: "Turnovers",
-//       value: () => stats.defense.turnovers,
-//       onPlus: () =>
-//         dispatch({
-//           type: "defense",
-//           payload: { field: "turnovers", delta: 1 },
-//         }),
-//       onMinus: () =>
-//         dispatch({
-//           type: "defense",
-//           payload: { field: "turnovers", delta: -1 },
-//         }),
-//     },
-//     {
-//       key: "steals",
-//       label: "Steals",
-//       value: () => stats.defense.steals,
-//       onPlus: () =>
-//         dispatch({
-//           type: "defense",
-//           payload: { field: "steals", delta: 1 },
-//         }),
-//       onMinus: () =>
-//         dispatch({
-//           type: "defense",
-//           payload: { field: "steals", delta: -1 },
-//         }),
-//     },
-//   ] as const;
+const TATSSection: FC<Props> = (props) => {
+  const queryClient = useQueryClient();
 
-//   return (
-//     <div className="w-[65%] grid grid-cols-[1.2fr_1fr] grid-rows-2 divide-x divide-y">
-//       {gridStats.map(({ key, label, value, onPlus, onMinus }) => (
-//         <div key={key} className="p-3 flex justify-between items-center">
-//           <div className="flex flex-col items-center">
-//             <p className="text-phoenix">{label}</p>
-//             <p>{value()}</p>
-//           </div>
+  const updateStatsMutation = useMutation({
+    mutationFn: (changes: { statType: number; delta: number }[]) =>
+      updateStats(props.gameId, props.selectedPlayer.id, changes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["playerStats"] });
+      queryClient.invalidateQueries({ queryKey: ["teamPlayers"] });
+    },
+  });
 
-//           <PlusMinusButtons
-//             onPlusClick={onPlus}
-//             onMinusClick={onMinus}
-//             minusDisable={() => value() <= 0}
-//           />
-//         </div>
-//       ))}
-//     </div>
-//   );
-// };
+  return (
+    <div className="w-[65%] grid grid-cols-[1.2fr_1fr] grid-rows-2 divide-x divide-y">
+      <div key="technical" className="p-3 flex justify-between items-center">
+        <div className="flex flex-col items-center">
+          <p className="text-phoenix">Technical</p>
+          <p>{props.playerStats.technicalFouls}</p>
+        </div>
 
-// export default TATSSection;
+        <PlusMinusButtons
+          onPlusClick={() =>
+            updateStatsMutation.mutate([{ statType: 18, delta: 1 }])
+          }
+          onMinusClick={() =>
+            updateStatsMutation.mutate([{ statType: 18, delta: -1 }])
+          }
+          minusDisable={() =>
+            !(props.playerStats.technicalFouls > 0) ||
+            updateStatsMutation.isPending
+          }
+          plusDisabled={() => updateStatsMutation.isPending}
+        />
+      </div>
+
+      <div key="assists" className="p-3 flex justify-between items-center">
+        <div className="flex flex-col items-center">
+          <p className="text-phoenix">Assists</p>
+          <p>{props.playerStats.assists}</p>
+        </div>
+
+        <PlusMinusButtons
+          onPlusClick={() =>
+            updateStatsMutation.mutate([{ statType: 7, delta: 1 }])
+          }
+          onMinusClick={() =>
+            updateStatsMutation.mutate([{ statType: 7, delta: -1 }])
+          }
+          minusDisable={() =>
+            !(props.playerStats.assists > 0) || updateStatsMutation.isPending
+          }
+          plusDisabled={() => updateStatsMutation.isPending}
+        />
+      </div>
+
+      <div key="turnovers" className="p-3 flex justify-between items-center">
+        <div className="flex flex-col items-center">
+          <p className="text-phoenix">Turnovers</p>
+          <p>{props.playerStats.turnovers}</p>
+        </div>
+
+        <PlusMinusButtons
+          onPlusClick={() =>
+            updateStatsMutation.mutate([{ statType: 12, delta: 1 }])
+          }
+          onMinusClick={() =>
+            updateStatsMutation.mutate([{ statType: 12, delta: -1 }])
+          }
+          minusDisable={() =>
+            !(props.playerStats.turnovers > 0) || updateStatsMutation.isPending
+          }
+          plusDisabled={() => updateStatsMutation.isPending}
+        />
+      </div>
+
+      <div key="steals" className="p-3 flex justify-between items-center">
+        <div className="flex flex-col items-center">
+          <p className="text-phoenix">Steals</p>
+          <p>{props.playerStats.steals}</p>
+        </div>
+
+        <PlusMinusButtons
+          onPlusClick={() =>
+            updateStatsMutation.mutate([{ statType: 11, delta: 1 }])
+          }
+          onMinusClick={() =>
+            updateStatsMutation.mutate([{ statType: 11, delta: -1 }])
+          }
+          minusDisable={() =>
+            !(props.playerStats.steals > 0) || updateStatsMutation.isPending
+          }
+          plusDisabled={() => updateStatsMutation.isPending}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default TATSSection;

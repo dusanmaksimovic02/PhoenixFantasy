@@ -63,13 +63,13 @@ const PointsSection: FC<Props> = (props) => {
             onPlusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 1, delta: 1 },
-                { statType: 0, delta: 1 },
+                // { statType: 0, delta: 1 },
               ])
             }
             onMinusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 1, delta: -1 },
-                { statType: 0, delta: -1 },
+                // { statType: 0, delta: -1 },
               ])
             }
             minusDisable={() =>
@@ -82,13 +82,13 @@ const PointsSection: FC<Props> = (props) => {
             onPlusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 3, delta: 1 },
-                { statType: 0, delta: 2 },
+                // { statType: 0, delta: 2 },
               ])
             }
             onMinusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 3, delta: -1 },
-                { statType: 0, delta: -2 },
+                // { statType: 0, delta: -2 },
               ])
             }
             minusDisable={() =>
@@ -101,13 +101,13 @@ const PointsSection: FC<Props> = (props) => {
             onPlusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 5, delta: 1 },
-                { statType: 0, delta: 3 },
+                // { statType: 0, delta: 3 },
               ])
             }
             onMinusClick={() =>
               updateStatsMutation.mutate([
                 { statType: 5, delta: -1 },
-                { statType: 0, delta: -3 },
+                // { statType: 0, delta: -3 },
               ])
             }
             minusDisable={() =>

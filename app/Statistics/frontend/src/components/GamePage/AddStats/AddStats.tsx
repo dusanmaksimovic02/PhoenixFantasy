@@ -1,14 +1,14 @@
 import { type FC } from "react";
 import PlayerHeader from "./PlayerHeader";
 import PointsSection from "./PointsSection";
-// import ReboundsSection from "./ReboundsSection";
-// import FoulsSection from "./FoulsSection";
-// import BlocksSection from "./BlocksSection";
-// import TATSSection from "./TATSSection";
+import BlocksSection from "./BlocksSection";
+import TATSSection from "./TATSSection";
 import type { Player } from "../../../models/Player";
 import { useQuery } from "@tanstack/react-query";
 import { getPlayerStatsFromGame } from "../../../services/LiveGameService";
 import Loading from "../../Loading";
+import ReboundsSection from "./ReboundsSection";
+import FoulsSection from "./FoulsSection";
 
 type Props = {
   isOpenStats: boolean;
@@ -44,7 +44,7 @@ const AddStats: FC<Props> = ({
     <Loading />
   ) : (
     <dialog open={isOpenStats} className="modal">
-      <div className="modal-box flex flex-col justify-center items-center w-5/12 max-w-5xl rounded-4xl bg-surface-light dark:bg-surface-dark overflow-hidden ">
+      <div className="modal-box flex flex-col justify-center items-center w-7/12 max-w-5xl rounded-4xl bg-surface-light dark:bg-surface-dark overflow-hidden ">
         <div className="modal-action text flex flex-col gap-10 w-full">
           <button
             type="button"
@@ -64,6 +64,7 @@ const AddStats: FC<Props> = ({
               position={position}
               jerseyNumber={jerseyNumber}
               time={time}
+              playerStats={playerStats!}
             />
 
             <hr />
@@ -76,23 +77,47 @@ const AddStats: FC<Props> = ({
               isLoading={isLoading}
             />
 
-            {/* <hr />
+            <hr />
 
             <div className="flex">
-              <ReboundsSection  />
+              <ReboundsSection
+                gameId={gameId}
+                selectedPlayer={selectedPlayer}
+                teamId={teamId}
+                playerStats={playerStats!}
+                isLoading={isLoading}
+              />
 
               <div className="border-l" />
 
-              <FoulsSection  />
+              <FoulsSection
+                gameId={gameId}
+                selectedPlayer={selectedPlayer}
+                teamId={teamId}
+                playerStats={playerStats!}
+                isLoading={isLoading}
+              />
             </div>
 
             <hr />
 
             <div className="flex ">
-              <BlocksSection  />
+              <BlocksSection
+                gameId={gameId}
+                selectedPlayer={selectedPlayer}
+                teamId={teamId}
+                playerStats={playerStats!}
+                isLoading={isLoading}
+              />
 
-              <TATSSection  />
-            </div> */}
+              <TATSSection
+                gameId={gameId}
+                selectedPlayer={selectedPlayer}
+                teamId={teamId}
+                playerStats={playerStats!}
+                isLoading={isLoading}
+              />
+            </div>
           </div>
         </div>
       </div>

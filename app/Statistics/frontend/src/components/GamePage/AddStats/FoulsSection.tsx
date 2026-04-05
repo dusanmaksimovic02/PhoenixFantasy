@@ -1,35 +1,111 @@
-// import type { FC } from "react";
-// import PlusMinusButtons from "../PlusMinusButtons";
+import type { FC } from "react";
+import PlusMinusButtons from "../PlusMinusButtons";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateStats } from "../../../services/LiveGameService";
+import type { Player } from "../../../models/Player";
+import type { PlayerGameStats } from "../../../models/PlayerGameStats";
 
-// type Props = {
-// };
+type Props = {
+  gameId: string;
+  selectedPlayer: Player;
+  teamId: string;
+  playerStats: PlayerGameStats;
+  isLoading: boolean;
+};
 
-// const FoulsSection: FC<Props> = ({ }) => {
-//   return (
-//     <div className="p-3 pr-0 w-full">
-//       <p className="text-phoenix">Fouls</p>
-//       <div className="flex justify-between px-8 pt-3">
-//         {(["committed", "drawn"] as const).map((kind) => (
-//           <div key={kind} className="flex flex-col justify-center items-center">
-//             <div className="flex gap-3">
-//               <p>{kind === "committed" ? "Committed" : "Drawn"}</p>
-//               <p></p>
-//             </div>
+const FoulsSection: FC<Props> = (props) => {
+  const queryClient = useQueryClient();
 
-//             <PlusMinusButtons
-//               onPlusClick={() =>
+  const updateStatsMutation = useMutation({
+    mutationFn: (changes: { statType: number; delta: number }[]) =>
+      updateStats(props.gameId, props.selectedPlayer.id, changes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["playerStats"] });
+      queryClient.invalidateQueries({ queryKey: ["teamPlayers"] });
+    },
+  });
+  return (
+    <div className="p-3 pr-0 w-full">
+      <p className="text-phoenix">Fouls</p>
+      <div className="flex justify-between px-8 pt-3">
+        {/* {(["committed", "drawn"] as const).map((kind) => (
+          <div key={kind} className="flex flex-col justify-center items-center">
+            <div className="flex gap-3">
+              <p>{kind === "committed" ? "Committed" : "Drawn"}</p>
+              <p></p>
+            </div>
 
-//               }
-//               onMinusClick={() =>
-                
-//               }
-//               minusDisable={}
-//             />
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
+            <PlusMinusButtons
+              onPlusClick={() =>
+                updateStatsMutation.mutate([
+                  { statType: 3, delta: 1 },
+                  { statType: 0, delta: 2 },
+                ])
+              }
+              onMinusClick={() =>
+                updateStatsMutation.mutate([
+                  { statType: 3, delta: -1 },
+                  { statType: 0, delta: -2 },
+                ])
+              }
+              minusDisable={() =>
+                !(props.playerStats.made2p > 0) || updateStatsMutation.isPending
+              }
+              plusDisabled={() => updateStatsMutation.isPending}
+            />
+          </div>
+        ))} */}
 
-// export default FoulsSection;
+        <div
+          key={"Committed"}
+          className="flex flex-col justify-center items-center"
+        >
+          <div className="flex gap-3">
+            <p>Committed</p>
+            <p>{props.playerStats.personalFouls}</p>
+          </div>
+
+          <PlusMinusButtons
+            onPlusClick={() =>
+              updateStatsMutation.mutate([{ statType: 14, delta: 1 }])
+            }
+            onMinusClick={() =>
+              updateStatsMutation.mutate([{ statType: 14, delta: -1 }])
+            }
+            minusDisable={() =>
+              !(props.playerStats.personalFouls > 0) ||
+              updateStatsMutation.isPending
+            }
+            plusDisabled={() => updateStatsMutation.isPending}
+          />
+        </div>
+
+        <div
+          key={"drawn"}
+          className="flex flex-col justify-center items-center"
+        >
+          <div className="flex gap-3">
+            <p>Drawn</p>
+            <p>{props.playerStats.recievedFouls}</p>
+          </div>
+
+          <PlusMinusButtons
+            onPlusClick={() =>
+              updateStatsMutation.mutate([{ statType: 15, delta: 1 }])
+            }
+            onMinusClick={() =>
+              updateStatsMutation.mutate([{ statType: 15, delta: -1 }])
+            }
+            minusDisable={() =>
+              !(props.playerStats.recievedFouls > 0) ||
+              updateStatsMutation.isPending
+            }
+            plusDisabled={() => updateStatsMutation.isPending}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FoulsSection;

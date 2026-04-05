@@ -1,3 +1,4 @@
+import type { PlayerGameStats } from "../../../models/PlayerGameStats";
 import type { FC } from "react";
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   position: string;
   jerseyNumber: string;
   time: Date;
+  playerStats: PlayerGameStats;
 };
 
 const PlayerHeader: FC<Props> = ({
@@ -15,6 +17,7 @@ const PlayerHeader: FC<Props> = ({
   surname,
   position,
   jerseyNumber,
+  playerStats,
 }) => {
   return (
     <div
@@ -22,7 +25,7 @@ const PlayerHeader: FC<Props> = ({
       onClick={() => setIsOpenStats(true)}
     >
       <div className="bg-jersey bg-contain bg-no-repeat h-20 w-20 flex justify-center items-center">
-        <p className="text-black pt-4 pr-1 font-bold text-xl">
+        <p className="text-black pt-4 pr-3 font-bold text-xl">
           {jerseyNumber.toString()}
         </p>
       </div>
@@ -32,6 +35,10 @@ const PlayerHeader: FC<Props> = ({
             {name} {surname}
           </p>
           <p>{position}</p>
+        </div>
+        <div className="flex gap-5">
+          <p className="text-phoenix">PIR:</p>
+          <p>{playerStats.pir}</p>
         </div>
       </div>
     </div>
