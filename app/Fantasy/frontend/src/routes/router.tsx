@@ -1,20 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "./Layout";
-import Home from "./pages/Home";
-import NotFound from "./pages/NotFound";
-import Fantasy from "./pages/Fantasy";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Standing from "./pages/Standing";
-import ProfilePage from "./pages/ProfilePage";
-import Statistics from "./pages/Statistics";
-import AllGames from "./pages/AllGames";
-import TeamPage from "./pages/TeamPage";
-import PlayerPage from "./pages/PlayerPage";
-import GamePage from "./pages/GamePage";
-import CreateDraftLeague from "./pages/CreateDraftLeague";
-import FantasyLayout from "./components/FantasyPage/FantasyLayout";
-import DraftLeague from "./pages/DraftLeague";
+import Home from "../pages/Home";
+import NotFound from "../pages/NotFound";
+import Fantasy from "../pages/Fantasy";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import Standing from "../pages/Standing";
+import ProfilePage from "../pages/ProfilePage";
+import Statistics from "../pages/Statistics";
+import AllGames from "../pages/AllGames";
+import TeamPage from "../pages/TeamPage";
+import PlayerPage from "../pages/PlayerPage";
+import GamePage from "../pages/GamePage";
+import CreateDraftLeague from "../pages/CreateDraftLeague";
+import FantasyLayout from "../components/FantasyPage/FantasyLayout";
+import DraftLeague from "../pages/DraftLeague";
 
 export const router = createBrowserRouter([
   {

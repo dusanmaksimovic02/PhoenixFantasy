@@ -13,9 +13,10 @@ import {
   type Variants,
 } from "framer-motion";
 import { toast } from "react-toastify";
-import { PiGenderIntersexBold } from "react-icons/pi";
 import { LuPhone } from "react-icons/lu";
 import { forwardRef, useId, useState, type FC } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "../context/auth/useAuth";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -53,10 +54,7 @@ const formSchema = z
         message: "Password must include at least one special character!",
       }),
     confirmPassword: z.string(),
-    birthDate: z.date({ message: "Invalid date!" }),
-    gender: z.string().regex(/^(male|female|)$/, {
-      message: "Invalid gender! Gender can be male or female!",
-    }),
+    birthDate: z.string().min(1, "Birth date is required"),
     phoneNumber: z.string().regex(/^\+[1-9]\d{1,3}[1-9]\d{6,10}$/, {
       message:
         "Phone number must be in the format +<country_code><phone_number>!",
@@ -112,7 +110,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         )}
       </label>
     );
-  }
+  },
 );
 
 const TOTAL_STEPS = 4;
@@ -132,11 +130,11 @@ const Register: FC = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      birthDate: undefined,
+      birthDate: "",
       phoneNumber: "",
-      gender: "",
     },
   });
+  const { registerUser } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<number>(1);
@@ -147,7 +145,7 @@ const Register: FC = () => {
     if (step === 1) fieldsToValidate = ["email", "username"];
     if (step === 2) fieldsToValidate = ["name", "surname"];
     if (step === 3) fieldsToValidate = ["password", "confirmPassword"];
-    if (step === 4) fieldsToValidate = ["birthDate", "gender", "phoneNumber"];
+    if (step === 4) fieldsToValidate = ["birthDate", "phoneNumber"];
 
     const isValid = await trigger(fieldsToValidate);
 
@@ -162,7 +160,7 @@ const Register: FC = () => {
 
   const handleSwipe = async (
     _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
+    info: PanInfo,
   ) => {
     if (info.offset.x < -100 && step < TOTAL_STEPS) {
       let fieldsToValidate: (keyof FormInputs)[] = [];
@@ -170,7 +168,7 @@ const Register: FC = () => {
       if (step === 1) fieldsToValidate = ["email", "username"];
       if (step === 2) fieldsToValidate = ["name", "surname"];
       if (step === 3) fieldsToValidate = ["password", "confirmPassword"];
-      if (step === 4) fieldsToValidate = ["birthDate", "gender", "phoneNumber"];
+      if (step === 4) fieldsToValidate = ["birthDate", "phoneNumber"];
 
       const isValid = await trigger(fieldsToValidate);
 
@@ -182,11 +180,26 @@ const Register: FC = () => {
     }
   };
 
+  const registerMutation = useMutation({
+    mutationFn: async (data: FormInputs) =>
+      registerUser({
+        id: "",
+        email: data.email,
+        password: data.password,
+        firstName: data.name,
+        lastName: data.surname,
+        userName: data.username,
+        dateOfBirth: new Date(data.birthDate),
+        phoneNumber: data.phoneNumber,
+      }),
+    onError: (err) => {
+      toast.error("Error while register");
+      console.error(err);
+    },
+  });
+
   function onSubmit(data: FormInputs) {
-    console.log(data);
-    toast.info(
-      `${data.username}\n ${data.name}\n ${data.surname} \n${data.email}\n ${data.password}\n ${data.birthDate}\n${data.gender}`
-    );
+    registerMutation.mutate(data);
   }
 
   const nameError = errors.name?.message;
@@ -195,7 +208,6 @@ const Register: FC = () => {
   const emailError = errors.email?.message;
   const passwordError = errors.password?.message;
   const birthDateError = errors.birthDate?.message;
-  const genderError = errors.gender?.message;
   const phoneNumberError = errors.phoneNumber?.message;
   const confirmPasswordError = errors.confirmPassword?.message;
 
@@ -402,7 +414,7 @@ const Register: FC = () => {
                       <input
                         type="date"
                         color="white"
-                        {...register("birthDate", { valueAsDate: true })}
+                        {...register("birthDate")}
                         className={`w-full bg-transparent rounded-md px-3 py-[0.4rem] border-white hover:border-phoenix focus:border-phoenix border-2 text-white `}
                       />
                       {birthDateError && (
@@ -412,13 +424,6 @@ const Register: FC = () => {
                       )}
                     </div>
 
-                    <TextField
-                      label="Gender"
-                      error={genderError}
-                      icon={PiGenderIntersexBold}
-                      placeholder="male/female"
-                      {...register("gender")}
-                    />
                     <TextField
                       label="Phone number"
                       error={phoneNumberError}

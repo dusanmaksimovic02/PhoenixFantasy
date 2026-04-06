@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CgProfile } from "react-icons/cg";
 import { CiLock } from "react-icons/ci";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
   forwardRef,
@@ -12,6 +12,9 @@ import {
   type FC,
   type InputHTMLAttributes,
 } from "react";
+import { useAuth } from "../context/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -91,7 +94,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         )}
       </label>
     );
-  }
+  },
 );
 
 const Login: FC = () => {
@@ -108,9 +111,19 @@ const Login: FC = () => {
   });
 
   const navigate = useNavigate();
+  const { loginUser } = useAuth();
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: FormInputs) => loginUser(data),
+    onError: (err) => {
+      toast.error("Error while logging!");
+      console.error(err);
+    },
+  });
 
   function onSubmit(data: FormInputs) {
-    console.log(data);
+    // console.log(data);
+    loginMutation.mutate(data);
   }
 
   const nameError = errors.username?.message;
@@ -152,9 +165,10 @@ const Login: FC = () => {
               />
               <button
                 type="submit"
+                disabled={loginMutation.isPending}
                 className="w-full bg-phoenix hover:border-phoenix cursor-pointer hover:bg-phoenix/80 hover:border-2  p-2 rounded-md font-bold"
               >
-                Login
+                {loginMutation.isPending ? "Logging in..." : "Login"}
               </button>
               <p className="my-4 text-center text-white ">
                 Don't have an account?{"  "}

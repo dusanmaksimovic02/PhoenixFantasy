@@ -3,7 +3,8 @@ import { IoMenu } from "react-icons/io5";
 import { useEffect, useState, type FC } from "react";
 import { CgProfile } from "react-icons/cg";
 import { IoClose } from "react-icons/io5";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../context/theme/use-theme";
+import { useAuth } from "../context/auth/useAuth";
 
 type NavLinkType = {
   name: string;
@@ -14,7 +15,8 @@ type NavLinkType = {
 const Navbar: FC = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
-
+  const { isLoggedIn } = useAuth();
+  const toNavigate = isLoggedIn() ? "profile" : "login";
   const [isDarkMode, setIsDarkMode] = useState(theme === "dark");
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -102,15 +104,22 @@ const Navbar: FC = () => {
             </ul>
           </div>
           <div className="flex gap-2">
-            <button
-              className="flex border-2 rounded-full p-1 px-4 gap-2 justify-center items-center cursor-pointer dark:text-black  max-lg:mr-20 bg-transparent hover:bg-transparent border-white dark:border-black hover:border-black dark:hover:border-white"
-              onClick={() => {
-                navigate("/login");
-              }}
-            >
-              <CgProfile className="w-6 h-6" />
-              <span>Login</span>
-            </button>
+            {isLoggedIn() ? (
+              <NavLink
+                className="cursor-pointer dark:text-custom-gray bg-transparent hover:bg-transparent max-md:pr-20"
+                to={toNavigate}
+              >
+                <CgProfile className="w-10 h-10" />
+              </NavLink>
+            ) : (
+              <NavLink
+                className="flex max-md:pr-20 border-2 rounded-full p-1 px-4 gap-2 justify-center items-center cursor-pointer dark:text-black bg-transparent hover:bg-transparent border-white dark:border-black hover:border-black dark:hover:border-white"
+                to={toNavigate}
+              >
+                <CgProfile className="w-6 h-6" />
+                <span>Login</span>
+              </NavLink>
+            )}
 
             <div className="max-lg:hidden mr-3 flex items-center justify-center">
               <label className="swap swap-rotate">

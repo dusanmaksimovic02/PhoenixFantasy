@@ -1,108 +1,144 @@
 import { useState, type FC } from "react";
+import { useAuth } from "../../context/auth/useAuth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "react-toastify";
+import { getUserData, updateUser } from "../../services/AuthService";
+import { useMutation } from "@tanstack/react-query";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email"),
-  username: z.string(),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   name: z.string().min(1, "Name is required"),
   surname: z.string().min(1, "Surname is required"),
-  birthDate: z.string(),
-  gender: z.string(),
-  phoneNumber: z.string().regex(/^\+[1-9]\d{6,14}$/, "Invalid phone number"),
+  birthDate: z.string().min(1, "Birth date is required"),
+  phoneNumber: z
+    .string()
+    .regex(/^\+[1-9]\d{6,14}$/, "Invalid phone number (format: +381...)"),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 const ProfileInfo: FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { user, id } = useAuth();
 
-  const [profile, setProfile] = useState<FormData>({
-    email: "phoenix@example.com",
-    username:"Dzoni",
-    name: "Nikola",
-    surname: "Nikolić",
-    birthDate: "1999-05-12",
-    gender: "male",
-    phoneNumber: "+381641234567",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: user?.email || "",
+      username: user?.userName || "",
+      name: user?.firstName || "",
+      surname: user?.lastName || "",
+      birthDate: user?.dateOfBirth || "",
+      phoneNumber: user?.phoneNumber || "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfile((p) => ({ ...p, [name]: value }));
+  const onSubmit = async (data: FormData) => {
+    updateUserDataMutation.mutate(data);
   };
 
-  const handleSave = () => {
-    const result = formSchema.safeParse(profile);
+  const updateUserDataMutation = useMutation({
+    mutationFn: async (data: FormData) =>
+      updateUser({
+        id: user!.id,
+        userName: data.username,
+        email: data.email,
+        firstName: data.name,
+        lastName: data.surname,
+        phoneNumber: data.phoneNumber,
+        dateOfBirth: data.birthDate,
+        password: "placeholder",
+      }),
+    onSuccess: async () => {
+      toast.success("Profile updated successfully!");
 
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((i) => {
-        fieldErrors[i.path[0] as string] = i.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
+      const updatedUser = await getUserData(id!);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
-    setErrors({});
+      setIsEditing(false);
+    },
+    onError: (err) => {
+      toast.error("Error while logging!");
+      console.error(err);
+    },
+  });
+
+  const cancelEdit = () => {
+    reset();
     setIsEditing(false);
   };
 
   return (
     <div className="w-full flex justify-center pt-8">
-      <div
-        className="
-          w-full max-w-2xl rounded-2xl p-8 shadow-lg
-          bg-neutral-100 dark:bg-neutral-800
-        "
-      >
-        <h1 className="text-3xl font-bold mb-8 text-center">
-          Profile information
+      <div className="w-full max-w-xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
+        <h1 className="text-3xl font-bold mb-8 text-center text-phoenix">
+          Profile Information
         </h1>
 
-        <div className="space-y-5">
-          {(
-            [
-              ["email", "Email"],
-              ["username", "Username"],
-              ["name", "Name"],
-              ["surname", "Surname"],
-              ["birthDate", "Birth date"],
-              ["gender", "Gender"],
-              ["phoneNumber", "Phone number"],
-            ] as const
-          ).map(([key, label]) => (
-            <div key={key}>
-              <label className="block mb-1 font-medium">{label}</label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {[
+            { id: "email", label: "Email", type: "text" },
+            { id: "username", label: "Username", type: "text" },
+            { id: "name", label: "Name", type: "text" },
+            { id: "surname", label: "Surname", type: "text" },
+            { id: "birthDate", label: "Birth date", type: "date" },
+            { id: "phoneNumber", label: "Phone number", type: "text" },
+          ].map((field) => (
+            <div key={field.id}>
+              <label className="block mb-1 font-medium text-neutral-600 dark:text-neutral-300">
+                {field.label}
+              </label>
               <input
-                name={key}
-                type={key === "birthDate" ? "date" : "text"}
-                value={profile[key]}
+                {...register(field.id as keyof FormData)}
+                type={field.type}
                 disabled={!isEditing}
-                onChange={handleChange}
-                className="
-                  w-full px-4 py-3 rounded-xl
-                  bg-white dark:bg-neutral-700
-                  border border-neutral-300 dark:border-neutral-600
-                  disabled:opacity-70
-                "
+                className="input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black  dark:focus:outline-white disabled:opacity-60 transition-all text-neutral-600 dark:text-neutral-300"
               />
-              {errors[key] && (
-                <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
+              {errors[field.id as keyof FormData] && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors[field.id as keyof FormData]?.message}
+                </p>
               )}
             </div>
           ))}
-        </div>
 
-        <div className="flex justify-center mt-10">
-          <button
-            className="px-10 py-3 rounded-xl text-white font-semibold
-              bg-phoenix/60 hover:bg-phoenix/95 transition-all cursor-pointer"
-            onClick={isEditing ? handleSave : () => setIsEditing(true)}
-          >
-            {isEditing ? "Save changes" : "Edit profile"}
-          </button>
-        </div>
+          <div className="flex justify-center gap-4 mt-10">
+            {!isEditing ? (
+              <button
+                type="button"
+                className="px-10 py-3 rounded text-white font-semibold bg-phoenix hover:bg-phoenix-dark transition-all cursor-pointer shadow-md"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="px-8 py-3 rounded border border-neutral-400 dark:border-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-all cursor-pointer"
+                  onClick={cancelEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateUserDataMutation.isPending}
+                  className="px-10 py-3 rounded text-white font-semibold bg-green-600 hover:bg-green-700 transition-all cursor-pointer shadow-md"
+                >
+                  {updateUserDataMutation.isPending ? "Saving..." :"Save Changes"}
+                </button>
+              </>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -2,22 +2,44 @@ import type { FC, ReactNode } from "react";
 import ProfileInfo from "./ProfileInfo";
 import ChangePassword from "./ChangePassword";
 import MyLeagues from "./MyLeagues";
+import { toast } from "react-toastify";
 
-const SECTION_MAP: Record<string, ReactNode> = {
-  "#info": <ProfileInfo />,
-  "#security": <ChangePassword />,
-  "#fantasy-leagues": <MyLeagues />,
-  "#section3": <div>Stavka 3</div>,
+const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
+  "#info": {
+    component: <ProfileInfo />,
+    roles: ["User", "Admin", "Manager"],
+  },
+  "#security": {
+    component: <ChangePassword />,
+    roles: ["User", "Admin", "Manager"],
+  },
+  "#fantasy-leagues": {
+    component: <MyLeagues />,
+    roles: ["User"],
+  },
+  "#section3": {
+    component: <div>Stavka 3</div>,
+    roles: ["Manager", "Admin", "User"],
+  },
 };
 
 const ProfileContent: FC<{ section: string }> = ({ section }) => {
-  const content = SECTION_MAP[section] ?? SECTION_MAP["#info"];
+  const role = localStorage.getItem("role");
+
+  const config = SECTION_MAP[section];
+
+  if (!config) {
+    toast.error("Invalid section");
+    return <div></div>;
+  }
+
+  if (!config.roles.includes(role!)) {
+    return;
+  }
 
   return (
-    <div className="flex justify-center p-6 md:p-10">
-      <div className="w-full max-w-6xl rounded-2xl bg-neutral-100 dark:bg-neutral-800 p-6">
-        {content}
-      </div>
+    <div className="rounded-xl mx-10 flex justify-center items-center overflow-auto p-6 mt-20 min-h-[calc(100vh-6rem)] ">
+      {config.component}
     </div>
   );
 };

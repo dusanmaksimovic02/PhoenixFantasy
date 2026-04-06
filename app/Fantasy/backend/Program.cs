@@ -1,79 +1,97 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using FantasyApi.Data;
 using FantasyApi.Models;
 using FantasyApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
+
 //using Microsoft.OpenApi.Models;
 //using Microsoft.OpenApi.Models; // Proveri da li je ovo na vrhu, ako i dalje pravi grešku, obriši
 
-
-
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "Frontend",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5174", "https://localhost:5174")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
+});
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<StatsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("StatsConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("StatsConnection"))
+);
 builder.Services.AddDbContext<FantasyDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("FantasyConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("FantasyConnection"))
+);
 
 builder.Services.AddScoped<StatsService>();
 
-builder.Services.AddIdentity<Person, IdentityRole>()
+builder
+    .Services.AddIdentity<Person, IdentityRole>()
     .AddEntityFrameworkStores<FantasyDbContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Dodaj i ovu liniju
-})
-.AddJwtBearer(options =>
-{
-    options.SaveToken = true; // OBAVEZNO: Ovo omogućava da token bude dostupan u context-u
-    options.RequireHttpsMetadata = false;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-        ClockSkew = TimeSpan.Zero // Eliminiše kašnjenje od 5 minuta
-    };
-
-    options.Events = new JwtBearerEvents
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Dodaj i ovu liniju
+    })
+    .AddJwtBearer(options =>
     {
-        OnMessageReceived = context => 
+        options.SaveToken = true; // OBAVEZNO: Ovo omogućava da token bude dostupan u context-u
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            // LOG 1: Proveravamo da li token uopšte stiže do middleware-a
-            var authHeader = context.Request.Headers["Authorization"];
-            Console.WriteLine($"[DEBUG] Stigao Authorization Header: {authHeader}");
-            return Task.CompletedTask;
-        },
-        OnTokenValidated = context =>
-        {
-            // LOG 2: Ako ovo ispiše, claimovi MORAJU biti tu
-            Console.WriteLine("[DEBUG] Token uspešno VALIDIRAN!");
-            return Task.CompletedTask;
-        },
-        OnAuthenticationFailed = context =>
-        {
-            // LOG 3: Ako pukne, ovde će pisati zašto
-            Console.WriteLine($"[DEBUG] Auth greška: {context.Exception.Message}");
-            return Task.CompletedTask;
-        }
-    };
-});
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            ),
+            ClockSkew = TimeSpan.Zero, // Eliminiše kašnjenje od 5 minuta
+        };
 
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // LOG 1: Proveravamo da li token uopšte stiže do middleware-a
+                var authHeader = context.Request.Headers["Authorization"];
+                Console.WriteLine($"[DEBUG] Stigao Authorization Header: {authHeader}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                // LOG 2: Ako ovo ispiše, claimovi MORAJU biti tu
+                Console.WriteLine("[DEBUG] Token uspešno VALIDIRAN!");
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // LOG 3: Ako pukne, ovde će pisati zašto
+                Console.WriteLine($"[DEBUG] Auth greška: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+        };
+    });
 
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<StatsConsumerService>();
@@ -89,14 +107,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Fantasy API v1");
-        c.EnablePersistAuthorization(); 
+        c.EnablePersistAuthorization();
     });
 }
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider
-        .GetRequiredService<RoleManager<IdentityRole>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
     string[] roles = { "Admin", "Manager", "User" };
 
@@ -110,6 +127,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using FantasyApi.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using FantasyApi.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FantasyApi.Controllers;
 
@@ -15,9 +15,7 @@ public class AuthController : ControllerBase
     private readonly UserManager<Person> _userManager;
     private readonly IConfiguration _configuration;
 
-    public AuthController(
-        UserManager<Person> userManager,
-        IConfiguration configuration)
+    public AuthController(UserManager<Person> userManager, IConfiguration configuration)
     {
         _userManager = userManager;
         _configuration = configuration;
@@ -45,7 +43,7 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
 
             FirstName = dto.FirstName,
-            LastName = dto.LastName
+            LastName = dto.LastName,
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -54,12 +52,9 @@ public class AuthController : ControllerBase
             return BadRequest(result.Errors);
         }
 
-        await _userManager.AddToRoleAsync(user, "Referee");
+        await _userManager.AddToRoleAsync(user, "User");
 
-        return Ok(new
-        {
-            message = "User registered successfully"
-        });
+        return Ok(new { message = "User registered successfully" });
     }
 
     [HttpPost("RegisterWithRole")]
@@ -84,7 +79,7 @@ public class AuthController : ControllerBase
             PhoneNumber = dto.PhoneNumber,
 
             FirstName = dto.FirstName,
-            LastName = dto.LastName
+            LastName = dto.LastName,
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -95,10 +90,7 @@ public class AuthController : ControllerBase
 
         await _userManager.AddToRoleAsync(user, dto.Role);
 
-        return Ok(new
-        {
-            message = "User registered successfully"
-        });
+        return Ok(new { message = "User registered successfully" });
     }
 
     [HttpPost("Login")]
@@ -119,13 +111,49 @@ public class AuthController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
         var token = GenerateJwtToken(user, roles);
 
-        return Ok(new
+        return Ok(
+            new
+            {
+                token,
+                roles,
+                userId = user.Id,
+                username = user.UserName,
+            }
+        );
+    }
+
+    [HttpGet("GetUserData/{id}")]
+    public async Task<ActionResult<Person>> GetUserData(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user == null)
         {
-            token,
-            roles,
-            userId = user.Id,
-            username = user.UserName
-        });
+            return NotFound($"User don't  exists!");
+        }
+
+        return Ok(user);
+    }
+
+    [HttpPut("UpdateUser")]
+    public async Task<IActionResult> UpdateUser([FromBody] Person updatedUser)
+    {
+        var user = await _userManager.FindByIdAsync(updatedUser.Id);
+        if (user == null)
+            return NotFound($"User with Id {updatedUser.Id} not found");
+
+        user.FirstName = updatedUser.FirstName;
+        user.LastName = updatedUser.LastName;
+        user.Email = updatedUser.Email;
+        user.UserName = updatedUser.UserName;
+        user.PhoneNumber = updatedUser.PhoneNumber;
+        user.dateOfBirth = updatedUser.dateOfBirth;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        return Ok($"Admin with Id {user.Id} updated successfully");
     }
 
     [HttpPut("ChangeUserRole")]
@@ -149,10 +177,7 @@ public class AuthController : ControllerBase
             return BadRequest(result.Errors);
         }
 
-        return Ok(new
-        {
-            message = $"Role successfully changed to {dto.NewRole}"
-        });
+        return Ok(new { message = $"Role successfully changed to {dto.NewRole}" });
     }
 
     private string GenerateJwtToken(Person user, IList<string> roles)
@@ -161,7 +186,7 @@ public class AuthController : ControllerBase
         {
             new Claim("id", user.Id), // Koristimo običan string "id"
             new Claim("username", user.UserName!),
-            new Claim("email", user.Email!)
+            new Claim("email", user.Email!),
         };
 
         foreach (var role in roles)
@@ -169,9 +194,7 @@ public class AuthController : ControllerBase
             claims.Add(new Claim("role", role));
         }
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)
-        );
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -179,14 +202,13 @@ public class AuthController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(_configuration["Jwt:ExpiresInMinutes"]!)
-            ),
+            expires: DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:ExpiresInMinutes"]!)),
             signingCredentials: creds
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
     [HttpGet("GetUserIdByUsername/{username}")]
     public async Task<IActionResult> GetUserIdByUsername(string username)
     {
@@ -196,7 +218,7 @@ public class AuthController : ControllerBase
         {
             return NotFound($"Korisnik sa imenom {username} nije pronađen.");
         }
-    
+
         return Ok(new { userId = user.Id });
     }
 }
