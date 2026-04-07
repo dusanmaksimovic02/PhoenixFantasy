@@ -7,9 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using FantasyApi.Hubs;
 
-//using Microsoft.OpenApi.Models;
-//using Microsoft.OpenApi.Models; // Proveri da li je ovo na vrhu, ako i dalje pravi grešku, obriši
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +38,10 @@ builder.Services.AddDbContext<FantasyDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("FantasyConnection"))
 );
 
+builder.Services.AddSignalR();
+
 builder.Services.AddScoped<StatsService>();
+builder.Services.AddHostedService<DraftTimerService>();
 
 builder
     .Services.AddIdentity<Person, IdentityRole>()
@@ -51,11 +53,11 @@ builder
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; // Dodaj i ovu liniju
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
-        options.SaveToken = true; // OBAVEZNO: Ovo omogućava da token bude dostupan u context-u
+        options.SaveToken = true;
         options.RequireHttpsMetadata = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -66,27 +68,24 @@ builder
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
             ),
-            ClockSkew = TimeSpan.Zero, // Eliminiše kašnjenje od 5 minuta
+            ClockSkew = TimeSpan.Zero,
         };
 
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                // LOG 1: Proveravamo da li token uopšte stiže do middleware-a
                 var authHeader = context.Request.Headers["Authorization"];
                 Console.WriteLine($"[DEBUG] Stigao Authorization Header: {authHeader}");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                // LOG 2: Ako ovo ispiše, claimovi MORAJU biti tu
                 Console.WriteLine("[DEBUG] Token uspešno VALIDIRAN!");
                 return Task.CompletedTask;
             },
             OnAuthenticationFailed = context =>
             {
-                // LOG 3: Ako pukne, ovde će pisati zašto
                 Console.WriteLine($"[DEBUG] Auth greška: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
@@ -129,6 +128,8 @@ using (var scope = app.Services.CreateScope())
 app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
+
+app.MapHub<DraftHub>("/draftHub");
 
 app.UseAuthentication();
 app.UseAuthorization();

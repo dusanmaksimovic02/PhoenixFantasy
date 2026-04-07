@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
 using FantasyApi.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FantasyApi.Controllers;
 
@@ -57,10 +57,10 @@ public class StatsController : ControllerBase
     public async Task<IActionResult> GetCoachGameStats(Guid coachId, Guid gameId)
     {
         var stats = await _service.GetCoachGameStats(coachId, gameId);
-    
+
         if (stats == null)
             return NotFound();
-    
+
         return Ok(stats);
     }
 }

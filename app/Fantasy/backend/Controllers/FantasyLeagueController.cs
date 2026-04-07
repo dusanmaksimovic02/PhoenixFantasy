@@ -1,9 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using FantasyApi.Data;
 using FantasyApi.Models;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FantasyApi.Controllers;
 
@@ -43,8 +43,9 @@ public class FantasyLeagueController : ControllerBase
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         var random = new Random();
 
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
+        return new string(
+            Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray()
+        );
     }
 
     //[Authorize]
@@ -54,8 +55,9 @@ public class FantasyLeagueController : ControllerBase
         Console.WriteLine($"Korisnik autentifikovan: {User.Identity?.IsAuthenticated}");
         Console.WriteLine($"Tip autentifikacije: {User.Identity?.AuthenticationType}");
 
-        var userId = User.FindFirst("id")?.Value 
-              ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userId =
+            User.FindFirst("id")?.Value
+            ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
@@ -86,15 +88,14 @@ public class FantasyLeagueController : ControllerBase
             do
             {
                 joinCode = GenerateJoinCode();
-            }
-            while (await context.FantasyLeagues.AnyAsync(l => l.JoinCode == joinCode));
+            } while (await context.FantasyLeagues.AnyAsync(l => l.JoinCode == joinCode));
 
             var league = new FantasyLeague
             {
                 Id = Guid.NewGuid(),
                 LeagueName = dto.LeagueName,
                 leagueAdminId = userId,
-                JoinCode = joinCode
+                JoinCode = joinCode,
             };
 
             context.FantasyLeagues.Add(league);
@@ -105,7 +106,7 @@ public class FantasyLeagueController : ControllerBase
                 Id = Guid.NewGuid(),
                 Name = dto.TeamName,
                 LeagueId = league.Id,
-                UserId = userId
+                UserId = userId,
             };
 
             context.FantasyTeams.Add(team);
@@ -113,14 +114,16 @@ public class FantasyLeagueController : ControllerBase
 
             await transaction.CommitAsync();
 
-            return Ok(new
-            {
-                leagueId = league.Id,
-                leagueName = league.LeagueName,
-                joinCode = league.JoinCode,
-                teamId = team.Id,
-                teamName = team.Name
-            });
+            return Ok(
+                new
+                {
+                    leagueId = league.Id,
+                    leagueName = league.LeagueName,
+                    joinCode = league.JoinCode,
+                    teamId = team.Id,
+                    teamName = team.Name,
+                }
+            );
         }
         catch (Exception ex)
         {
@@ -142,14 +145,16 @@ public class FantasyLeagueController : ControllerBase
             if (userId == null)
                 return Unauthorized();
 
-            var league = await context.FantasyLeagues
-                .FirstOrDefaultAsync(l => l.JoinCode == dto.JoinCode);
+            var league = await context.FantasyLeagues.FirstOrDefaultAsync(l =>
+                l.JoinCode == dto.JoinCode
+            );
 
             if (league == null)
                 return NotFound("League with code doesn't exist");
 
-            var existingTeam = await context.FantasyTeams
-                .FirstOrDefaultAsync(t => t.LeagueId == league.Id && t.UserId == userId);
+            var existingTeam = await context.FantasyTeams.FirstOrDefaultAsync(t =>
+                t.LeagueId == league.Id && t.UserId == userId
+            );
 
             if (existingTeam != null)
                 return BadRequest("You already have a team in this league");
@@ -159,25 +164,26 @@ public class FantasyLeagueController : ControllerBase
                 Id = Guid.NewGuid(),
                 Name = dto.TeamName,
                 LeagueId = league.Id,
-                UserId = userId
+                UserId = userId,
             };
 
             context.FantasyTeams.Add(team);
             await context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                message = "Joined succesfully",
-                leagueId = league.Id,
-                leagueName = league.LeagueName,
-                teamId = team.Id,
-                teamName = team.Name
-            });
+            return Ok(
+                new
+                {
+                    message = "Joined succesfully",
+                    leagueId = league.Id,
+                    leagueName = league.LeagueName,
+                    teamId = team.Id,
+                    teamName = team.Name,
+                }
+            );
         }
         catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
     }
-
 }

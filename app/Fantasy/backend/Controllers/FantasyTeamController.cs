@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using FantasyApi.Data;
 using FantasyApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace FantasyApi.Controllers;
 
@@ -24,7 +24,7 @@ public class FantasyTeamController : ControllerBase
             Id = Guid.NewGuid(),
             Name = dto.Name,
             LeagueId = dto.LeagueId,
-            UserId = dto.UserId
+            UserId = dto.UserId,
         };
 
         context.FantasyTeams.Add(team);
@@ -36,9 +36,7 @@ public class FantasyTeamController : ControllerBase
     [HttpGet("GetFantasyTeams")]
     public async Task<IActionResult> GetFantasyTeams()
     {
-        var teams = await context.FantasyTeams
-            .Include(t => t.User)
-            .ToListAsync();
+        var teams = await context.FantasyTeams.Include(t => t.User).ToListAsync();
 
         return Ok(teams);
     }
@@ -46,8 +44,8 @@ public class FantasyTeamController : ControllerBase
     [HttpGet("GetFantasyTeamById/{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var team = await context.FantasyTeams
-            .Include(t => t.User)
+        var team = await context
+            .FantasyTeams.Include(t => t.User)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (team == null)

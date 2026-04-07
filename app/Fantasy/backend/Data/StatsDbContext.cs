@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using FantasyApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FantasyApi.Data;
 
@@ -13,9 +13,7 @@ public class StatsDbContext : DbContext
     public DbSet<Team> Teams { get; set; }
 
     public StatsDbContext(DbContextOptions<StatsDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

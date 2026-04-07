@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FantasyApi.Enums;
 
 namespace FantasyApi.Models;
 
@@ -9,7 +10,7 @@ public class FantasyTeamPlayer
 
     public Guid PlayerId { get; set; }
 
-    public bool IsStarter { get; set; }
-    public bool IsCaptain { get; set; }
-    public bool IsInjured { get; set; }
+    public FantasyRole Role { get; set; }
+
+    public PlayerGameStats? PlayerGameStats { get; set; }
 }
