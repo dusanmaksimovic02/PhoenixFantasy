@@ -252,7 +252,7 @@ const GameInfo: FC<GameInfoProps> = (props) => {
 
                 <button
                   className="hover:cursor-pointer"
-                  onClick={() => setTime((t) => Math.max(0, t - 60))}
+                  onClick={() => setTime((t) => Math.max(0, t - 1))}
                 >
                   <FaAngleDown />
                 </button>
