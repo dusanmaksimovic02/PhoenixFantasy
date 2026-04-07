@@ -56,7 +56,7 @@ const AddStats: FC<Props> = ({
             ✕
           </button>
 
-          <div className="border  rounded-4xl">
+          <div className="border rounded-4xl">
             <PlayerHeader
               setIsOpenStats={setIsOpenStats}
               name={name}
@@ -69,18 +69,8 @@ const AddStats: FC<Props> = ({
 
             <hr />
 
-            <PointsSection
-              gameId={gameId}
-              selectedPlayer={selectedPlayer}
-              teamId={teamId}
-              playerStats={playerStats!}
-              isLoading={isLoading}
-            />
-
-            <hr />
-
             <div className="flex">
-              <ReboundsSection
+              <PointsSection
                 gameId={gameId}
                 selectedPlayer={selectedPlayer}
                 teamId={teamId}
@@ -90,7 +80,7 @@ const AddStats: FC<Props> = ({
 
               <div className="border-l" />
 
-              <FoulsSection
+              <ReboundsSection
                 gameId={gameId}
                 selectedPlayer={selectedPlayer}
                 teamId={teamId}
@@ -101,8 +91,8 @@ const AddStats: FC<Props> = ({
 
             <hr />
 
-            <div className="flex ">
-              <BlocksSection
+            <div className="flex">
+              <FoulsSection
                 gameId={gameId}
                 selectedPlayer={selectedPlayer}
                 teamId={teamId}
@@ -110,7 +100,9 @@ const AddStats: FC<Props> = ({
                 isLoading={isLoading}
               />
 
-              <TATSSection
+              <div className="border-l" />
+
+              <BlocksSection
                 gameId={gameId}
                 selectedPlayer={selectedPlayer}
                 teamId={teamId}
@@ -118,6 +110,16 @@ const AddStats: FC<Props> = ({
                 isLoading={isLoading}
               />
             </div>
+
+            <hr />
+
+            <TATSSection
+              gameId={gameId}
+              selectedPlayer={selectedPlayer}
+              teamId={teamId}
+              playerStats={playerStats!}
+              isLoading={isLoading}
+            />
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import type { Game } from "@/models/Game";
 import apiClient from "./client";
 
 export const addGame = async (
@@ -6,6 +7,7 @@ export const addGame = async (
   dateTime: string,
   venue: string,
   refereeId: string,
+  round: number,
 ) => {
   const response = await apiClient.post("/Game/AddGame", {
     homeTeamId,
@@ -13,6 +15,7 @@ export const addGame = async (
     dateTime,
     venue,
     refereeId,
+    round,
   });
   return response.data;
 };
@@ -29,9 +32,8 @@ export const updateGame = async (game: {
   dateTime: string;
   venue: string;
   refereeId: string;
+  round: number;
 }) => {
-  console.log("primio sa sledeci gejm: ");
-  console.log(game);
   const response = await apiClient.put("Game/UpdateGame", game);
   return response.data;
 };
@@ -42,6 +44,6 @@ export const deleteGame = async (id: string) => {
 };
 
 export const getGameById = async (id: string) => {
-  const response = await apiClient.get(`/Game/GetGameById/${id}`);
+  const response = await apiClient.get<Game>(`/Game/GetGameById/${id}`);
   return response.data;
 };

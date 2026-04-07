@@ -26,7 +26,7 @@ const TATSSection: FC<Props> = (props) => {
   });
 
   return (
-    <div className="w-[65%] grid grid-cols-[1.2fr_1fr] grid-rows-2 divide-x divide-y">
+    <div className="w-full grid grid-cols-[1fr_1fr_1.03fr_1fr] divide-x">
       <div key="technical" className="p-3 flex justify-between items-center">
         <div className="flex flex-col items-center">
           <p className="text-phoenix">Technical</p>

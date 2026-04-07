@@ -25,12 +25,12 @@ const ReboundsSection: FC<Props> = (props) => {
     },
   });
   return (
-    <div className="p-3 pr-0 w-full">
+    <div className="p-3 pr-0">
       <div className="flex gap-10">
         <p className="text-phoenix">Rebounds</p>
         <p>{props.playerStats.rebounds}</p>
       </div>
-      <div className="flex justify-between px-8 pt-3">
+      <div className="flex flex-col gap-5 justify-between px-5 pt-8">
         {/* {(["offensive", "defensive"] as const).map((kind) => (
           <div key={kind} className="flex flex-col justify-center items-center">
             <div className="flex gap-3">
@@ -52,7 +52,7 @@ const ReboundsSection: FC<Props> = (props) => {
 
         <div
           key={"defensive"}
-          className="flex flex-col justify-center items-center"
+          className="flex gap-3 justify-center items-center"
         >
           <div className="flex gap-3">
             <p>Defensive</p>
@@ -82,7 +82,7 @@ const ReboundsSection: FC<Props> = (props) => {
 
         <div
           key={"defensive"}
-          className="flex flex-col justify-center items-center"
+          className="flex gap-3 justify-center items-center"
         >
           <div className="flex gap-3">
             <p>Offensive</p>

@@ -44,6 +44,7 @@ const AllGames: FC = () => {
           "Date",
           "Time",
           "Venue",
+          "Round",
           "Referee",
           "Actions",
         ]}
@@ -56,6 +57,7 @@ const AllGames: FC = () => {
             <td>{game.dateTime?.split("T")[0]}</td>
             <td>{game.dateTime?.split("T")[1]?.slice(0, 5)}</td>
             <td>{game.venue}</td>
+            <td>{game.round}</td>
             <td>{`${game.referee.firstName} ${game.referee.lastName}`}</td>
             <td>
               <div className="flex justify-center gap-4">

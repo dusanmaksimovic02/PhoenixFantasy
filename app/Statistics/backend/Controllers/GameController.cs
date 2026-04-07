@@ -34,7 +34,7 @@ public class GameController : ControllerBase
                     .Include(g => g.Referee)
                     .Where(g => g.Id == id)
                     // .AsSplitQuery()
-                    .ToListAsync();
+                    .FirstOrDefaultAsync();
             return Ok(game);
         }
         catch (Exception e)
@@ -112,7 +112,8 @@ public class GameController : ControllerBase
                 GuestTeam = guestTeam,
                 dateTime = dto.dateTime,
                 Venue = dto.Venue,
-                Referee = referee
+                Referee = referee,
+                Round = dto.Round
             };
 
             context.Games.Add(game);
@@ -150,6 +151,7 @@ public class GameController : ControllerBase
             gameUpdate.dateTime = game.DateTime;
             gameUpdate.Venue = game.Venue;
             gameUpdate.Referee = referee;
+            gameUpdate.Round = game.Round;
 
             context.Games.Update(gameUpdate);
             await context.SaveChangesAsync();

@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using StatsApi.Data;
-using StatsApi.Models;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
+using StatsApi.Data;
+using StatsApi.Models;
 
 namespace StatsApi.Controllers;
 
@@ -24,8 +24,9 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams.FirstOrDefaultAsync(x => x.Id.ToString() == id) ?? throw new Exception
-            ($"Team with Id {id} doesn't exist");
+            var team =
+                await context.Teams.FirstOrDefaultAsync(x => x.Id.ToString() == id)
+                ?? throw new Exception($"Team with Id {id} doesn't exist");
             return Ok(team);
         }
         catch (Exception e)
@@ -33,12 +34,16 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpGet("GetTeams")]
     public async Task<IActionResult> GetTeams()
     {
         try
         {
-            var teams = await context.Teams.Include(t => t.Players).Include(t => t.coach).ToListAsync();
+            var teams = await context
+                .Teams.Include(t => t.Players)
+                .Include(t => t.coach)
+                .ToListAsync();
             return Ok(teams);
         }
         catch (Exception e)
@@ -46,21 +51,22 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpPost("AddTeam")]
     public async Task<ActionResult<Team>> AddTeam([FromBody] CreateTeamDto dto)
     {
         try
         {
-            var coach = await context.Coaches
-                .FirstOrDefaultAsync(c => c.Id == dto.CoachId)
+            var coach =
+                await context.Coaches.FirstOrDefaultAsync(c => c.Id == dto.CoachId)
                 ?? throw new Exception($"Coach with Id {dto.CoachId} doesn't exist");
 
             var players = new List<Player>();
 
             foreach (var playerId in dto.PlayerIds)
             {
-                var player = await context.Players
-                    .FirstOrDefaultAsync(p => p.Id == playerId)
+                var player =
+                    await context.Players.FirstOrDefaultAsync(p => p.Id == playerId)
                     ?? throw new Exception($"Player with Id {playerId} doesn't exist");
 
                 players.Add(player);
@@ -70,7 +76,7 @@ public class TeamController : ControllerBase
             {
                 Name = dto.Name,
                 coach = coach,
-                Players = new List<Player>()
+                Players = new List<Player>(),
             };
 
             team.Players = players;
@@ -91,8 +97,9 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var teamUpdate = await context.Teams.FirstOrDefaultAsync(x => x.Id == team.Id) ?? throw new Exception
-            ($"Team with Id {team.Id} doesn't exist");
+            var teamUpdate =
+                await context.Teams.FirstOrDefaultAsync(x => x.Id == team.Id)
+                ?? throw new Exception($"Team with Id {team.Id} doesn't exist");
             context.Teams.Update(teamUpdate);
             await context.SaveChangesAsync();
             return Ok($"Team with Id {team.Id} updated succesfuly");
@@ -108,8 +115,9 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams.FindAsync(id) ?? throw new Exception
-            ($"Team with Id {id} doesn't exist");
+            var team =
+                await context.Teams.FindAsync(id)
+                ?? throw new Exception($"Team with Id {id} doesn't exist");
             context.Teams.Remove(team!);
             await context.SaveChangesAsync();
             return Ok(team);
@@ -119,6 +127,7 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpPut("AddPlayerToTeam/{playerId}/{teamId}")]
     public async Task<ActionResult> AddPlayerToTeam(string playerId, string teamId)
     {
@@ -127,22 +136,27 @@ public class TeamController : ControllerBase
             if (!Guid.TryParse(playerId, out var pGuid) || !Guid.TryParse(teamId, out var tGuid))
                 return BadRequest("Invalid ID format");
 
-            var team = await context.Teams
-                .Include(t => t.Players)
-                .FirstOrDefaultAsync(t => t.Id == tGuid)
+            var team =
+                await context.Teams.Include(t => t.Players).FirstOrDefaultAsync(t => t.Id == tGuid)
                 ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-            var player = await context.Players
-                .FirstOrDefaultAsync(p => p.Id == pGuid)
+            var player =
+                await context.Players.FirstOrDefaultAsync(p => p.Id == pGuid)
                 ?? throw new Exception($"Player with Id {playerId} doesn't exist");
 
             if (team.Players!.Any(p => p.Id == player.Id))
                 throw new Exception("Player is already in the team");
 
-            if (!string.IsNullOrEmpty(player.JerseyNumber) &&
-                team.Players!.Any(p => p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()))
+            if (
+                !string.IsNullOrEmpty(player.JerseyNumber)
+                && team.Players!.Any(p =>
+                    p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()
+                )
+            )
             {
-                throw new Exception($"Jersey number {player.JerseyNumber} is already taken in this team");
+                throw new Exception(
+                    $"Jersey number {player.JerseyNumber} is already taken in this team"
+                );
             }
 
             player.TeamId = tGuid;
@@ -157,6 +171,7 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpPut("AddPlayersToTeam/{teamId}")]
     public async Task<ActionResult> AddPlayersToTeam(string teamId, [FromBody] List<Guid> playerIds)
     {
@@ -165,13 +180,12 @@ public class TeamController : ControllerBase
             if (!Guid.TryParse(teamId, out var tGuid))
                 return BadRequest("Invalid Team ID format");
 
-            var team = await context.Teams
-                .Include(t => t.Players)
-                .FirstOrDefaultAsync(t => t.Id == tGuid)
+            var team =
+                await context.Teams.Include(t => t.Players).FirstOrDefaultAsync(t => t.Id == tGuid)
                 ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-            var playersToAdd = await context.Players
-                .Where(p => playerIds.Contains(p.Id))
+            var playersToAdd = await context
+                .Players.Where(p => playerIds.Contains(p.Id))
                 .ToListAsync();
 
             foreach (var player in playersToAdd)
@@ -179,13 +193,17 @@ public class TeamController : ControllerBase
                 if (team.Players!.Any(p => p.Id == player.Id))
                     continue;
 
-                if (!string.IsNullOrEmpty(player.JerseyNumber) &&
-                    team.Players!.Any(p => p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()))
+                if (
+                    !string.IsNullOrEmpty(player.JerseyNumber)
+                    && team.Players!.Any(p =>
+                        p.JerseyNumber?.ToUpper() == player.JerseyNumber.ToUpper()
+                    )
+                )
                 {
                     throw new Exception($"Jersey number {player.JerseyNumber} is already taken");
                 }
 
-                player.TeamId = tGuid; 
+                player.TeamId = tGuid;
                 team.Players!.Add(player);
             }
 
@@ -198,6 +216,7 @@ public class TeamController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     /*[HttpPut("AddPlayerToTeam/{playerId}/{teamId}")]
     public async Task<ActionResult<Team>> AddPlayerToTeam(string playerId, string teamId)
     {
@@ -281,13 +300,13 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams
-                .Include(t => t.Players)
+            var team = await context
+                .Teams.Include(t => t.Players)
                 .FirstOrDefaultAsync(t => t.Id == teamId);
 
             return Ok(team!.Players);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             return BadRequest(e.Message);
         }
@@ -298,13 +317,14 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams
-                .Include(t => t.coach)
-                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+            var team =
+                await context
+                    .Teams.Include(t => t.coach)
+                    .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
                 ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-            var coach = await context.Coaches
-                .FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
+            var coach =
+                await context.Coaches.FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
                 ?? throw new Exception($"Coach with Id {coachId} doesn't exist");
 
             if (team.coach != null)
@@ -327,13 +347,14 @@ public class TeamController : ControllerBase
     {
         try
         {
-            var team = await context.Teams
-                .Include(t => t.coach)
-                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+            var team =
+                await context
+                    .Teams.Include(t => t.coach)
+                    .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
                 ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-            var coach = await context.Coaches
-                .FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
+            var coach =
+                await context.Coaches.FirstOrDefaultAsync(c => c.Id.ToString() == coachId)
                 ?? throw new Exception($"Coach with Id {coachId} doesn't exist");
 
             team.coach = coach;
@@ -348,15 +369,15 @@ public class TeamController : ControllerBase
         }
     }
 
-
     [HttpPut("RemoveCoachFromTeam/{teamId}")]
     public async Task<ActionResult> RemoveCoachFromTeam(string teamId)
     {
         try
         {
-            var team = await context.Teams
-                .Include(t => t.coach)
-                .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
+            var team =
+                await context
+                    .Teams.Include(t => t.coach)
+                    .FirstOrDefaultAsync(t => t.Id.ToString() == teamId)
                 ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
             if (team.coach == null)
@@ -374,36 +395,52 @@ public class TeamController : ControllerBase
         }
     }
 
+    [HttpGet("GetTeamCoach/{teamId}")]
+    public async Task<ActionResult<Coach>> GetTeamCoach(Guid teamId)
+    {
+        try
+        {
+            var team = await context
+                .Teams.Include(x => x.coach)
+                .FirstOrDefaultAsync(x => x.Id == teamId);
+
+            return Ok(team!.coach);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
     [HttpPut("RemovePlayerFromTeam/{playerId}/{teamId}")]
-public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
-{
-    try
+    public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
     {
-        if (!Guid.TryParse(playerId, out var pGuid) || !Guid.TryParse(teamId, out var tGuid))
-            return BadRequest("Invalid ID format");
+        try
+        {
+            if (!Guid.TryParse(playerId, out var pGuid) || !Guid.TryParse(teamId, out var tGuid))
+                return BadRequest("Invalid ID format");
 
-        var team = await context.Teams
-            .Include(t => t.Players)
-            .FirstOrDefaultAsync(t => t.Id == tGuid)
-            ?? throw new Exception($"Team with Id {teamId} doesn't exist");
+            var team =
+                await context.Teams.Include(t => t.Players).FirstOrDefaultAsync(t => t.Id == tGuid)
+                ?? throw new Exception($"Team with Id {teamId} doesn't exist");
 
-        var player = team.Players?
-            .FirstOrDefault(p => p.Id == pGuid)
-            ?? throw new Exception($"Player with Id {playerId} is not in the team");
+            var player =
+                team.Players?.FirstOrDefault(p => p.Id == pGuid)
+                ?? throw new Exception($"Player with Id {playerId} is not in the team");
 
-        team.Players.Remove(player);
-        
-        player.TeamId = Guid.Empty; 
+            team.Players.Remove(player);
 
-        await context.SaveChangesAsync();
+            player.TeamId = Guid.Empty;
 
-        return Ok($"Player with Id {playerId} removed from team {teamId} successfully");
+            await context.SaveChangesAsync();
+
+            return Ok($"Player with Id {playerId} removed from team {teamId} successfully");
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
-    catch (Exception e)
-    {
-        return BadRequest(e.Message);
-    }
-}
 
     /*[HttpPut("RemovePlayerFromTeam/{playerId}/{teamId}")]
     public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string teamId)
@@ -454,16 +491,11 @@ public async Task<ActionResult> RemovePlayerFromTeam(string playerId, string tea
 
         using (var image = await Image.LoadAsync(file.OpenReadStream()))
         {
-            image.Mutate(x => x.Resize(new ResizeOptions
-            {
-                Size = new Size(300, 300),
-                Mode = ResizeMode.Max
-            }));
+            image.Mutate(x =>
+                x.Resize(new ResizeOptions { Size = new Size(300, 300), Mode = ResizeMode.Max })
+            );
 
-            await image.SaveAsync(filePath, new WebpEncoder
-            {
-                Quality = 75
-            });
+            await image.SaveAsync(filePath, new WebpEncoder { Quality = 75 });
         }
 
         var relativePath = $"/images/teams/{fileName}";

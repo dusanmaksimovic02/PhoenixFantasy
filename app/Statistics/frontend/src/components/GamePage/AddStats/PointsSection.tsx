@@ -22,11 +22,12 @@ const PointsSection: FC<Props> = (props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["playerStats"] });
       queryClient.invalidateQueries({ queryKey: ["teamPlayers"] });
+      queryClient.invalidateQueries({ queryKey: ["game", props.gameId] });
     },
   });
 
   return (
-    <div className="flex">
+    <div className="flex w-full">
       <div className="p-3 w-full">
         <div className="flex gap-10">
           <p className="text-phoenix">Points</p>
@@ -34,23 +35,23 @@ const PointsSection: FC<Props> = (props) => {
         </div>
         <div className="px-3 flex justify-between">
           <p></p>
-          <div>
-            <p>1pts</p>
+          <div className="flex gap-3 translate-x-8">
+            <p>1pts:</p>
             <p>
               {props.playerStats.made1p}/
               {props.playerStats.made1p + props.playerStats.miss1p}
             </p>
           </div>
-          <div>
-            <p className="-translate-x-3">2pts</p>
-            <p className="-translate-x-3">
+          <div className="flex gap-3 translate-x-6">
+            <p>2pts:</p>
+            <p>
               {props.playerStats.made2p}/
               {props.playerStats.made2p + props.playerStats.miss2p}
             </p>
           </div>
-          <div>
-            <p className="-translate-x-6">3pts</p>
-            <p className="-translate-x-6">
+          <div className="flex gap-3">
+            <p>3pts:</p>
+            <p>
               {props.playerStats.made3p}/
               {props.playerStats.made3p + props.playerStats.miss3p}
             </p>

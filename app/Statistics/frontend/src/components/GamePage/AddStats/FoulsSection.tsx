@@ -25,37 +25,9 @@ const FoulsSection: FC<Props> = (props) => {
     },
   });
   return (
-    <div className="p-3 pr-0 w-full">
+    <div className="p-3 pr-0 w-full h-fit">
       <p className="text-phoenix">Fouls</p>
-      <div className="flex justify-between px-8 pt-3">
-        {/* {(["committed", "drawn"] as const).map((kind) => (
-          <div key={kind} className="flex flex-col justify-center items-center">
-            <div className="flex gap-3">
-              <p>{kind === "committed" ? "Committed" : "Drawn"}</p>
-              <p></p>
-            </div>
-
-            <PlusMinusButtons
-              onPlusClick={() =>
-                updateStatsMutation.mutate([
-                  { statType: 3, delta: 1 },
-                  { statType: 0, delta: 2 },
-                ])
-              }
-              onMinusClick={() =>
-                updateStatsMutation.mutate([
-                  { statType: 3, delta: -1 },
-                  { statType: 0, delta: -2 },
-                ])
-              }
-              minusDisable={() =>
-                !(props.playerStats.made2p > 0) || updateStatsMutation.isPending
-              }
-              plusDisabled={() => updateStatsMutation.isPending}
-            />
-          </div>
-        ))} */}
-
+      <div className="flex justify-between px-8 h-fit">
         <div
           key={"Committed"}
           className="flex flex-col justify-center items-center"

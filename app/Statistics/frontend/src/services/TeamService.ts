@@ -1,3 +1,4 @@
+import type { Coach } from "@/models/Coach";
 import type { Player } from "../models/Player";
 import type { Team } from "../models/Team";
 import apiClient from "./client";
@@ -73,5 +74,10 @@ export const getTeamPlayers = async (teamId: string) => {
   const response = await apiClient.get<Player[]>(
     `Team/GetTeamPlayers/${teamId}`,
   );
+  return response.data;
+};
+
+export const getTeamCoach = async (teamId: string) => {
+  const response = await apiClient.get<Coach>(`Team/GetTeamCoach/${teamId}`);
   return response.data;
 };

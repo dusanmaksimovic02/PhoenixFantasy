@@ -32,6 +32,7 @@ const formSchema = z
     referee: z.custom<User>((v) => v !== undefined, {
       message: "Referee is required",
     }),
+    round: z.number("Round is required"),
   })
   .refine((data) => data.homeTeam?.id !== data.awayTeam?.id, {
     message: "Home and Away teams must be different",
@@ -63,6 +64,7 @@ const EditGameModal: FC<EditGameModalProps> = ({
           awayTeam: game.guestTeam,
           referee: game.referee,
           venue: game.venue,
+          round: game.round,
           date: game.dateTime?.split("T")[0] ?? "",
           time: game.dateTime?.split("T")[1]?.slice(0, 5) ?? "",
         }
@@ -92,6 +94,7 @@ const EditGameModal: FC<EditGameModalProps> = ({
         dateTime: `${data.date}T${data.time}:00Z`,
         venue: data.venue,
         refereeId: data.referee.id,
+        round: data.round,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -246,7 +249,7 @@ const EditGameModal: FC<EditGameModalProps> = ({
 
             <div>
               <label className="block mb-1 font-medium">Referee</label>
-              
+
               <select
                 className={`select select-bordered w-full bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white${
                   errors.referee ? "select-error" : ""
@@ -277,6 +280,20 @@ const EditGameModal: FC<EditGameModalProps> = ({
                 </p>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium">Round</label>
+            <input
+              type="number"
+              {...register("round", { valueAsNumber: true })}
+              className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${
+                errors.time ? "border-red-500" : "border-neutral-300"
+              }`}
+            />
+            {errors.round && (
+              <p className="text-red-500 text-sm">{errors.round.message}</p>
+            )}
           </div>
 
           <div className="flex justify-center mt-10">

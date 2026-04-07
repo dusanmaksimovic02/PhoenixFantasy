@@ -16,43 +16,38 @@ const PlayerPage: FC = () => {
             alt="photo"
             className="w-50 h-62.5 max-sm:w-75 max-sm:h-87.5 "
           />
-          <p className="text-2xl font-bold text-nowrap">{`${player.firstName} ${player.lastName}`}</p>
-          <div className="">
+          <p className="text-2xl font-bold text-nowrap text-black dark:text-white">{`${player.firstName} ${player.lastName}`}</p>
+          <div className="text-black dark:text-white">
             <p>
-              <strong className="text-black dark:text-white">Country:</strong>{" "}
-              {player.country}
+              <strong>Country:</strong> {player.country}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Age:</strong>{" "}
-              {player.age}
+              <strong>Age:</strong> {player.age}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Team:</strong>{" "}
-              {player.team}
+              <strong>Team:</strong> {player.team}
             </p>
             <p>
-              <strong className="text-black dark:text-white">
-                Jersey number:{" "}
-              </strong>
+              <strong>Jersey number: </strong>
               {player.jerseyNumber}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Position: </strong>
+              <strong>Position: </strong>
               {player.pointsPerGame}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Height: </strong>
+              <strong>Height: </strong>
               {player.height}
             </p>
             <p>
-              <strong className="text-black dark:text-white">Weight: </strong>
+              <strong>Weight: </strong>
               {player.weight}
             </p>
           </div>
         </div>
         <div className="max-sm:hidden h-full w-full p-5 max-sm:h-svh max-sm:w-svw flex gap-5  flex-wrap items-stretch max-sm:overflow-y-scroll overflow-x-hidden">
           <StatsCard points={player.pir} label={"Performance Index Rating"} />
-          <StatsCard points={player.plusMinusIndex} label={"+/-  Index"} />
+          {/* <StatsCard points={player.plusMinusIndex} label={"+/-  Index"} /> */}
           <StatsCard
             points={player.minutesPerGame}
             label={"Minutes Per Game"}

@@ -24,6 +24,7 @@ const formSchema = z
     referee: z.custom<User>((v) => v !== undefined, {
       message: "Referee is required",
     }),
+    round: z.number("Round is required"),
   })
   .refine((data) => data.homeTeam?.id !== data.awayTeam?.id, {
     message: "Home and Away teams must be different",
@@ -53,6 +54,7 @@ const AddGame: FC = () => {
       time: "",
       venue: "",
       referee: undefined,
+      round: 0,
     },
   });
 
@@ -73,6 +75,7 @@ const AddGame: FC = () => {
         data.date,
         data.venue,
         data.referee!.id,
+        data.round
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
@@ -230,6 +233,20 @@ const AddGame: FC = () => {
               </p>
             )}
           </div>
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">Round</label>
+          <input
+            type="number"
+            {...register("round", { valueAsNumber: true })}
+            className={`input input-bordered w-full bg-neutral-300 dark:bg-neutral-700 focus:outline-black dark:focus:outline-white ${
+              errors.time ? "border-red-500" : "border-neutral-300"
+            }`}
+          />
+          {errors.round && (
+            <p className="text-red-500 text-sm">{errors.round.message}</p>
+          )}
         </div>
 
         <div className="flex justify-center mt-10">

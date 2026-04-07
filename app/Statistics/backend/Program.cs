@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using StatsApi.Controllers;
 using StatsApi.Data;
 using StatsApi.Models;
 using StatsApi.Services;
-using StatsApi.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,27 +11,27 @@ builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 
-
-
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
+    options.AddPolicy(
+        "Frontend",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:5173", "https://localhost:5173")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
-builder.Services.AddIdentity<Person, IdentityRole>()
+builder
+    .Services.AddIdentity<Person, IdentityRole>()
     .AddEntityFrameworkStores<DataContext>()
     .AddDefaultTokenProviders();
 
@@ -49,7 +49,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(options=>{
+    app.UseSwaggerUI(options =>
+    {
         {
             options.SwaggerEndpoint("/openapi/v1.json", "OpenAPI v1");
         }
@@ -58,8 +59,7 @@ if (app.Environment.IsDevelopment())
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider
-        .GetRequiredService<RoleManager<IdentityRole>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
     string[] roles = { "Admin", "Manager", "Referee" };
 
@@ -79,6 +79,7 @@ app.UseStaticFiles();
 app.UseCors("Frontend");
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,5 +1,9 @@
+import { getTeamCoach } from "../../services/TeamService";
 import type { PlayerGameStats } from "../../models/PlayerGameStats";
-import { getTeamPlayersFromGame } from "../../services/LiveGameService";
+import {
+  getCoachStats,
+  getTeamPlayersFromGame,
+} from "../../services/LiveGameService";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, type FC } from "react";
 
@@ -38,6 +42,16 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
   const { data: teamPlayers = [] } = useQuery({
     queryKey: ["teamPlayers", teamId, gameId],
     queryFn: () => getTeamPlayersFromGame(teamId, gameId),
+  });
+
+  const { data: coach } = useQuery({
+    queryKey: ["coach"],
+    queryFn: () => getTeamCoach(teamId),
+  });
+
+  const { data: coachStats } = useQuery({
+    queryKey: ["coachStats"],
+    queryFn: () => getCoachStats(gameId, coach!.id),
   });
 
   const totals = useMemo(() => {
@@ -215,8 +229,8 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
               {Array.from({ length: tableHead.length }).map((_, i) => (
                 <td key={i} className="p-3 text-center">
                   {i === 0 && "Coach"}
-                  {i === 19 && "0"}
-                  {i === 20 && "10"}
+                  {i === 18 && coachStats?.coachTechnicalFouls}
+                  {i === 19 && coachStats?.difference}
                 </td>
               ))}
             </tr>
@@ -225,7 +239,7 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
               {Array.from({ length: tableHead.length }).map((_, i) => (
                 <td key={i} className="p-3 text-center">
                   {i === 0 && "Bench"}
-                  {i === 19 && "0"}
+                  {i === 18 && coachStats?.benchTechnicalFouls}
                 </td>
               ))}
             </tr>

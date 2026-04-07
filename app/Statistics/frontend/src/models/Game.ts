@@ -8,4 +8,7 @@ export type Game = {
   referee: User;
   dateTime: string;
   venue: string;
+  homeTeamScore: number;
+  guestTeamScore: number;
+  round: number;
 };

@@ -167,7 +167,8 @@ const TopPlayer: FC = () => {
   return (
     <>
       <h1 className="text-black dark:text-white font-extrabold text-4xl p-5 pt-0 px-24 max-sm:px-5 ">
-        Top <span className="text-phoenix">Performers</span> For <span className="text-phoenix"> Your Team</span>
+        Top <span className="text-phoenix">Performers</span> For{" "}
+        <span className="text-phoenix"> Your Team</span>
       </h1>
       <div className="px-5">
         <div className="p-5 pt-10 flex gap-10 flex-col max-sm:justify-center max-sm:items-center font-palanquin px-24 max-sm:px-5">

@@ -17,7 +17,7 @@ const Home: FC = () => {
       }
     }
   }, [location.hash]);
-  
+
   return (
     <>
       <HomeStart />

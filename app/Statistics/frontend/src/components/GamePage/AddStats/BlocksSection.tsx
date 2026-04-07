@@ -26,10 +26,13 @@ const BlocksSection: FC<Props> = (props) => {
   });
 
   return (
-    <div className="p-3 pb-10 w-[35%]  border-r">
+    <div className="p-3 w-full border-r">
       <p className="text-phoenix">Blocks</p>
-      <div className="flex flex-col justify-around h-full pl-3">
-        <div key={"blocks"} className="flex justify-between items-center">
+      <div className="flex justify-around h-fit">
+        <div
+          key={"blocks"}
+          className="flex flex-col justify-center items-center"
+        >
           <div className="flex gap-2">
             <p>Blocks</p>
             <p>{props.playerStats.blocks}</p>
@@ -51,7 +54,7 @@ const BlocksSection: FC<Props> = (props) => {
 
         <div
           key={"receivedBlocks"}
-          className="flex justify-between items-center"
+          className="flex flex-col justify-center items-center"
         >
           <div className="flex gap-2">
             <p>Received Blocks</p>

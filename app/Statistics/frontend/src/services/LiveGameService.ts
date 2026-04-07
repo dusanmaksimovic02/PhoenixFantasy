@@ -1,6 +1,7 @@
 import type { Player } from "@/models/Player";
 import apiClient from "./client";
 import type { PlayerGameStats } from "@/models/PlayerGameStats";
+import type { CoachGameStats } from "@/models/CoachGameStats";
 
 export const startGame = async (
   gameId: string,
@@ -24,7 +25,6 @@ export const updateStats = async (
   playerId: string,
   changes: { statType: number; delta: number }[],
 ) => {
-
   const response = await apiClient.post("PlayerGameStats/UpdateStats", {
     gameId,
     playerId,
@@ -85,5 +85,59 @@ export const getPlayerStatsFromGame = async (
   const response = await apiClient.get<PlayerGameStats>(
     `PlayerGameStats/GetPlayerStatsFromGame/${playerId}/${gameId}`,
   );
+  return response.data;
+};
+
+export const addTechnicalToCoach = async (
+  gameId: string,
+  coachId: string,
+  type: string,
+) => {
+  const response = await apiClient.put(
+    "CoachGameStats/AddTechnicalFoul",
+    null,
+    {
+      params: {
+        gameId,
+        coachId,
+        type,
+      },
+    },
+  );
+  return response.data;
+};
+
+export const removeTechnicalToCoach = async (
+  gameId: string,
+  coachId: string,
+  type: string,
+) => {
+  const response = await apiClient.put(
+    "CoachGameStats/RemoveTechnicalFoul",
+    null,
+    {
+      params: {
+        gameId,
+        coachId,
+        type,
+      },
+    },
+  );
+  return response.data;
+};
+
+export const getCoachStats = async (gameId: string, coachId: string) => {
+  const response = await apiClient.get<CoachGameStats>(
+    `CoachGameStats/GetCoachStats/${gameId}/${coachId}`,
+  );
+  return response.data;
+};
+
+export const endGame = async (gameId: string) => {
+  const response = await apiClient.put("Game/EndGame", null, {
+    params: {
+      gameId,
+    },
+  });
   return response.data;
 };

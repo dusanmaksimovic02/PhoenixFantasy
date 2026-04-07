@@ -55,7 +55,7 @@
   --background-image-court: url("assets/images/court.png");
   --background-image-home-start: url("assets/images/home-start.png");
   --background-image-home: url("assets/images/home.png");
-
+  --background-image-ball-texture: url("assets/images/basket-texture-orange-vector.jpg");
 }
 
 @tailwind utilities;

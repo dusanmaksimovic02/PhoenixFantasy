@@ -106,14 +106,14 @@ const Navbar: FC = () => {
           <div className="flex gap-2">
             {isLoggedIn() ? (
               <NavLink
-                className="cursor-pointer dark:text-custom-gray bg-transparent hover:bg-transparent max-md:pr-20"
+                className="cursor-pointer dark:text-custom-gray bg-transparent hover:bg-transparent max-md:mr-20"
                 to={toNavigate}
               >
                 <CgProfile className="w-10 h-10" />
               </NavLink>
             ) : (
               <NavLink
-                className="flex max-md:pr-20 border-2 rounded-full p-1 px-4 gap-2 justify-center items-center cursor-pointer dark:text-black bg-transparent hover:bg-transparent border-white dark:border-black hover:border-black dark:hover:border-white"
+                className="flex max-md:mr-20 border-2 rounded-full p-1 px-4 gap-2 justify-center items-center cursor-pointer dark:text-black bg-transparent hover:bg-transparent border-white dark:border-black hover:border-black dark:hover:border-white"
                 to={toNavigate}
               >
                 <CgProfile className="w-6 h-6" />
