@@ -128,7 +128,7 @@ const TeamTable: FC<Props> = ({ team, teamId, gameId }) => {
             {teamPlayers.map((playerStats: PlayerGameStats) => (
               <tr
                 key={playerStats.id}
-                className="border-[3px] border-surface whitespace-nowrap rounded-4xl cursor-pointer"
+                className="border-[3px] border-surface whitespace-nowrap rounded-4xl"
               >
                 <td className="p-3 text-center">
                   {playerStats.player.jerseyNumber}{" "}
