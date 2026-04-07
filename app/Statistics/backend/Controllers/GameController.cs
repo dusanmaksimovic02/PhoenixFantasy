@@ -216,28 +216,24 @@ public class GameController : ControllerBase
     {
         try
         {
-            // 1. Validacije (ostaju iste, one su brze jer su u memoriji)
             if (dto.HomeTeamPlayerIds.Count > 12 || dto.GuestTeamPlayerIds.Count > 12)
                 return BadRequest("Maximum 12 players per team allowed");
             if (dto.HomeStartersIds.Count != 5 || dto.GuestStartersIds.Count != 5)
                 return BadRequest("Each team must have exactly 5 starters");
     
-            // Parsiranje ID-a pre upita sprečava timeout
             if (!Guid.TryParse(dto.GameId.ToString(), out var gameGuid))
                  return BadRequest("Invalid Game ID");
     
-            // 2. Optimizovan upit za utakmicu
             var game = await context.Games
                 .Include(g => g.HomeTeam).ThenInclude(t => t!.coach)
                 .Include(g => g.GuestTeam).ThenInclude(t => t!.coach)
-                .AsSplitQuery() // Sprečava "Cartesian Explosion" i timeout
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(g => g.Id == gameGuid)
                 ?? throw new Exception("Game not found");
     
             if (game.HomeTeam?.coach == null || game.GuestTeam?.coach == null)
                 return BadRequest("Both teams must have a coach before starting the game");
     
-            // 3. Brze provere bez JOIN-ovanja tabela (koristi GameId direktno)
             var alreadyStarted = await context.PlayerGameStats
                 .AnyAsync(pgs => pgs.GameId == gameGuid); 
     
@@ -250,7 +246,6 @@ public class GameController : ControllerBase
             if (coachStatsExist)
                 return BadRequest("Coach stats already created");
     
-            // 4. Masovno učitavanje igrača
             var allPlayerIds = dto.HomeTeamPlayerIds
                 .Concat(dto.GuestTeamPlayerIds)
                 .Distinct()
@@ -260,7 +255,6 @@ public class GameController : ControllerBase
                 .Where(p => allPlayerIds.Contains(p.Id))
                 .ToListAsync();
     
-            // 5. Kreiranje statistike
             var stats = new List<PlayerGameStats>();
             foreach (var player in players)
             {
@@ -269,11 +263,30 @@ public class GameController : ControllerBase
                 stats.Add(new PlayerGameStats
                 {
                     Id = Guid.NewGuid(),
-                    GameId = game.Id, // Bolje koristiti ID direktno
+                    GameId = game.Id,
                     PlayerId = player.Id,
                     TeamId = isHomePlayer ? game.HomeTeam!.Id : game.GuestTeam!.Id,
                     IsStarter = dto.HomeStartersIds.Contains(player.Id) || dto.GuestStartersIds.Contains(player.Id),
-                    // Ostala polja na 0 (EF će to uraditi i sam ako su int)
+                    
+                    Points = 0,
+                    Made1p = 0,
+                    Miss1p = 0,
+                    Made2p = 0,
+                    Miss2p = 0,
+                    Made3p = 0,
+                    Miss3p = 0,
+                    Assists = 0,
+                    Rebounds = 0,
+                    OffensiveRebounds = 0,
+                    DefensiveRebounds = 0,
+                    Steals = 0,
+                    Turnovers = 0,
+                    Pir = 0,
+                    PersonalFouls = 0,
+                    RecievedFouls = 0,
+                    Blocks = 0,
+                    RecievedBlocks = 0,
+                    TechnicalFouls = 0
                 });
             }
     
@@ -308,7 +321,6 @@ public class GameController : ControllerBase
         }
         catch (Exception e)
         {
-            // Ispiši InnerException za bolji debug
             return BadRequest(e.InnerException?.Message ?? e.Message);
         }
     }

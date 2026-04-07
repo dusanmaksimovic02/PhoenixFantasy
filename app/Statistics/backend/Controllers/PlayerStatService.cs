@@ -22,24 +22,20 @@ public class PlayerStatService
 
     public async Task UpdateStatAsync(UpdatePlayerStatDto dto)
     {
-        // 1. Parsiramo stringove u Guid-ove VAN upita
-        // Ako ovo ne uradiš, SQL nekada ne može da iskoristi indeks (Index Scan vs Index Seek)
         if (!Guid.TryParse(dto.PlayerId, out var pId) || !Guid.TryParse(dto.GameId, out var gId))
         {
             throw new Exception("ID format nije validan.");
         }
 
-        // 2. Upit koji je sada munjevito brz zbog indeksa
         var stats = await _context.PlayerGameStats
+        .Include(x => x.Player)
             .Include(x => x.Game).ThenInclude(g => g!.HomeTeam)
             .Include(x => x.Game).ThenInclude(g => g!.GuestTeam)
-            // BITNO: Poredimo Guid sa Guid-om, bez .ToString()
             .FirstOrDefaultAsync(x => x.PlayerId == pId && x.GameId == gId);
 
         if (stats == null)
             throw new Exception("Statistika nije pronađena.");
 
-        // 3. Logika komande ostaje ista
         foreach (var change in dto.Changes)
         {
             var command = new UpdatePlayerStatCommand(stats, change.StatType, change.Delta);
@@ -47,45 +43,45 @@ public class PlayerStatService
         }
 
         await _context.SaveChangesAsync();
-var playerEvent = new PlayerStatsUpdatedEvent
-{
-    PlayerId = stats.PlayerId,
-    GameId = stats.GameId,
-
-    Points = stats.Points ?? 0,
-
-    Made1p = stats.Made1p ?? 0,
-    Miss1p = stats.Miss1p ?? 0,
-
-    Made2p = stats.Made2p ?? 0,
-    Miss2p = stats.Miss2p ?? 0,
-
-    Made3p = stats.Made3p ?? 0,
-    Miss3p = stats.Miss3p ?? 0,
-
-    Assists = stats.Assists ?? 0,
-
-    Rebounds = stats.Rebounds ?? 0,
-    OffensiveRebounds = stats.OffensiveRebounds ?? 0,
-    DefensiveRebounds = stats.DefensiveRebounds ?? 0,
-
-    Steals = stats.Steals ?? 0,
-    Blocks = stats.Blocks ?? 0,
-    RecievedBlocks = stats.RecievedBlocks ?? 0,
-
-    Turnovers = stats.Turnovers ?? 0,
-
-    PersonalFouls = stats.PersonalFouls ?? 0,
-    RecievedFouls = stats.RecievedFouls ?? 0,
-    TechnicalFouls = stats.TechnicalFouls ?? 0,
-
-    Pir = stats.Pir ?? 0,
-    SecondsPlayed = stats.SecondsPlayed ?? 0,
-
-    IsStarter = stats.IsStarter ?? false,
-
-    Timestamp = DateTime.Now
-};
+        var playerEvent = new PlayerStatsUpdatedEvent
+        {
+            PlayerId = stats.PlayerId,
+            GameId = stats.GameId,
+        
+            Points = stats.Points ?? 0,
+        
+            Made1p = stats.Made1p ?? 0,
+            Miss1p = stats.Miss1p ?? 0,
+        
+            Made2p = stats.Made2p ?? 0,
+            Miss2p = stats.Miss2p ?? 0,
+        
+            Made3p = stats.Made3p ?? 0,
+            Miss3p = stats.Miss3p ?? 0,
+        
+            Assists = stats.Assists ?? 0,
+        
+            Rebounds = stats.Rebounds ?? 0,
+            OffensiveRebounds = stats.OffensiveRebounds ?? 0,
+            DefensiveRebounds = stats.DefensiveRebounds ?? 0,
+        
+            Steals = stats.Steals ?? 0,
+            Blocks = stats.Blocks ?? 0,
+            RecievedBlocks = stats.RecievedBlocks ?? 0,
+        
+            Turnovers = stats.Turnovers ?? 0,
+        
+            PersonalFouls = stats.PersonalFouls ?? 0,
+            RecievedFouls = stats.RecievedFouls ?? 0,
+            TechnicalFouls = stats.TechnicalFouls ?? 0,
+        
+            Pir = stats.Pir ?? 0,
+            SecondsPlayed = stats.SecondsPlayed ?? 0,
+        
+            IsStarter = stats.IsStarter ?? false,
+        
+            Timestamp = DateTime.Now
+        };
 
         var json = JsonSerializer.Serialize(playerEvent);
 
