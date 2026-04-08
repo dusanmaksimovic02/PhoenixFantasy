@@ -1,5 +1,5 @@
 public class JoinLeagueDTO
 {
-    public string JoinCode { get; set; }
-    public string TeamName { get; set; }
+    public required string JoinCode { get; set; }
+    public required string TeamName { get; set; }
 }

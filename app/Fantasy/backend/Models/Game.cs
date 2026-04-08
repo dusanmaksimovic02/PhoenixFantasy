@@ -11,7 +11,7 @@ public class Game
     public DateTime dateTime { get; set; }
     public string? Venue { get; set; }
     public Guid? Referee { get; set; }
-    public int? Round { get;set; }
-    public int HomeTeamScore { get;set; }
-    public int GuestTeamScore { get;set; }
+    public int? Round { get; set; }
+    public int HomeTeamScore { get; set; }
+    public int GuestTeamScore { get; set; }
 }

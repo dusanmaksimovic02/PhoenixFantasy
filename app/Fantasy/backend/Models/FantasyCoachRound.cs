@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FantasyApi.Enums;
 
 namespace FantasyApi.Models;
 
@@ -6,7 +7,9 @@ public class FantasyCoachRound
 {
     [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
-    public FantasyTeamCoach fantasyCoach { get; set; }
-    public double roundPoints { get; set; } = 0 ;
-    public int round{ get; set; } = 1;
+    public FantasyTeamCoach? fantasyCoach { get; set; }
+    public double roundPoints { get; set; } = 0;
+    public int round { get; set; } = 1;
+    public FantasyRole Role { get; set; }
+    public CoachGameStats? CoachGameStats { get; set; }
 }

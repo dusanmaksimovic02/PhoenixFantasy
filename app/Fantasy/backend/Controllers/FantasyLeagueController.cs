@@ -61,7 +61,6 @@ public class FantasyLeagueController : ControllerBase
 
         if (string.IsNullOrEmpty(userId))
         {
-            // Ako i dalje ne nalazi, ispiši u konzolu sve claimove da vidimo šta je unutra
             var claims = string.Join(", ", User.Claims.Select(c => $"{c.Type}:{c.Value}"));
             Console.WriteLine($"Stigli claimovi: {claims}");
             return Unauthorized("ID nije pronađen u tokenu. Proveri konzolu bekenda.");

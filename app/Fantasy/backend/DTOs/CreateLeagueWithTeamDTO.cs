@@ -1,5 +1,5 @@
 public class CreateLeagueWithTeamDTO
 {
-    public string LeagueName { get; set; }
-    public string TeamName { get; set; }
+    public required string LeagueName { get; set; }
+    public required string TeamName { get; set; }
 }

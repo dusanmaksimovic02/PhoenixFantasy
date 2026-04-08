@@ -1,4 +1,5 @@
 using FantasyApi.Data;
+using FantasyApi.Enums;
 using FantasyApi.Models;
 using FantasyApi.Strategies;
 using Microsoft.AspNetCore.Mvc;
@@ -8,17 +9,29 @@ namespace FantasyApi.Services;
 
 public class FantasyPointsService
 {
-    public double CalculateTeamPoints(List<FantasyTeamPlayer> players, FantasyTeamCoach coach)
+    public double CalculateTeamPoints(
+        List<FantasyPlayerRound> playerRounds,
+        FantasyCoachRound coachRound
+    )
     {
         double totalPoints = 0;
 
-        foreach (var player in players)
+        foreach (var round in playerRounds)
         {
-            var strategy = StrategyFactory.GetStrategy(player.Role);
+            var strategy = StrategyFactory.GetStrategy(round.Role);
 
-            double points = strategy.CalculatePoints(player.PlayerGameStats, coach.CoachGameStats);
+            double points = strategy.CalculatePoints(round.PlayerGameStats, null);
 
             totalPoints += points;
+        }
+
+        if (coachRound != null)
+        {
+            var coachStrategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
+
+            double coachPoints = coachStrategy.CalculatePoints(null, coachRound.CoachGameStats);
+
+            totalPoints += coachPoints;
         }
 
         return totalPoints;

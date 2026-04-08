@@ -1,13 +1,15 @@
+using System.ComponentModel.DataAnnotations;
 using FantasyApi.Models;
 
 namespace FantasyApi.Models;
 
 public class DraftSession
 {
+    [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public Guid LeagueId { get; set; }
-    public FantasyLeague League { get; set; }
+    public FantasyLeague? League { get; set; }
 
     public List<DraftPickOrder> PickOrder { get; set; } = new();
 

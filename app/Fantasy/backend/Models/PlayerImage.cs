@@ -7,5 +7,5 @@ public class PlayerImage
     [Key]
     public Guid Id { get; set; }
     public Guid PlayerId { get; set; }
-    public string ImageUrl { get; set; }
+    public required string ImageUrl { get; set; }
 }

@@ -1,6 +1,6 @@
+using FantasyApi.Enums;
 using FantasyApi.Interfaces;
 using FantasyApi.Models;
-using FantasyApi.Enums;
 
 namespace FantasyApi.Strategies;
 

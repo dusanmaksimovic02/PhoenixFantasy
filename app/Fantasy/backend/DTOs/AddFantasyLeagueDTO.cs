@@ -1,4 +1,4 @@
 public class AddFantasyLeagueDTO
 {
-    public string LeagueName { get; set; }
+    public required string LeagueName { get; set; }
 }
