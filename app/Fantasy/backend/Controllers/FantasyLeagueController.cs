@@ -185,4 +185,56 @@ public class FantasyLeagueController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    //[Authorize]
+    [HttpDelete("RemovePlayerFromLeague")]
+    public async Task<IActionResult> RemovePlayerFromLeague(
+        [FromBody] RemovePlayerFromLeagueDTO dto
+    )
+    {
+        try
+        {
+            var userId =
+                User.FindFirst("id")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID not found in token");
+
+            var league = await context.FantasyLeagues.FirstOrDefaultAsync(l =>
+                l.Id == dto.LeagueId
+            );
+
+            if (league == null)
+                return NotFound("League not found");
+
+            if (league.leagueAdminId != userId)
+                return Forbid("Only league admin can remove players");
+
+            var team = await context.FantasyTeams.FirstOrDefaultAsync(t =>
+                t.Id == dto.TeamId && t.LeagueId == dto.LeagueId
+            );
+
+            if (team == null)
+                return NotFound("Team not found in this league");
+
+            if (team.UserId == userId)
+                return BadRequest("Admin cannot remove their own team");
+
+            var teamPlayers = await context
+                .FantasyTeamPlayers.Where(tp => tp.FantasyTeamId == team.Id)
+                .ToListAsync();
+
+            context.FantasyTeamPlayers.RemoveRange(teamPlayers);
+
+            context.FantasyTeams.Remove(team);
+
+            await context.SaveChangesAsync();
+
+            return Ok(new { message = "Team removed from league successfully" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

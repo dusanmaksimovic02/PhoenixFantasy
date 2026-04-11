@@ -1,4 +1,5 @@
 using FantasyApi.Data;
+using FantasyApi.Enums;
 using FantasyApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +11,12 @@ namespace FantasyApi.Controllers;
 public class FantasyTeamController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
+    private readonly StatsDbContext statsDbContext;
 
-    public FantasyTeamController(FantasyDbContext context)
+    public FantasyTeamController(FantasyDbContext context, StatsDbContext statsDbContext)
     {
         this.context = context;
+        this.statsDbContext = statsDbContext;
     }
 
     [HttpPost("AddFantasyTeam")]
@@ -83,5 +86,180 @@ public class FantasyTeamController : ControllerBase
         await context.SaveChangesAsync();
 
         return Ok("Deleted successfully");
+    }
+
+    [HttpPost("TradePlayer")]
+    public async Task<IActionResult> TradePlayer(TradePlayerDto dto)
+    {
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        var teamPlayer = await context.FantasyTeamPlayers.FirstOrDefaultAsync(tp =>
+            tp.FantasyTeamId == dto.FantasyTeamId && tp.PlayerId == dto.OldPlayerId
+        );
+
+        if (teamPlayer == null)
+            return BadRequest("Igrač ne postoji");
+
+        var exists = await context.FantasyTeamPlayers.AnyAsync(x => x.PlayerId == dto.NewPlayerId);
+
+        if (exists)
+            return BadRequest("Igrač je već u nekom timu");
+
+        context.FantasyTeamPlayers.Remove(teamPlayer);
+
+        context.FantasyTeamPlayers.Add(
+            new FantasyTeamPlayer
+            {
+                FantasyTeamId = dto.FantasyTeamId,
+                PlayerId = dto.NewPlayerId,
+                Position = dto.NewPlayerPosition,
+            }
+        );
+
+        await context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("TradeCoach")]
+    public async Task<IActionResult> TradeCoach(TradeCoachDto dto)
+    {
+        var teamCoach = await context.FantasyTeamCoaches.FirstOrDefaultAsync(tc =>
+            tc.FantasyTeamId == dto.FantasyTeamId && tc.CoachId == dto.OldCoachId
+        );
+
+        if (teamCoach == null)
+            return BadRequest("Trener u timu ne postoji");
+
+        var exists = await context.FantasyTeamCoaches.AnyAsync(x => x.CoachId == dto.NewCoachId);
+
+        if (exists)
+            return BadRequest("Trener je već u nekom timu");
+
+        context.FantasyTeamCoaches.Remove(teamCoach);
+
+        context.FantasyTeamCoaches.Add(
+            new FantasyTeamCoach { FantasyTeamId = dto.FantasyTeamId, CoachId = dto.NewCoachId }
+        );
+
+        await context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpGet("GetAllFreePlayers/{leagueId}")]
+    public async Task<IActionResult> GetAllFreePlayers(Guid leagueId)
+    {
+        var takenPlayerIds = await context
+            .FantasyTeamPlayers.Where(tp => tp.FantasyTeam!.LeagueId == leagueId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync();
+
+        var freePlayers = await statsDbContext
+            .Players.Where(p => !takenPlayerIds.Contains(p.Id))
+            .Select(p => new
+            {
+                p.Id,
+                p.FirstName,
+                p.LastName,
+                p.JerseyNumber,
+                p.Position,
+            })
+            .ToListAsync();
+
+        return Ok(freePlayers);
+    }
+
+    [HttpGet("GetAllFreeCoaches/{leagueId}")]
+    public async Task<IActionResult> GetAllFreeCoaches(Guid leagueId)
+    {
+        var freeCoaches = await statsDbContext
+            .Coaches.Where(c =>
+                !context
+                    .FantasyTeamCoaches.Where(tc => tc.FantasyTeam!.LeagueId == leagueId)
+                    .Select(tc => tc.CoachId)
+                    .Contains(c.Id)
+            )
+            .Select(c => new
+            {
+                c.Id,
+                c.FirstName,
+                c.LastName,
+            })
+            .ToListAsync();
+
+        return Ok(freeCoaches);
+    }
+
+    [HttpPost("SwitchPlayers")]
+    public async Task<IActionResult> SwitchPlayers(SwitchPlayersDto dto)
+    {
+        var starter = await context
+            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+            .FirstOrDefaultAsync(x =>
+                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId
+                && x.fantasyPlayer.PlayerId == dto.StarterPlayerId
+            );
+
+        var bench = await context
+            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+            .FirstOrDefaultAsync(x =>
+                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId
+                && x.fantasyPlayer.PlayerId == dto.BenchPlayerId
+            );
+
+        if (starter == null || bench == null)
+            return BadRequest("Igrači nisu pronađeni u rundi");
+
+        if (starter.Role != FantasyRole.Starter || bench.Role != FantasyRole.Bench)
+            return BadRequest("Neispravna zamena (role mismatch)");
+
+        starter.Role = FantasyRole.Bench;
+        bench.Role = FantasyRole.Starter;
+
+        await context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpGet("GetLineup/{fantasyTeamId}")]
+    public async Task<IActionResult> GetLineup(Guid fantasyTeamId)
+    {
+        var data = await context
+            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+            .Where(x => x.fantasyPlayer!.FantasyTeamId == fantasyTeamId)
+            .Select(x => new { x.Role, x.fantasyPlayer!.PlayerId })
+            .ToListAsync();
+
+        var playerIds = data.Select(x => x.PlayerId).ToList();
+
+        var players = await statsDbContext
+            .Players.Where(p => playerIds.Contains(p.Id))
+            .Select(p => new PlayerViewDto
+            {
+                PlayerId = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                Position = p.Position!,
+            })
+            .ToListAsync();
+
+        var result = new TeamLineupDto
+        {
+            Starters = data.Where(x => x.Role == FantasyRole.Starter)
+                .Select(x => players.First(p => p.PlayerId == x.PlayerId))
+                .ToList(),
+
+            Bench = data.Where(x => x.Role == FantasyRole.Bench)
+                .Select(x => players.First(p => p.PlayerId == x.PlayerId))
+                .ToList(),
+
+            Captain = players.FirstOrDefault(p =>
+                data.Any(x => x.PlayerId == p.PlayerId && x.Role == FantasyRole.Captain)
+            ),
+        };
+
+        return Ok(result);
     }
 }

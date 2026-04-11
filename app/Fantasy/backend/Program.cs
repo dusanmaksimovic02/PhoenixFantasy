@@ -1,14 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using FantasyApi.Data;
+using FantasyApi.Hubs;
 using FantasyApi.Models;
 using FantasyApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using FantasyApi.Hubs;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +41,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<StatsService>();
 builder.Services.AddHostedService<DraftTimerService>();
+builder.Services.AddScoped<FantasyPointsService>();
 
 builder
     .Services.AddIdentity<Person, IdentityRole>()
