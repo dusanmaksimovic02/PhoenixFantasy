@@ -10,6 +10,9 @@ import { LoginLoader } from "./LoginLoader";
 import Chat from "../pages/Chat";
 import StartGame from "../components/GamePage/StartGame";
 
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+
 export const router = createBrowserRouter([
   {
     element: <Layout />,
@@ -41,6 +44,15 @@ export const router = createBrowserRouter([
         path: "/startGame/:team1/vs/:team2",
         element: <StartGame />,
         loader: ProtectedLoader,
+      },
+    
+      {
+        path: "forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
       },
       {
         path: "*",

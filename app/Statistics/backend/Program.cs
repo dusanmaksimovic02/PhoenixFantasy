@@ -42,6 +42,8 @@ builder.Services.AddSingleton<RabbitMQService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<RabbitMQService>());
 builder.Services.AddSingleton<IRabbitMQService>(sp => sp.GetRequiredService<RabbitMQService>());
 
+builder.Services.AddScoped<EmailService>();
+
 builder.Services.AddScoped<StatsApi.Controllers.PlayerStatService>();
 
 var app = builder.Build();

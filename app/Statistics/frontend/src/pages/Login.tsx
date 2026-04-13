@@ -37,16 +37,10 @@ const formSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Password must be at least 8 characters." })
-    .regex(/[a-z]/, {
-      message: "Password must include at least one lowercase letter.",
-    })
-    .regex(/[A-Z]/, {
-      message: "Password must include at least one uppercase letter.",
-    })
+    .regex(/[a-z]/, { message: "Password must include at least one lowercase letter." })
+    .regex(/[A-Z]/, { message: "Password must include at least one uppercase letter." })
     .regex(/[0-9]/, { message: "Password must include at least one number." })
-    .regex(/[@$!%*?&#]/, {
-      message: "Password must include at least one special character.",
-    }),
+    .regex(/[@$!%*?&#]/, { message: "Password must include at least one special character." }),
 });
 
 type FormInputs = z.infer<typeof formSchema>;
@@ -61,15 +55,11 @@ type TextFieldProps = {
 const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   ({ label, error, icon: Icon, type = "text", ...props }, ref) => {
     const id = useId();
-
     return (
-      <label htmlFor={id} className="w-full block text-white mb-3 ">
+      <label htmlFor={id} className="w-full block text-white mb-3">
         <span className="label">
-          <span className="label-text text-white font-semibold text-sm">
-            {label}
-          </span>
+          <span className="label-text text-white font-semibold text-sm">{label}</span>
         </span>
-
         <div className="relative">
           <input
             ref={ref}
@@ -83,12 +73,10 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
               ${error ? "input-error" : ""}
             `}
           />
-
           {Icon && (
             <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white pointer-events-none" />
           )}
         </div>
-
         {error && (
           <span className="text-error text-sm font-semibold mt-5">{error}</span>
         )}
@@ -101,38 +89,24 @@ const Login: FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const { loginUser } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormInputs>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormInputs>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
+    defaultValues: { username: "", password: "" },
   });
 
   const mutation = useMutation({
     mutationFn: async (data: FormInputs) => loginUser(data),
-    onError: (error) => {
-      console.error("Login failed:", error);
-    },
+    onError: (error) => { console.error("Login failed:", error); },
   });
 
   const navigate = useNavigate();
 
   function onSubmit(data: FormInputs) {
-    // console.log(data);
-    // loginUser(data);
     mutation.mutate(data);
   }
 
-  const nameError = errors.username?.message;
-  const passwordError = errors.password?.message;
-
   return (
-    <div className="w-full h-full relative bg-court  bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw">
+    <div className="w-full h-full relative bg-court bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw">
       <div className="absolute inset-0 bg-black/40"></div>
       <AnimatePresence mode="wait">
         <motion.div
@@ -146,14 +120,12 @@ const Login: FC = () => {
           <div className="w-screen h-screen relative bg-center translate-y-8 bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center max-sm:w-100 max-sm:h-125">
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="w-full max-w-md p-7 bg-black/50 rounded-2xl  max-sm:rounded-[70px] max-sm:my-2 max-sm:mx-8"
+              className="w-full max-w-md p-7 bg-black/50 rounded-2xl max-sm:rounded-[70px] max-sm:my-2 max-sm:mx-8"
             >
-              <h1 className="text-3xl font-bold text-center text-phoenix">
-                Login
-              </h1>
+              <h1 className="text-3xl font-bold text-center text-phoenix">Login</h1>
               <TextField
                 label="Username"
-                error={nameError}
+                error={errors.username?.message}
                 icon={CgProfile}
                 placeholder="Username"
                 {...register("username")}
@@ -161,7 +133,7 @@ const Login: FC = () => {
               <TextField
                 type={showPassword ? "text" : "password"}
                 label="Password"
-                error={passwordError}
+                error={errors.password?.message}
                 icon={CiLock}
                 placeholder="********"
                 {...register("password")}
@@ -174,18 +146,24 @@ const Login: FC = () => {
                   checked={showPassword}
                   onChange={() => setShowPassword((prev) => !prev)}
                 />
-
-                <label
-                  htmlFor="show-password"
-                  className="cursor-pointer text-white select-none"
-                >
+                <label htmlFor="show-password" className="cursor-pointer text-white select-none">
                   Show Password
                 </label>
+              </div>
+             
+              <div className="text-right mb-3">
+                <button
+                  type="button"
+                  onClick={() => navigate("/forgot-password")}
+                  className="text-white text-sm hover:text-phoenix transition cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
               </div>
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="w-full bg-phoenix hover:border-phoenix cursor-pointer hover:bg-phoenix/80 hover:border-2  p-2 rounded-md font-bold"
+                className="w-full bg-phoenix hover:border-phoenix cursor-pointer hover:bg-phoenix/80 hover:border-2 p-2 rounded-md font-bold"
               >
                 {mutation.isPending ? "Logging in..." : "Login"}
               </button>
@@ -195,9 +173,7 @@ const Login: FC = () => {
       </AnimatePresence>
       <button
         className="cursor-pointer border-2 p-2 text-white rounded-md border-black hover:border-black bg-black/30 absolute right-5 bottom-5 hover:bg-black/50"
-        onClick={() => {
-          navigate("/");
-        }}
+        onClick={() => navigate("/")}
       >
         Go home
       </button>

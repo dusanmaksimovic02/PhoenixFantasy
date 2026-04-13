@@ -40,18 +40,17 @@ const login = async (user: LoginUser) => {
 };
 
 export const registerUserWithRole = async (user: User) => {
-  
-    const response = await apiClient.post("api/Auth/RegisterWithRole", {
-      role: user.role,
-      userName: user.userName,
-      email: user.email,
-      password: user.password,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phoneNumber: user.phoneNumber,
-      birthDate: user.birthDate,
-    });
-    return response.data;
+  const response = await apiClient.post("api/Auth/RegisterWithRole", {
+    role: user.role,
+    userName: user.userName,
+    email: user.email,
+    password: user.password,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phoneNumber: user.phoneNumber,
+    birthDate: user.birthDate,
+  });
+  return response.data;
 };
 
 const getUserData = async (id: string, role: string) => {
@@ -84,6 +83,49 @@ export const updateUserWithRole = async (user: User, role: string) => {
       console.log(e);
       throw e;
     }
+  }
+};
+
+
+export const verifyPassword = async (userId: string, oldPassword: string) => {
+  try {
+    const response = await apiClient.post("api/Auth/VerifyPassword", {
+      userId,
+      oldPassword,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Password verification failed";
+      toast.error(message);
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+    throw e;
+  }
+};
+
+
+export const changePassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+  try {
+    const response = await apiClient.post("api/Auth/ChangePassword", {
+      userId,
+      oldPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Failed to change password";
+      toast.error(message);
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+    throw e;
   }
 };
 
