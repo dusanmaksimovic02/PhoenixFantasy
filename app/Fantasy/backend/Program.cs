@@ -21,7 +21,8 @@ builder.Services.AddCors(options =>
                 .WithOrigins("http://localhost:5174", "https://localhost:5174")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowCredentials();
+                .AllowCredentials()
+                .SetIsOriginAllowed(_ => true);
         }
     );
 });
@@ -98,7 +99,6 @@ builder.Services.AddHostedService<StatsConsumerService>();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<EmailService>();
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {

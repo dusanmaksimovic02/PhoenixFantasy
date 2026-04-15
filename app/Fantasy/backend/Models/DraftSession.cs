@@ -18,4 +18,12 @@ public class DraftSession
     public DateTime PickDeadline { get; set; }
 
     public bool IsActive { get; set; } = true;
+    public DraftPhase Phase;
+}
+
+public enum DraftPhase
+{
+    Player,
+    Coach,
+    Finished,
 }

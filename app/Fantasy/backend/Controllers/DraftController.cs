@@ -38,6 +38,9 @@ public class DraftController : ControllerBase
         if (draft == null)
             return BadRequest("Draft ne postoji");
 
+        if (draft.Phase != DraftPhase.Player)
+            return BadRequest("Nije faza za biranje igrača");
+
         if (draft.CurrentPickIndex >= draft.PickOrder.Count)
             return BadRequest("Draft završen");
 
@@ -100,11 +103,81 @@ public class DraftController : ControllerBase
         );
 
         draft.CurrentPickIndex++;
+
+        if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+        {
+            draft.Phase = DraftPhase.Coach;
+            draft.CurrentPickIndex = 0;
+            draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
+
+            await context.SaveChangesAsync();
+
+            await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PhaseChanged", "Coach");
+
+            return Ok();
+        }
+
         draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
         await context.SaveChangesAsync();
 
         await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PlayerPicked", dto);
+
+        await hubContext
+            .Clients.Group(draft.Id.ToString())
+            .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
+
+        return Ok();
+    }
+
+    [HttpPost("PickCoach")]
+    public async Task<IActionResult> PickCoach(PickCoachDto dto)
+    {
+        var draft = await context
+            .DraftSessions.Include(d => d.PickOrder)
+            .FirstOrDefaultAsync(d => d.Id == dto.DraftId);
+
+        if (draft == null)
+            return BadRequest("Draft ne postoji");
+
+        if (draft.Phase != DraftPhase.Coach)
+            return BadRequest("Nije faza za trenere");
+
+        var currentPick = draft.PickOrder[draft.CurrentPickIndex];
+
+        if (currentPick.FantasyTeamId != dto.FantasyTeamId)
+            return BadRequest("Nije tvoj red");
+
+        if (DateTime.UtcNow > draft.PickDeadline)
+            return BadRequest("Isteklo vreme");
+
+        var alreadyHasCoach = await context.FantasyTeamCoaches.AnyAsync(x =>
+            x.FantasyTeamId == dto.FantasyTeamId
+        );
+
+        if (alreadyHasCoach)
+            return BadRequest("Već imaš trenera");
+
+        var exists = await context.FantasyTeamCoaches.AnyAsync(x => x.CoachId == dto.CoachId);
+
+        if (exists)
+            return BadRequest("Trener već izabran");
+
+        var coachExists = await statsDbContext.Coaches.AnyAsync(c => c.Id == dto.CoachId);
+
+        if (!coachExists)
+            return BadRequest("Trener ne postoji");
+
+        context.FantasyTeamCoaches.Add(
+            new FantasyTeamCoach { FantasyTeamId = dto.FantasyTeamId, CoachId = dto.CoachId }
+        );
+
+        draft.CurrentPickIndex++;
+        draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
+
+        await context.SaveChangesAsync();
+
+        await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("CoachPicked", dto);
 
         await hubContext
             .Clients.Group(draft.Id.ToString())
