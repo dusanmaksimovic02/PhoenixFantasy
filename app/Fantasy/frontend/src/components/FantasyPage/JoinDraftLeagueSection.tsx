@@ -1,4 +1,7 @@
+import { useAuth } from "../../context/auth/useAuth";
+import { joinToLeague } from "../../services/CreateDraftLeagueService";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useState, type FC } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -12,9 +15,20 @@ const formJoinSchema = z.object({
 
 type FormInputsJoin = z.infer<typeof formJoinSchema>;
 
+interface CreateLeagueResponse {
+  message: string;
+  leagueId: string;
+  leagueName: string;
+  joinCode: string;
+  teamId: string;
+  teamName: string;
+}
+
 const JoinDraftLeagueSection: FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const { id } = useAuth();
 
   const {
     reset,
@@ -32,14 +46,32 @@ const JoinDraftLeagueSection: FC = () => {
   const codeError = errors.code?.message;
   const teamNameError = errors.teamName?.message;
 
+  const joinLeagueMutation = useMutation<
+    CreateLeagueResponse,
+    Error,
+    FormInputsJoin
+  >({
+    mutationFn: async (data: FormInputsJoin) =>
+      joinToLeague(id, data.code, data.teamName),
+    onSuccess: (res) => {
+      console.log("Join league " + res);
+      toast.success(res.message);
+      navigate(`draft/${res.leagueName}/${res.joinCode}`, {
+        state: {
+          res,
+        },
+      });
+      reset();
+      setIsOpen(false);
+    },
+    onError: (err) => {
+      toast.error("Error while creating draft league!");
+      console.error(err);
+    },
+  });
+
   const onValid = (data: FormInputsJoin) => {
-    console.log("Valid submit", data);
-
-    toast.success("Successfully joined draft league!");
-
-    navigate(`draft/Bagra/${data.code}`);
-    reset();
-    setIsOpen(false);
+    joinLeagueMutation.mutate(data);
   };
 
   const onInvalid = () => {

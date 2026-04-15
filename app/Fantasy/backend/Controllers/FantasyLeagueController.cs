@@ -52,19 +52,19 @@ public class FantasyLeagueController : ControllerBase
     [HttpPost("CreateLeagueWithTeam")]
     public async Task<IActionResult> CreateLeagueWithTeam([FromBody] CreateLeagueWithTeamDTO dto)
     {
-        Console.WriteLine($"Korisnik autentifikovan: {User.Identity?.IsAuthenticated}");
-        Console.WriteLine($"Tip autentifikacije: {User.Identity?.AuthenticationType}");
+        // Console.WriteLine($"Korisnik autentifikovan: {User.Identity?.IsAuthenticated}");
+        // Console.WriteLine($"Tip autentifikacije: {User.Identity?.AuthenticationType}");
 
-        var userId =
-            User.FindFirst("id")?.Value
-            ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        // var userId =
+        //     User.FindFirst("id")?.Value
+        //     ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-        if (string.IsNullOrEmpty(userId))
-        {
-            var claims = string.Join(", ", User.Claims.Select(c => $"{c.Type}:{c.Value}"));
-            Console.WriteLine($"Stigli claimovi: {claims}");
-            return Unauthorized("ID nije pronađen u tokenu. Proveri konzolu bekenda.");
-        }
+        // if (string.IsNullOrEmpty(userId))
+        // {
+        //     var claims = string.Join(", ", User.Claims.Select(c => $"{c.Type}:{c.Value}"));
+        //     Console.WriteLine($"Stigli claimovi: {claims}");
+        //     return Unauthorized("ID nije pronađen u tokenu. Proveri konzolu bekenda.");
+        // }
 
         using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -78,7 +78,7 @@ public class FantasyLeagueController : ControllerBase
                 return Unauthorized("Token je validan, ali ID nije pronađen unutar njega.");
             }*/
 
-            var user = await context.Users.FindAsync(userId);
+            var user = await context.Users.FindAsync(dto.UserId);
 
             if (user == null)
                 return NotFound("User not found");
@@ -93,7 +93,7 @@ public class FantasyLeagueController : ControllerBase
             {
                 Id = Guid.NewGuid(),
                 LeagueName = dto.LeagueName,
-                leagueAdminId = userId,
+                leagueAdminId = dto.UserId,
                 JoinCode = joinCode,
             };
 
@@ -105,7 +105,7 @@ public class FantasyLeagueController : ControllerBase
                 Id = Guid.NewGuid(),
                 Name = dto.TeamName,
                 LeagueId = league.Id,
-                UserId = userId,
+                UserId = dto.UserId,
             };
 
             context.FantasyTeams.Add(team);
@@ -139,11 +139,6 @@ public class FantasyLeagueController : ControllerBase
             if (string.IsNullOrWhiteSpace(dto.JoinCode) || string.IsNullOrWhiteSpace(dto.TeamName))
                 return BadRequest("JoinCode i TeamName are obligatory");
 
-            var userId = User.FindFirst("id")?.Value;
-
-            if (userId == null)
-                return Unauthorized();
-
             var league = await context.FantasyLeagues.FirstOrDefaultAsync(l =>
                 l.JoinCode == dto.JoinCode
             );
@@ -152,7 +147,7 @@ public class FantasyLeagueController : ControllerBase
                 return NotFound("League with code doesn't exist");
 
             var existingTeam = await context.FantasyTeams.FirstOrDefaultAsync(t =>
-                t.LeagueId == league.Id && t.UserId == userId
+                t.LeagueId == league.Id && t.UserId == dto.UserId
             );
 
             if (existingTeam != null)
@@ -163,7 +158,7 @@ public class FantasyLeagueController : ControllerBase
                 Id = Guid.NewGuid(),
                 Name = dto.TeamName,
                 LeagueId = league.Id,
-                UserId = userId,
+                UserId = dto.UserId,
             };
 
             context.FantasyTeams.Add(team);
@@ -172,13 +167,59 @@ public class FantasyLeagueController : ControllerBase
             return Ok(
                 new
                 {
-                    message = "Joined succesfully",
+                    message = "Joined successfully",
                     leagueId = league.Id,
                     leagueName = league.LeagueName,
+                    joinCode = league.JoinCode,
                     teamId = team.Id,
                     teamName = team.Name,
                 }
             );
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("GetFantasyLeagueParticipant/{leagueId}/")]
+    public async Task<ActionResult<IEnumerable<Person>>> GetTeamLeagueParticipant(Guid leagueId)
+    {
+        try
+        {
+            var usersIds = await context
+                .FantasyTeams.Where(l => l.LeagueId == leagueId)
+                .Select(u => u.UserId)
+                .ToListAsync();
+
+            var leagueParticipants = await context
+                .Users.Where(u => usersIds.Contains(u.Id))
+                .ToListAsync();
+
+            if (leagueParticipants == null || !leagueParticipants.Any())
+            {
+                return NotFound("No participants found for this league.");
+            }
+
+            return Ok(leagueParticipants);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("GetFantasyLeagueAdmin/{leagueId}")]
+    public async Task<IActionResult> GetTeamLeagueAdmin(Guid leagueId)
+    {
+        try
+        {
+            var userId = await context
+                .FantasyLeagues.Where(l => l.Id == leagueId)
+                .Select(u => u.leagueAdminId)
+                .FirstOrDefaultAsync();
+
+            return Ok(userId);
         }
         catch (Exception ex)
         {
@@ -194,12 +235,6 @@ public class FantasyLeagueController : ControllerBase
     {
         try
         {
-            var userId =
-                User.FindFirst("id")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized("User ID not found in token");
-
             var league = await context.FantasyLeagues.FirstOrDefaultAsync(l =>
                 l.Id == dto.LeagueId
             );
@@ -207,18 +242,23 @@ public class FantasyLeagueController : ControllerBase
             if (league == null)
                 return NotFound("League not found");
 
-            if (league.leagueAdminId != userId)
-                return Forbid("Only league admin can remove players");
+            // if (league.leagueAdminId != dto.UserId)
+            //     return Forbid("Only league admin can remove players");
+
+            var teamId = await context
+                .FantasyTeams.Where(t => t.LeagueId == dto.LeagueId && t.UserId == dto.UserId)
+                .Select(t => t.Id)
+                .FirstOrDefaultAsync();
 
             var team = await context.FantasyTeams.FirstOrDefaultAsync(t =>
-                t.Id == dto.TeamId && t.LeagueId == dto.LeagueId
+                t.Id == teamId && t.LeagueId == dto.LeagueId
             );
 
             if (team == null)
                 return NotFound("Team not found in this league");
 
-            if (team.UserId == userId)
-                return BadRequest("Admin cannot remove their own team");
+            // if (team.UserId == dto.UserId)
+            //     return BadRequest("Admin cannot remove their own team");
 
             var teamPlayers = await context
                 .FantasyTeamPlayers.Where(tp => tp.FantasyTeamId == team.Id)
