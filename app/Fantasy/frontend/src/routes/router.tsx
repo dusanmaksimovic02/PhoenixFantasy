@@ -15,6 +15,8 @@ import GamePage from "../pages/GamePage";
 import CreateDraftLeague from "../pages/CreateDraftLeague";
 import FantasyLayout from "../components/FantasyPage/FantasyLayout";
 import DraftLeague from "../pages/DraftLeague";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 
 export const router = createBrowserRouter([
   {
@@ -78,6 +80,8 @@ export const router = createBrowserRouter([
         path: "/game/:team1/vs/:team2",
         element: <GamePage />,
       },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
       {
         path: "*",
         element: <NotFound />,

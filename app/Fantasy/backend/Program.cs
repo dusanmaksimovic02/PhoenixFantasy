@@ -96,8 +96,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddHostedService<StatsConsumerService>();
 
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddScoped<EmailService>();
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {

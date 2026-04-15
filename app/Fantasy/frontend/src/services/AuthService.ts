@@ -72,7 +72,7 @@ export const updateUser = async (user: User) => {
     return response;
   } catch (e) {
     if (axios.isAxiosError(e) && e.response) {
-      const message = e.response.data?.message || `Update  failed`;
+      const message = e.response.data?.message || `Update failed`;
       toast.error(message);
       console.log(e);
     } else {
@@ -80,6 +80,47 @@ export const updateUser = async (user: User) => {
       console.log(e);
       throw e;
     }
+  }
+};
+
+export const verifyPassword = async (userId: string, oldPassword: string) => {
+  try {
+    const response = await apiClient.post("api/Auth/VerifyPassword", {
+      userId,
+      oldPassword,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Password verification failed";
+      toast.error(message);
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+    throw e;
+  }
+};
+
+export const changePassword = async (
+  userId: string,
+  oldPassword: string,
+  newPassword: string
+) => {
+  try {
+    const response = await apiClient.post("api/Auth/ChangePassword", {
+      userId,
+      oldPassword,
+      newPassword,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Failed to change password";
+      toast.error(message);
+    } else {
+      toast.error("Something went wrong. Please try again.");
+    }
+    throw e;
   }
 };
 

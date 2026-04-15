@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using FantasyApi.Models;
+using FantasyApi.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -220,5 +222,99 @@ public class AuthController : ControllerBase
         }
 
         return Ok(new { userId = user.Id });
+    }
+    [HttpPost("ForgotPassword")]
+    public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordDto dto,
+        [FromServices] EmailService emailService)
+    {
+        var genericResponse = new { message = "If this email exists you will receive a reset link." };
+
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null)
+            return Ok(genericResponse);
+
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        user.TokenForgotPassword = token;
+        user.ForgotPasswordExp = DateTime.UtcNow.AddHours(1);
+        await _userManager.UpdateAsync(user);
+
+        var resetLink = $"https://localhost:5174/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(dto.Email)}";
+
+        _ = Task.Run(async () =>
+        {
+            try { await emailService.SendResetPasswordEmailAsync(user.Email!, resetLink); }
+            catch (Exception ex) { Console.WriteLine($"[Email ERROR] {ex.Message}"); }
+        });
+
+        return Ok(genericResponse);
+    }
+
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null)
+            return BadRequest(new { message = "Invalid request." });
+
+        if (user.TokenForgotPassword != dto.Token)
+            return BadRequest(new { message = "Invalid or expired token." });
+
+        if (user.ForgotPasswordExp < DateTime.UtcNow)
+            return BadRequest(new { message = "Token has expired. Please request a new reset link." });
+
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, resetToken, dto.NewPassword);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        user.TokenForgotPassword = null;
+        user.ForgotPasswordExp = DateTime.MinValue;
+        await _userManager.UpdateAsync(user);
+
+        return Ok(new { message = "Password reset successfully." });
+    }
+
+    [HttpPost("VerifyPassword")]
+    public async Task<IActionResult> VerifyPassword([FromBody] VerifyPasswordDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        var isValid = await _userManager.CheckPasswordAsync(user, dto.OldPassword);
+        if (!isValid)
+            return Unauthorized(new { message = "Old password is incorrect." });
+
+        return Ok(new { message = "Password verified." });
+    }
+
+    [HttpPost("ChangePassword")]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordDto dto,
+        [FromServices] EmailService emailService)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        var isValid = await _userManager.CheckPasswordAsync(user, dto.OldPassword);
+        if (!isValid)
+            return Unauthorized(new { message = "Old password is incorrect." });
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
+
+        if (!result.Succeeded)
+            return BadRequest(result.Errors);
+
+        _ = Task.Run(async () =>
+        {
+            try { await emailService.SendPasswordChangedEmailAsync(user.Email!, user.FirstName); }
+            catch (Exception ex) { Console.WriteLine($"[Email ERROR] {ex.Message}"); }
+        });
+
+        return Ok(new { message = "Password changed successfully." });
     }
 }
