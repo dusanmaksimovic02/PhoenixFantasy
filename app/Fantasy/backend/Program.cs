@@ -98,6 +98,7 @@ builder.Services.AddHostedService<StatsConsumerService>();
 
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<DraftChatService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

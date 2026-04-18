@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
-import apiClient from "../services/client";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { MdEmail } from "react-icons/md";
+import { useForm } from "react-hook-form";
+import { forgotPassword } from "../services/AuthService";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -22,23 +23,17 @@ const ballVariants: Variants = {
 };
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register, handleSubmit } = useForm<{ email: string }>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await apiClient.post("api/Auth/ForgotPassword", { email });
+  const mutation = useMutation({
+    mutationFn: ({ email }: { email: string }) => forgotPassword(email),
+    onSuccess: () => {
       toast.success("If this email exists you will receive a reset link!");
       navigate("/login");
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    onError: () => toast.error("Something went wrong. Please try again."),
+  });
 
   return (
     <div className="w-full h-full relative bg-court bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw">
@@ -54,7 +49,7 @@ const ForgotPassword = () => {
         >
           <div className="w-screen h-screen relative bg-center translate-y-8 bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center">
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit((data) => mutation.mutate(data))}
               className="w-full max-w-md p-7 bg-black/50 rounded-2xl max-sm:rounded-[70px] max-sm:my-2 max-sm:mx-8"
             >
               <h1 className="text-3xl font-bold text-center text-phoenix mb-2">
@@ -68,10 +63,9 @@ const ForgotPassword = () => {
                 <div className="relative mt-1">
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     required
+                    {...register("email")}
                     className="input w-full pl-10 hover:border-phoenix bg-transparent text-white border-2 border-white focus:border-phoenix focus:outline-phoenix focus:border-0 focus:my-2 rounded-md"
                   />
                   <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white pointer-events-none" />
@@ -79,10 +73,10 @@ const ForgotPassword = () => {
               </label>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={mutation.isPending}
                 className="w-full bg-phoenix hover:bg-phoenix/80 cursor-pointer p-2 rounded-md font-bold text-white mt-2"
               >
-                {loading ? "Sending..." : "Send Reset Link"}
+                {mutation.isPending ? "Sending..." : "Send Reset Link"}
               </button>
               <button
                 type="button"

@@ -3,6 +3,9 @@ import { z } from "zod";
 import { toast } from "react-toastify";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useAuth } from "../../context/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { verifyPassword, changePassword } from "../../services/AuthService";
 
 const passwordSchema = z
@@ -21,61 +24,46 @@ const passwordSchema = z
     message: "Passwords do not match",
   });
 
+type FormData = z.infer<typeof passwordSchema>;
+
 const ChangePassword: FC = () => {
   const { id } = useAuth();
   const [oldPassword, setOldPassword] = useState("");
   const [verified, setVerified] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [show, setShow] = useState(false);
 
-  const verifyOld = async () => {
-    if (!oldPassword.trim()) {
-      toast.error("Please enter your old password");
-      return;
-    }
-    setVerifying(true);
-    try {
-      await verifyPassword(id, oldPassword);
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+    resolver: zodResolver(passwordSchema),
+  });
+
+
+  const verifyMutation = useMutation({
+    mutationFn: () => verifyPassword(id, oldPassword),
+    onSuccess: () => {
       toast.success("Old password verified!");
       setVerified(true);
-    } catch {
-      
-    } finally {
-      setVerifying(false);
-    }
-  };
+    },
+    onError: () => toast.error("Old password is incorrect."),
+  });
 
-  const save = async () => {
-    const res = passwordSchema.safeParse(form);
-    if (!res.success) {
-      const e: Record<string, string> = {};
-      res.error.issues.forEach((i) => { e[i.path[0] as string] = i.message; });
-      setErrors(e);
-      return;
-    }
-    setSaving(true);
-    try {
-      await changePassword(id, oldPassword, form.newPassword);
+  
+  const changeMutation = useMutation({
+    mutationFn: (data: FormData) => changePassword(id, oldPassword, data.newPassword),
+    onSuccess: () => {
       toast.success("Password changed! A confirmation email has been sent.");
       setOldPassword("");
-      setForm({ newPassword: "", confirmPassword: "" });
       setVerified(false);
-      setErrors({});
-    } catch {
-      
-    } finally {
-      setSaving(false);
-    }
-  };
+      reset();
+    },
+    onError: () => toast.error("Failed to change password."),
+  });
 
   return (
     <div className="w-full flex justify-center mt-12">
       <div className="w-full max-w-xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
         <h1 className="text-3xl font-bold mb-8 text-center">Change Password</h1>
 
+       
         <div className="mb-6">
           <label className="block mb-1 font-medium">Old Password</label>
           <input
@@ -88,56 +76,56 @@ const ChangePassword: FC = () => {
           {!verified && (
             <button
               className="mt-4 px-6 py-2 rounded-xl bg-phoenix/70 hover:bg-phoenix text-white font-semibold cursor-pointer transition"
-              onClick={verifyOld}
-              disabled={verifying}
+              onClick={() => verifyMutation.mutate()}
+              disabled={verifyMutation.isPending}
             >
-              {verifying ? "Verifying..." : "Verify"}
+              {verifyMutation.isPending ? "Verifying..." : "Verify"}
             </button>
           )}
           {verified && (
-            <p className="text-green-500 text-sm mt-2 font-medium">
-              ✓ Old password verified
-            </p>
+            <p className="text-green-500 text-sm mt-2 font-medium">✓ Old password verified</p>
           )}
         </div>
 
+       
         {verified && (
-          <div className="space-y-5">
-            {(["newPassword", "confirmPassword"] as const).map((key) => (
-              <div key={key} className="relative">
-                <label className="block mb-1 font-medium">
-                  {key === "newPassword" ? "New Password" : "Confirm Password"}
-                </label>
-                <input
-                  type={show ? "text" : "password"}
-                  value={form[key]}
-                  onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border"
-                />
-                {key === "newPassword" && (
-                  <button
-                    type="button"
-                    className="absolute right-4 top-10 opacity-70 cursor-pointer"
-                    onClick={() => setShow((p) => !p)}
-                  >
-                    {show ? <FiEyeOff /> : <FiEye />}
-                  </button>
-                )}
-                {errors[key] && (
-                  <p className="text-red-500 text-sm mt-1">{errors[key]}</p>
-                )}
+          <form onSubmit={handleSubmit((data) => changeMutation.mutate(data))}>
+            <div className="space-y-5">
+              {(["newPassword", "confirmPassword"] as const).map((key) => (
+                <div key={key} className="relative">
+                  <label className="block mb-1 font-medium">
+                    {key === "newPassword" ? "New Password" : "Confirm Password"}
+                  </label>
+                  <input
+                    type={show ? "text" : "password"}
+                    {...register(key)}
+                    className="w-full px-4 py-3 rounded-xl bg-white dark:bg-neutral-700 border"
+                  />
+                  {key === "newPassword" && (
+                    <button
+                      type="button"
+                      className="absolute right-4 top-10 opacity-70 cursor-pointer"
+                      onClick={() => setShow((p) => !p)}
+                    >
+                      {show ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  )}
+                  {errors[key] && (
+                    <p className="text-red-500 text-sm mt-1">{errors[key]?.message}</p>
+                  )}
+                </div>
+              ))}
+              <div className="flex justify-center pt-6">
+                <button
+                  type="submit"
+                  className="px-10 py-3 rounded-xl bg-phoenix/70 hover:bg-phoenix text-white font-semibold cursor-pointer transition"
+                  disabled={changeMutation.isPending}
+                >
+                  {changeMutation.isPending ? "Saving..." : "Save New Password"}
+                </button>
               </div>
-            ))}
-            <div className="flex justify-center pt-6">
-              <button
-                className="px-10 py-3 rounded-xl bg-phoenix/70 hover:bg-phoenix text-white font-semibold cursor-pointer transition"
-                onClick={save}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save New Password"}
-              </button>
             </div>
-          </div>
+          </form>
         )}
       </div>
     </div>

@@ -1,10 +1,12 @@
-import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
-import { z } from "zod";
-import apiClient from "../services/client";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { CiLock } from "react-icons/ci";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { resetPassword } from "../services/AuthService";
 
 const ballVariants: Variants = {
   initial: { scale: 0, y: 200, opacity: 0 },
@@ -38,42 +40,26 @@ const passwordSchema = z
     message: "Passwords do not match",
   });
 
+type FormData = z.infer<typeof passwordSchema>;
+
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const email = searchParams.get("email") ?? "";
-  const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(passwordSchema),
+  });
 
-    const res = passwordSchema.safeParse(form);
-    if (!res.success) {
-      const e: Record<string, string> = {};
-      res.error.issues.forEach((i) => { e[i.path[0] as string] = i.message; });
-      setErrors(e);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await apiClient.post("api/Auth/ResetPassword", {
-        email,
-        token,
-        newPassword: form.newPassword,
-      });
+  const mutation = useMutation({
+    mutationFn: (data: FormData) => resetPassword(email, token, data.newPassword),
+    onSuccess: () => {
       toast.success("Password reset successfully!");
       navigate("/login");
-    } catch {
-      toast.error("Invalid or expired token. Please request a new reset link.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    onError: () => toast.error("Invalid or expired token. Please request a new reset link."),
+  });
 
   return (
     <div className="w-full h-full relative bg-court bg-no-repeat bg-cover bg-center max-sm:h-svh max-sm:w-svw">
@@ -89,7 +75,7 @@ const ResetPassword = () => {
         >
           <div className="w-screen h-screen relative bg-center translate-y-8 bg-basketballBall bg-no-repeat flex justify-center items-center bg-contain max-sm:bg-cover max-sm:bg-center">
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmit((data) => mutation.mutate(data))}
               className="w-full max-w-md p-7 bg-black/50 rounded-2xl max-sm:rounded-[70px] max-sm:my-2 max-sm:mx-8"
             >
               <h1 className="text-3xl font-bold text-center text-phoenix mb-2">
@@ -105,38 +91,24 @@ const ResetPassword = () => {
                   </span>
                   <div className="relative mt-1">
                     <input
-                      type={showPassword ? "text" : "password"}
-                      value={form[key]}
-                      onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
+                      type="password"
                       placeholder="********"
-                      required
+                      {...register(key)}
                       className="input w-full pl-10 hover:border-phoenix bg-transparent text-white border-2 border-white focus:border-phoenix focus:outline-phoenix focus:border-0 focus:my-2 rounded-md"
                     />
                     <CiLock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-white pointer-events-none" />
                   </div>
                   {errors[key] && (
-                    <p className="text-red-400 text-sm mt-1">{errors[key]}</p>
+                    <p className="text-red-400 text-sm mt-1">{errors[key]?.message}</p>
                   )}
                 </div>
               ))}
-              <div className="flex pb-3 pr-3 justify-end gap-2 items-center">
-                <input
-                  id="show-password"
-                  type="checkbox"
-                  className="checkbox checkbox-neutral border-white border-2 checked:bg-phoenix"
-                  checked={showPassword}
-                  onChange={() => setShowPassword((prev) => !prev)}
-                />
-                <label htmlFor="show-password" className="cursor-pointer text-white select-none">
-                  Show Password
-                </label>
-              </div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={mutation.isPending}
                 className="w-full bg-phoenix hover:bg-phoenix/80 cursor-pointer p-2 rounded-md font-bold text-white"
               >
-                {loading ? "Resetting..." : "Reset Password"}
+                {mutation.isPending ? "Resetting..." : "Reset Password"}
               </button>
               <button
                 type="button"
