@@ -185,4 +185,66 @@ public class DraftController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("StartDraft")]
+    public async Task<IActionResult> StartDraft(StartDraftDto dto)
+    {
+        var league = await context
+            .FantasyLeagues.Include(l => l.fantasyTeams)
+            .FirstOrDefaultAsync(l => l.Id == dto.LeagueId);
+
+        if (league == null)
+            return BadRequest("Liga ne postoji");
+
+        if (league.fantasyTeams == null || !league.fantasyTeams.Any())
+            return BadRequest("Nema timova u ligi");
+
+        // RANDOM redosled
+        var teams = league.fantasyTeams.OrderBy(x => Guid.NewGuid()).ToList();
+
+        var draft = new DraftSession
+        {
+            LeagueId = league.Id,
+            CurrentPickIndex = 0,
+            PickDeadline = DateTime.UtcNow.AddMinutes(1),
+            IsActive = true,
+        };
+
+        context.DraftSessions.Add(draft);
+        await context.SaveChangesAsync();
+
+        // Kreiranje PickOrder
+        var pickOrderList = new List<DraftPickOrder>();
+
+        for (int i = 0; i < teams.Count; i++)
+        {
+            pickOrderList.Add(
+                new DraftPickOrder
+                {
+                    Id = draft.Id,
+                    FantasyTeamId = teams[i].Id,
+                    Order = i,
+                }
+            );
+        }
+
+        context.AddRange(pickOrderList);
+        await context.SaveChangesAsync();
+
+        // SignalR - start drafta
+        await hubContext
+            .Clients.Group(draft.Id.ToString())
+            .SendAsync(
+                "DraftStarted",
+                new
+                {
+                    draft.Id,
+                    draft.CurrentPickIndex,
+                    draft.PickDeadline,
+                    PickOrder = pickOrderList.Select(p => new { p.Order, p.FantasyTeamId }),
+                }
+            );
+
+        return Ok(draft.Id);
+    }
 }

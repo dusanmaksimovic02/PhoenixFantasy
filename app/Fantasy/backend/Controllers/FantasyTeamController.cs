@@ -91,7 +91,21 @@ public class FantasyTeamController : ControllerBase
     [HttpPost("TradePlayer")]
     public async Task<IActionResult> TradePlayer(TradePlayerDto dto)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync();
+        await using var transaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable
+        );
+        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == dto.FantasyTeamId);
+
+        if (team == null)
+            return BadRequest("Tim ne postoji");
+
+        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
+
+        if (league == null)
+            return BadRequest("Liga ne postoji");
+
+        if (league.IsRoundActive)
+            return BadRequest("Trade nije dozvoljen dok je runda aktivna");
 
         var teamPlayer = await context.FantasyTeamPlayers.FirstOrDefaultAsync(tp =>
             tp.FantasyTeamId == dto.FantasyTeamId && tp.PlayerId == dto.OldPlayerId
@@ -125,6 +139,23 @@ public class FantasyTeamController : ControllerBase
     [HttpPost("TradeCoach")]
     public async Task<IActionResult> TradeCoach(TradeCoachDto dto)
     {
+        await using var transaction = await context.Database.BeginTransactionAsync(
+            System.Data.IsolationLevel.Serializable
+        );
+
+        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == dto.FantasyTeamId);
+
+        if (team == null)
+            return BadRequest("Tim ne postoji");
+
+        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
+
+        if (league == null)
+            return BadRequest("Liga ne postoji");
+
+        if (league.IsRoundActive)
+            return BadRequest("Trade nije dozvoljen dok je runda aktivna");
+
         var teamCoach = await context.FantasyTeamCoaches.FirstOrDefaultAsync(tc =>
             tc.FantasyTeamId == dto.FantasyTeamId && tc.CoachId == dto.OldCoachId
         );
@@ -144,6 +175,7 @@ public class FantasyTeamController : ControllerBase
         );
 
         await context.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return Ok();
     }
@@ -195,6 +227,19 @@ public class FantasyTeamController : ControllerBase
     [HttpPost("SwitchPlayers")]
     public async Task<IActionResult> SwitchPlayers(SwitchPlayersDto dto)
     {
+        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == dto.FantasyTeamId);
+
+        if (team == null)
+            return BadRequest("Tim ne postoji");
+
+        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
+
+        if (league == null)
+            return BadRequest("Liga ne postoji");
+
+        if (league.IsRoundActive)
+            return BadRequest("Switch nije dozvoljen dok je runda aktivna");
+
         var starter = await context
             .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
             .FirstOrDefaultAsync(x =>
@@ -261,5 +306,55 @@ public class FantasyTeamController : ControllerBase
         };
 
         return Ok(result);
+    }
+
+    [HttpPost("ChangeCaptain")]
+    public async Task<IActionResult> ChangeCaptain(ChangeCaptainDto dto)
+    {
+        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == dto.FantasyTeamId);
+
+        if (team == null)
+            return BadRequest("Tim ne postoji");
+
+        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
+
+        if (league == null)
+            return BadRequest("Liga ne postoji");
+
+        if (league.IsRoundActive)
+            return BadRequest("Promena kapitena nije dozvoljena tokom runde");
+
+        var currentRound = league.CurrentRound;
+
+        var players = await context
+            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+            .Where(x =>
+                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId && x.round == currentRound
+            )
+            .ToListAsync();
+
+        if (!players.Any())
+            return BadRequest("Nema igraca u rundi");
+
+        var currentCaptain = players.FirstOrDefault(x => x.Role == FantasyRole.Captain);
+
+        var newCaptain = players.FirstOrDefault(x =>
+            x.fantasyPlayer!.PlayerId == dto.NewCaptainPlayerId
+        );
+
+        if (newCaptain == null)
+            return BadRequest("Novi kapiten nije u timu");
+
+        if (newCaptain.Role == FantasyRole.Bench)
+            return BadRequest("Bench igrac ne moze biti kapiten");
+
+        if (currentCaptain != null)
+            currentCaptain.Role = FantasyRole.Starter;
+
+        newCaptain.Role = FantasyRole.Captain;
+
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 }

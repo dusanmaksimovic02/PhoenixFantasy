@@ -11,4 +11,7 @@ public class FantasyLeague
     public List<FantasyTeam>? fantasyTeams { get; set; }
     public required string LeagueName { get; set; }
     public string? JoinCode { get; set; }
+    public int CurrentRound { get; set; } = 1;
+
+    public bool IsRoundActive { get; set; } = false;
 }
