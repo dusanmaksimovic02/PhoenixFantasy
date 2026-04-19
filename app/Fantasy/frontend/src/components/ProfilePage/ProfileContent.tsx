@@ -17,10 +17,10 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
     component: <MyLeagues />,
     roles: ["User"],
   },
-  "#section3": {
-    component: <div>Stavka 3</div>,
-    roles: ["Manager", "Admin", "User"],
-  },
+  // "#section3": {
+  //   component: <div>Stavka 3</div>,
+  //   roles: ["Manager", "Admin", "User"],
+  // },
 };
 
 const ProfileContent: FC<{ section: string }> = ({ section }) => {
@@ -38,7 +38,7 @@ const ProfileContent: FC<{ section: string }> = ({ section }) => {
   }
 
   return (
-    <div className="rounded-xl mx-10 flex justify-center items-center overflow-auto p-6 mt-20 min-h-[calc(100vh-6rem)] ">
+    <div className="rounded-xl mx-10 flex justify-center items-center overflow-auto p-6 min-h-[calc(100vh-6rem)]">
       {config.component}
     </div>
   );

@@ -30,10 +30,10 @@ const Footer: FC = () => {
       name: "Standing",
       to: "/standing",
     },
-    {
-      name: "Statistics",
-      to: "/statistics",
-    },
+    // {
+    //   name: "Statistics",
+    //   to: "/statistics",
+    // },
     {
       name: "Fantasy",
       to: "/fantasy",

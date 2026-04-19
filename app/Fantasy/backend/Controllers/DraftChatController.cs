@@ -1,8 +1,9 @@
-using FantasyApi.Services;
-using Microsoft.AspNetCore.Mvc;
-using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using FantasyApi.Services;
+using Microsoft.AspNetCore.Mvc;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace FantasyApi.Controllers;
 
@@ -17,7 +18,6 @@ public class DraftChatController : ControllerBase
         _chatService = chatService;
     }
 
-    
     [HttpPost("send")]
     public async Task<IActionResult> SendMessage([FromBody] SendDraftChatDto dto)
     {
@@ -28,7 +28,6 @@ public class DraftChatController : ControllerBase
         return Ok(new { message = "Message sent." });
     }
 
-  
     [HttpGet("stream/{leagueId}")]
     public async Task StreamMessages(string leagueId, CancellationToken cancellationToken)
     {
@@ -36,7 +35,6 @@ public class DraftChatController : ControllerBase
         Response.Headers["Cache-Control"] = "no-cache";
         Response.Headers["Connection"] = "keep-alive";
 
-        
         var (channel, queueName) = await _chatService.SubscribeAsync(leagueId);
 
         var tcs = new TaskCompletionSource();
@@ -50,7 +48,6 @@ public class DraftChatController : ControllerBase
                 var body = ea.Body.ToArray();
                 var json = Encoding.UTF8.GetString(body);
 
-                
                 await Response.WriteAsync($"data: {json}\n\n", cancellationToken);
                 await Response.Body.FlushAsync(cancellationToken);
 
@@ -58,20 +55,14 @@ public class DraftChatController : ControllerBase
             }
             catch
             {
-               
                 tcs.TrySetResult();
             }
         };
 
-        await channel.BasicConsumeAsync(
-            queue: queueName,
-            autoAck: false,
-            consumer: consumer
-        );
+        await channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer);
 
         Console.WriteLine($"[DraftChat] User connected to league {leagueId}");
 
-       
         cancellationToken.Register(() => tcs.TrySetResult());
         await tcs.Task;
 

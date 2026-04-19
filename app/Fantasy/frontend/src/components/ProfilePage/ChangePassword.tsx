@@ -16,7 +16,10 @@ const passwordSchema = z
       .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
       .regex(/[a-z]/, "Password must contain at least one lowercase letter")
       .regex(/[0-9]/, "Password must contain at least one number")
-      .regex(/[@$!%*?&#]/, "Password must contain at least one special character"),
+      .regex(
+        /[@$!%*?&#]/,
+        "Password must contain at least one special character",
+      ),
     confirmPassword: z.string(),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
@@ -32,10 +35,14 @@ const ChangePassword: FC = () => {
   const [verified, setVerified] = useState(false);
   const [show, setShow] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
     resolver: zodResolver(passwordSchema),
   });
-
 
   const verifyMutation = useMutation({
     mutationFn: () => verifyPassword(id, oldPassword),
@@ -46,9 +53,9 @@ const ChangePassword: FC = () => {
     onError: () => toast.error("Old password is incorrect."),
   });
 
-  
   const changeMutation = useMutation({
-    mutationFn: (data: FormData) => changePassword(id, oldPassword, data.newPassword),
+    mutationFn: (data: FormData) =>
+      changePassword(id, oldPassword, data.newPassword),
     onSuccess: () => {
       toast.success("Password changed! A confirmation email has been sent.");
       setOldPassword("");
@@ -59,11 +66,10 @@ const ChangePassword: FC = () => {
   });
 
   return (
-    <div className="w-full flex justify-center mt-12">
+    <div className="w-full flex justify-center">
       <div className="w-full max-w-xl rounded-2xl p-8 shadow-lg bg-neutral-100 dark:bg-neutral-800">
         <h1 className="text-3xl font-bold mb-8 text-center">Change Password</h1>
 
-       
         <div className="mb-6">
           <label className="block mb-1 font-medium">Old Password</label>
           <input
@@ -83,18 +89,21 @@ const ChangePassword: FC = () => {
             </button>
           )}
           {verified && (
-            <p className="text-green-500 text-sm mt-2 font-medium">✓ Old password verified</p>
+            <p className="text-green-500 text-sm mt-2 font-medium">
+              ✓ Old password verified
+            </p>
           )}
         </div>
 
-       
         {verified && (
           <form onSubmit={handleSubmit((data) => changeMutation.mutate(data))}>
             <div className="space-y-5">
               {(["newPassword", "confirmPassword"] as const).map((key) => (
                 <div key={key} className="relative">
                   <label className="block mb-1 font-medium">
-                    {key === "newPassword" ? "New Password" : "Confirm Password"}
+                    {key === "newPassword"
+                      ? "New Password"
+                      : "Confirm Password"}
                   </label>
                   <input
                     type={show ? "text" : "password"}
@@ -111,7 +120,9 @@ const ChangePassword: FC = () => {
                     </button>
                   )}
                   {errors[key] && (
-                    <p className="text-red-500 text-sm mt-1">{errors[key]?.message}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors[key]?.message}
+                    </p>
                   )}
                 </div>
               ))}

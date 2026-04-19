@@ -131,6 +131,106 @@ public class FantasyLeagueController : ControllerBase
         }
     }
 
+    [HttpDelete("DeleteLeague/{leagueId}")]
+    public async Task<IActionResult> DeleteLeague(Guid leagueId)
+    {
+        try
+        {
+            var league = await context
+                .FantasyLeagues.Include(l => l.fantasyTeams)
+                .FirstOrDefaultAsync(l => l.Id == leagueId);
+
+            if (league == null)
+            {
+                return NotFound(new { message = $"League with Id: {leagueId} doesn't exists." });
+            }
+
+            if (league.fantasyTeams != null && league.fantasyTeams.Count > 0)
+            {
+                context.FantasyTeams.RemoveRange(league.fantasyTeams);
+            }
+
+            context.FantasyLeagues.Remove(league);
+
+            await context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("IsDraftStarted/{leagueId}")]
+    public async Task<ActionResult<Boolean>> IsDraftStarted(Guid leagueId)
+    {
+        try
+        {
+            var draftSession = await context.DraftSessions.FirstOrDefaultAsync(ds =>
+                ds.LeagueId == leagueId
+            );
+
+            if (draftSession == null)
+                return Ok(false);
+            else
+                return Ok(true);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("GetFantasyLeaguesForUser/{userId}")]
+    public async Task<IActionResult> GetFantasyLeaguesForUser(string userId)
+    {
+        try
+        {
+            var userTeamInfo = await context
+                .FantasyTeams.Where(t => t.UserId == userId)
+                .Select(t => new
+                {
+                    t.Id,
+                    t.LeagueId,
+                    t.Name,
+                })
+                .ToListAsync();
+
+            if (userTeamInfo == null || !userTeamInfo.Any())
+            {
+                return NotFound("Korisnik nije clan nijedne lige.");
+            }
+
+            var leaguesIds = userTeamInfo.Select(x => x.LeagueId).ToList();
+
+            var userLeagues = await context
+                .FantasyLeagues.Where(l => leaguesIds.Contains(l.Id))
+                .Include(t => t.leagueAdmin)
+                .Include(t => t.fantasyTeams)
+                .ToListAsync();
+
+            var result = userLeagues.Select(l => new
+            {
+                l.Id,
+                l.leagueAdmin,
+                l.leagueAdminId,
+                l.fantasyTeams,
+                l.LeagueName,
+                l.JoinCode,
+                teamName = userTeamInfo.FirstOrDefault(x => x.LeagueId == l.Id)?.Name,
+                teamId = userTeamInfo.FirstOrDefault(x => x.LeagueId == l.Id)?.Id,
+                isDraftStarted = context.DraftSessions.Any(ds => ds.LeagueId == l.Id),
+            });
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPost("JoinLeague")]
     public async Task<IActionResult> AddTeamToLeague([FromBody] JoinLeagueDTO dto)
     {

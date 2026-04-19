@@ -2,6 +2,7 @@ import axios from "axios";
 import apiClient from "./client";
 import { toast } from "react-toastify";
 import { type User } from "../models/User";
+import type { FantasyLeague } from "@/models/FantasyLeague";
 
 export const createLeagueWithTeam = async (
   userId: string,
@@ -76,5 +77,26 @@ export const removeParticipantFromTeam = async (
     },
   );
 
+  return response.data;
+};
+
+export const isDraftStarted = async (leagueId: string) => {
+  const response = await apiClient.get<boolean>(
+    `FantasyLeague/IsDraftStarted/${leagueId}`,
+  );
+  return response.data;
+};
+
+export const getFantasyLeaguesFroUser = async (userId: string) => {
+  const response = await apiClient.get<FantasyLeague[]>(
+    `FantasyLeague/GetFantasyLeaguesForUser/${userId}`,
+  );
+  return response.data;
+};
+
+export const deleteLeague = async (leagueId: String) => {
+  const response = await apiClient.delete(
+    `FantasyLeague/DeleteLeague/${leagueId}`,
+  );
   return response.data;
 };

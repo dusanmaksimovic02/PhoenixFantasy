@@ -80,7 +80,7 @@ const FantasyPlayerInLeague: FC<FantasyPlayerInLeagueProps> = ({
     navigate,
   ]);
   return (
-    <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700">
+    <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700 max-md:col-span-2">
       <table className="table w-full bg-white dark:bg-neutral-800">
         <thead className="bg-neutral-200 text-neutral-700 dark:text-neutral-50 dark:bg-neutral-900">
           <tr>

@@ -5,6 +5,8 @@ import FantasyCourt from "../components/CreateDraftLeague/FantasyCourt";
 // import FantasyBench from "../components/CreateDraftLeague/FantasyBench";
 import FantasyPlayerInLeague from "../components/CreateDraftLeague/FantasyPlayerInLeague";
 import { useLocation } from "react-router-dom";
+import JoinCodeBox from "../components/CreateDraftLeague/JoinCodeBox";
+import DeleteLeagueBox from "../components/CreateDraftLeague/DeleteLeagueBox";
 
 const CreateDraftLeague: FC = () => {
   // const { leagueName, code } = useParams();
@@ -18,24 +20,19 @@ const CreateDraftLeague: FC = () => {
   };
 
   return (
-    <div className="w-full h-fit min-h-screen flex justify-center items-center mt-10">
-      <div className="flex-1 flex flex-col px-5">
-        <div className="flex flex-col gap-10">
-          <SelectPlayerOrder />
-          <FantasyPlayerInLeague leagueId={res.leagueId} />
-        </div>
-        <div></div>
+    <div className="w-full h-fit min-h-screen flex justify-center items-center mt-10 max-lg:flex-col max-lg:mt-20">
+      <div className="flex-1 flex lg:flex-col gap-10 px-5 max-md:mb-5 max-md:grid max-md:grid-cols-2">
+        <SelectPlayerOrder />
+        <DeleteLeagueBox leagueId={res.leagueId} />
+        <FantasyPlayerInLeague leagueId={res.leagueId} />
       </div>
-      <div className="flex-3 flex flex-col justify-center items-center">
+      <div className="flex-3 flex flex-col justify-center items-center max-md:m-5 max-md:gap-5">
         <h1>{res.teamName}</h1>
         <FantasyCourt />
         {/* <FantasyBench /> */}
       </div>
-      <div className="flex-1 p-5 flex flex-col gap-10">
-        <div className="border-2 rounded-2xl gap-5 flex flex-col p-5 text-center">
-          <p>Join League Code</p>
-          <h3>{res.joinCode}</h3>
-        </div>
+      <div className="flex-1 p-5 flex lg:flex-col gap-10 max-md:justify-center max-md:items-center">
+        <JoinCodeBox joinCode={res.joinCode} />
         <SelectPlayerOrder />
       </div>
     </div>
