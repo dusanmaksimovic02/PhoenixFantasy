@@ -107,6 +107,7 @@ public class FantasyLeagueController : ControllerBase
                 LeagueId = league.Id,
                 UserId = dto.UserId,
             };
+            league.fantasyTeams = [team];
 
             context.FantasyTeams.Add(team);
             await context.SaveChangesAsync();
@@ -260,6 +261,7 @@ public class FantasyLeagueController : ControllerBase
                 LeagueId = league.Id,
                 UserId = dto.UserId,
             };
+            league.fantasyTeams = [team];
 
             context.FantasyTeams.Add(team);
             await context.SaveChangesAsync();
