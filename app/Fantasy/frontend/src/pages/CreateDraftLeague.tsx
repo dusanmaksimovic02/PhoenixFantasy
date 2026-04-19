@@ -7,7 +7,7 @@ import FantasyPlayerInLeague from "../components/CreateDraftLeague/FantasyPlayer
 import { useLocation } from "react-router-dom";
 import JoinCodeBox from "../components/CreateDraftLeague/JoinCodeBox";
 import DeleteLeagueBox from "../components/CreateDraftLeague/DeleteLeagueBox";
-
+import DraftChat from "../components/CreateDraftLeague/DraftChat";
 const CreateDraftLeague: FC = () => {
   // const { leagueName, code } = useParams();
   const location = useLocation();
@@ -34,6 +34,9 @@ const CreateDraftLeague: FC = () => {
       <div className="flex-1 p-5 flex lg:flex-col gap-10 max-md:justify-center max-md:items-center">
         <JoinCodeBox joinCode={res.joinCode} />
         <SelectPlayerOrder />
+        <div className="w-full h-125 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+          <DraftChat leagueId={res.leagueId} />
+        </div>
       </div>
     </div>
   );

@@ -1,36 +1,32 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "../context/auth/useAuth";
-import {
-  sendChatMessage,
-  getChatHistory,
-  type ChatMessage,
-} from "../services/ChatService";
+import { useAuth } from "../../context/auth/useAuth";
+import { useMutation } from "@tanstack/react-query";
+import { sendDraftChatMessage, getDraftChatStreamUrl, type DraftChatMessage } from "../../services/DraftChatService";
 
-const SSE_URL = "https://localhost:7034/api/chat/stream";
+interface DraftChatProps {
+  leagueId: string;
+}
 
-export default function Chat() {
+export default function DraftChat({ leagueId }: DraftChatProps) {
   const { user, isLoggedIn } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<DraftChatMessage[]>([]);
   const [messageText, setMessageText] = useState("");
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+ const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const username = user?.userName ?? "";
 
+  
   useEffect(() => {
-    if (!isLoggedIn()) return;
+    if (!isLoggedIn() || !leagueId) return;
 
-    getChatHistory().then((data) => {
-      setMessages(data);
-    });
-
-    const eventSource = new EventSource(SSE_URL);
+    const eventSource = new EventSource(getDraftChatStreamUrl(leagueId));
 
     eventSource.onmessage = (event) => {
       try {
-        const msg: ChatMessage = JSON.parse(event.data);
+        const msg: DraftChatMessage = JSON.parse(event.data);
         setMessages((prev) => [...prev, msg]);
       } catch {
-        console.log("Failed to parse message:", event.data);
+        console.log("Failed to parse draft chat message:", event.data);
       }
     };
 
@@ -39,19 +35,25 @@ export default function Chat() {
     };
 
     return () => eventSource.close();
-  }, [isLoggedIn]);
+  }, [leagueId, isLoggedIn]);
 
+ 
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    }
-  }, [messages]);
+  const container = messagesContainerRef.current;
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+}, [messages]);
 
-  const handleSend = async () => {
+  const sendMutation = useMutation({
+    mutationFn: () => sendDraftChatMessage(leagueId, username, messageText),
+    onSuccess: () => setMessageText(""),
+    onError: () => console.error("Failed to send message"),
+  });
+
+  const handleSend = () => {
     if (!messageText.trim() || !isLoggedIn()) return;
-    await sendChatMessage({ username, message: messageText });
-    setMessageText("");
+    sendMutation.mutate();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -68,17 +70,16 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-phoenix px-4 py-3">
-        <h1 className="text-white text-lg font-extrabold">Game Chat</h1>
+     
+      <div className="bg-phoenix px-4 py-3 rounded-t-xl">
+        <h1 className="text-white text-lg font-extrabold">Draft Chat</h1>
         <p className="text-white/70 text-xs">
           Logged in as <span className="text-white font-bold">{username}</span>
         </p>
       </div>
 
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3 dark:bg-custom-gray"
-      >
+    
+      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3 dark:bg-custom-gray bg-white">
         {messages.length === 0 && (
           <p className="text-center text-gray-400 mt-10 text-sm">
             No messages yet. Say something!
@@ -87,13 +88,21 @@ export default function Chat() {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`flex flex-col max-w-xs ${msg.Username === username ? "self-end items-end" : "self-start items-start"}`}
+            className={`flex flex-col max-w-xs ${
+              msg.Username === username
+                ? "self-end items-end"
+                : "self-start items-start"
+            }`}
           >
             <span className="text-phoenix text-xs mb-1 font-semibold">
               {msg.Username}
             </span>
             <div
-              className={`px-3 py-2 rounded-xl text-sm ${msg.Username === username ? "bg-phoenix text-white" : "bg-white dark:bg-gray-700 dark:text-white text-gray-800 shadow"}`}
+              className={`px-3 py-2 rounded-xl text-sm ${
+                msg.Username === username
+                  ? "bg-phoenix text-white"
+                  : "bg-gray-100 dark:bg-gray-700 dark:text-white text-gray-800 shadow"
+              }`}
             >
               {msg.Message}
             </div>
@@ -104,9 +113,11 @@ export default function Chat() {
             </span>
           </div>
         ))}
-        </div>
+       
+      </div>
 
-      <div className="bg-white dark:bg-gray-800 px-4 py-3 flex gap-2">
+    
+      <div className="bg-white dark:bg-gray-800 px-4 py-3 flex gap-2 rounded-b-xl border-t border-gray-200 dark:border-gray-700">
         <input
           type="text"
           placeholder="Type a message..."
@@ -117,7 +128,8 @@ export default function Chat() {
         />
         <button
           onClick={handleSend}
-          className="bg-phoenix hover:bg-phoenix/80 text-white font-bold px-4 rounded-lg transition text-sm"
+          disabled={sendMutation.isPending}
+          className="bg-phoenix hover:bg-phoenix/80 cursor-pointer text-white font-bold px-4 rounded-lg transition text-sm"
         >
           Send
         </button>
