@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
 using StatsApi.Models;
+using System.Text.Json;
+using StatsApi.Events;
+using StatsApi.Services;
+
 
 namespace StatsApi.Controllers;
 
@@ -10,10 +14,12 @@ namespace StatsApi.Controllers;
 public class GameController : ControllerBase
 {
     private DataContext context { get; set; }
+    private readonly IRabbitMQService _rabbitMQ;
 
-    public GameController(DataContext context)
+    public GameController(DataContext context, IRabbitMQService rabbitMQ)
     {
         this.context = context;
+        _rabbitMQ = rabbitMQ;
     }
 
     [HttpGet("GetGameById/{id}")]
@@ -495,6 +501,37 @@ public class GameController : ControllerBase
 
             context.CoachGameStats.UpdateRange(coachStats);
             await context.SaveChangesAsync();
+
+             var gameEndedEvent = new GameEndedEvent
+            {
+                GameId = game.Id,
+                HomeTeamId = game.HomeTeam!.Id,
+                GuestTeamId = game.GuestTeam!.Id,
+                HomeTeamName = game.HomeTeam.Name ?? "",
+                GuestTeamName = game.GuestTeam.Name ?? "",
+                HomeTeamScore = game.HomeTeamScore,
+                GuestTeamScore = game.GuestTeamScore,
+                Timestamp = DateTime.Now
+            };
+            var json = JsonSerializer.Serialize(gameEndedEvent);
+
+            _ = Task.Run(
+                async () =>
+            {
+                try
+                {
+                    await _rabbitMQ.PublishToExchangeAsync(
+                        exchangeName: "stats.topic",
+                        routingKey: "game.ended",
+                        message: json
+                    );
+                    Console.WriteLine($"[RabbitMQ] Published GameEndedEvent for game {gameId}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RabbitMQ ERROR] Failed to publish GameEndedEvent: {ex.Message}");
+                }
+            });
 
             return Ok("Game ended successfully and coach differences calculated");
         }
