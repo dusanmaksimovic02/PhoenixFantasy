@@ -32,7 +32,7 @@ const FantasyPlayerInLeague: FC<FantasyPlayerInLeagueProps> = ({
   } = useQuery({
     queryKey: ["leagueParticipant", leagueId],
     queryFn: () => getFantasyLeagueParticipant(leagueId),
-    refetchInterval: 3000,
+    refetchInterval: 10000,
     staleTime: 0,
   });
 

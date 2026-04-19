@@ -290,6 +290,21 @@ public class FantasyTeamController : ControllerBase
             })
             .ToListAsync();
 
+        var coachId = await context
+            .FantasyTeamCoaches.Where(c => c.FantasyTeamId == fantasyTeamId)
+            .Select(c => c.CoachId)
+            .FirstOrDefaultAsync();
+
+        var coach = await statsDbContext
+            .Coaches.Where(c => c.Id == coachId)
+            .Select(c => new CoachViewDto
+            {
+                CoachId = c.Id,
+                FirstName = c.FirstName,
+                LastName = c.LastName,
+            })
+            .FirstOrDefaultAsync();
+
         var result = new TeamLineupDto
         {
             Starters = data.Where(x => x.Role == FantasyRole.Starter)
@@ -303,6 +318,7 @@ public class FantasyTeamController : ControllerBase
             Captain = players.FirstOrDefault(p =>
                 data.Any(x => x.PlayerId == p.PlayerId && x.Role == FantasyRole.Captain)
             ),
+            Coach = coach,
         };
 
         return Ok(result);

@@ -168,14 +168,7 @@ public class FantasyLeagueController : ControllerBase
     {
         try
         {
-            var draftSession = await context.DraftSessions.FirstOrDefaultAsync(ds =>
-                ds.LeagueId == leagueId
-            );
-
-            if (draftSession == null)
-                return Ok(false);
-            else
-                return Ok(true);
+            return Ok(context.DraftSessions.Any(ds => ds.LeagueId == leagueId));
         }
         catch (Exception ex)
         {

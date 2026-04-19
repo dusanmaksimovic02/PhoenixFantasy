@@ -1,8 +1,10 @@
 import { type FC } from "react";
 import coach from "../../assets/images/coach.png";
 import { FaPlus } from "react-icons/fa";
+import { useDraft } from "../../context/draft/useDraft";
 
 const NoCoachAddedCard: FC = () => {
+  const { isMyTurn } = useDraft();
   return (
     <div className="relative w-fit px-5">
       <img src={coach} alt="coach image" className="w-20 h-25 rounded-2xl" />
@@ -22,8 +24,9 @@ const NoCoachAddedCard: FC = () => {
         }}
       >
         <FaPlus
-          className="text-white hover:cursor-pointer hover:scale-120"
+          className={`text-white ${isMyTurn() ? "hover:cursor-pointer hover:scale-120" : "pointer-events-none hover:cursor-auto"}`}
           size={25}
+          onClick={() => console.log("")}
         />
         <p className="text-[13px] text-white">H. Coach</p>
       </div>

@@ -202,6 +202,17 @@ public class DraftController : ControllerBase
         // RANDOM redosled
         var teams = league.fantasyTeams.OrderBy(x => Guid.NewGuid()).ToList();
 
+        // Kreiranje PickOrder
+        var pickOrderList = new List<DraftPickOrder>();
+
+        for (int i = 0; i < teams.Count; i++)
+        {
+            pickOrderList.Add(new DraftPickOrder { FantasyTeamId = teams[i].Id, Order = i });
+        }
+
+        context.AddRange(pickOrderList);
+        await context.SaveChangesAsync();
+
         var draft = new DraftSession
         {
             LeagueId = league.Id,
@@ -211,24 +222,7 @@ public class DraftController : ControllerBase
         };
 
         context.DraftSessions.Add(draft);
-        await context.SaveChangesAsync();
-
-        // Kreiranje PickOrder
-        var pickOrderList = new List<DraftPickOrder>();
-
-        for (int i = 0; i < teams.Count; i++)
-        {
-            pickOrderList.Add(
-                new DraftPickOrder
-                {
-                    Id = draft.Id,
-                    FantasyTeamId = teams[i].Id,
-                    Order = i,
-                }
-            );
-        }
-
-        context.AddRange(pickOrderList);
+        draft.PickOrder.AddRange(pickOrderList);
         await context.SaveChangesAsync();
 
         // SignalR - start drafta
@@ -246,5 +240,19 @@ public class DraftController : ControllerBase
             );
 
         return Ok(draft.Id);
+    }
+
+    [HttpGet("GetDraftSessionId/{leagueId}")]
+    public async Task<ActionResult<Guid>> GetDraftSession(Guid leagueId)
+    {
+        try
+        {
+            var session = context.DraftSessions.Where(s => s.LeagueId == leagueId).FirstOrDefault();
+            return Ok(session != null ? session.Id : "");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }

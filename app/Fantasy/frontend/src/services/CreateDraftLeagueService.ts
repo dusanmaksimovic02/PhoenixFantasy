@@ -100,3 +100,29 @@ export const deleteLeague = async (leagueId: String) => {
   );
   return response.data;
 };
+
+export const startDraft = async (leagueId: string) => {
+  const response = await apiClient.post("Draft/StartDraft", {
+    leagueId,
+  });
+  return response.data;
+};
+
+export const getDraftSessionId = async (leagueId: string) => {
+  const response = await apiClient.get<string>(
+    `Draft/GetDraftSessionId/${leagueId}`,
+  );
+  return response.data;
+};
+
+export const pickPlayer = async ()=>
+{
+  const response = await apiClient.post("Draft/PickPlayer");
+  return response.data;
+}
+
+export const pickCoach = async ()=>
+{
+  const response = await apiClient.post("Draft/PickCoach");
+  return response.data;
+}
