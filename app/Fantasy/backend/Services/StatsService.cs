@@ -47,4 +47,59 @@ public class StatsService
             x.Coach!.Id == coachId && x.Game!.Id == gameId
         );
     }
+
+    public async Task<List<TeamStandingDto>> GetStandings()
+    {
+        var games = await _context
+            .Games.Include(g => g.HomeTeam)
+            .Include(g => g.GuestTeam)
+            .ToListAsync();
+
+        var standings = new Dictionary<Guid, TeamStandingDto>();
+
+        foreach (var game in games)
+        {
+            if (game.HomeTeam == null || game.GuestTeam == null)
+                continue;
+
+            var homeId = game.HomeTeam.Id;
+            var guestId = game.GuestTeam.Id;
+
+            if (!standings.ContainsKey(homeId))
+            {
+                standings[homeId] = new TeamStandingDto
+                {
+                    TeamName = game.HomeTeam.Name,
+                    Wins = 0,
+                    Losses = 0,
+                };
+            }
+
+            if (!standings.ContainsKey(guestId))
+            {
+                standings[guestId] = new TeamStandingDto
+                {
+                    TeamName = game.GuestTeam.Name,
+                    Wins = 0,
+                    Losses = 0,
+                };
+            }
+
+            if (game.HomeTeamScore == 0 && game.GuestTeamScore == 0)
+                continue;
+
+            if (game.HomeTeamScore > game.GuestTeamScore)
+            {
+                standings[homeId].Wins++;
+                standings[guestId].Losses++;
+            }
+            else if (game.GuestTeamScore > game.HomeTeamScore)
+            {
+                standings[guestId].Wins++;
+                standings[homeId].Losses++;
+            }
+        }
+
+        return standings.Values.OrderByDescending(t => t.Wins).ToList();
+    }
 }
