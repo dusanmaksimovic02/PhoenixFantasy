@@ -63,4 +63,11 @@ public class StatsController : ControllerBase
 
         return Ok(stats);
     }
+
+    [HttpGet("GetStandings")]
+    public async Task<IActionResult> GetStandings()
+    {
+        var standings = await _service.GetStandings();
+        return Ok(standings);
+    }
 }

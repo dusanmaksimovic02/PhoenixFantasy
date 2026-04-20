@@ -100,6 +100,6 @@ public class StatsService
             }
         }
 
-        return standings.Values.OrderByDescending(t => t.Wins).ToList();
+        return standings.Values.OrderByDescending(x => x.Wins).ToList();
     }
 }
