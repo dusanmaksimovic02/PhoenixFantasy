@@ -1,3 +1,4 @@
+using FantasyApi.Models;
 using FantasyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,21 @@ public class StatsController : ControllerBase
     {
         var players = await _service.GetAllPlayers();
         return Ok(players);
+    }
+
+    [HttpGet("GetPlayersByPosition")]
+    public async Task<IActionResult> GetPlayersByPosition(string position)
+    {
+        var players = await _service.GetAllPlayers();
+        var playersByPosition = new List<Player>();
+        foreach (var p in players)
+        {
+            if (p.Position == position)
+            {
+                playersByPosition.Add(p);
+            }
+        }
+        return Ok(playersByPosition);
     }
 
     [HttpGet("GetAllCoaches")]

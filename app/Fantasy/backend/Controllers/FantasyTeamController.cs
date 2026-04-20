@@ -203,6 +203,29 @@ public class FantasyTeamController : ControllerBase
         return Ok(freePlayers);
     }
 
+    [HttpGet("GetAllFreePlayersByPosition/{leagueId}")]
+    public async Task<IActionResult> GetAllFreePlayersByPosition(Guid leagueId, string position)
+    {
+        var takenPlayerIds = await context
+            .FantasyTeamPlayers.Where(tp => tp.FantasyTeam!.LeagueId == leagueId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync();
+
+        var freePlayers = await statsDbContext
+            .Players.Where(p => !takenPlayerIds.Contains(p.Id) && p.Position == position)
+            .Select(p => new
+            {
+                p.Id,
+                p.FirstName,
+                p.LastName,
+                p.JerseyNumber,
+                p.Position,
+            })
+            .ToListAsync();
+
+        return Ok(freePlayers);
+    }
+
     [HttpGet("GetAllFreeCoaches/{leagueId}")]
     public async Task<IActionResult> GetAllFreeCoaches(Guid leagueId)
     {
