@@ -31,7 +31,8 @@ public class DraftTimerService : BackgroundService
             {
                 if (DateTime.UtcNow > draft.PickDeadline)
                 {
-                    draft.CurrentPickIndex++;
+                    int v = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
+                    draft.CurrentPickIndex = v;
                     draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
                     await _hubContext

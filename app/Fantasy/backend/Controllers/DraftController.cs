@@ -102,30 +102,31 @@ public class DraftController : ControllerBase
             new FantasyTeamPlayer { FantasyTeamId = dto.FantasyTeamId, PlayerId = dto.PlayerId }
         );
 
-        draft.CurrentPickIndex++;
+        //draft.CurrentPickIndex++;
+        draft.CurrentPickIndex = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
 
-        if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+        if (draft.CurrentPickIndex < draft.PickOrder.Count)
         {
-            draft.Phase = DraftPhase.Coach;
-            draft.CurrentPickIndex = 0;
             draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
             await context.SaveChangesAsync();
 
-            await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PhaseChanged", "Coach");
+            await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PlayerPicked", dto);
+
+            await hubContext
+                .Clients.Group(draft.Id.ToString())
+                .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
 
             return Ok();
         }
 
+        draft.Phase = DraftPhase.Coach;
+        draft.CurrentPickIndex = 0;
         draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
         await context.SaveChangesAsync();
 
-        await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PlayerPicked", dto);
-
-        await hubContext
-            .Clients.Group(draft.Id.ToString())
-            .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
+        await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PhaseChanged", "Coach");
 
         return Ok();
     }
@@ -172,8 +173,8 @@ public class DraftController : ControllerBase
             new FantasyTeamCoach { FantasyTeamId = dto.FantasyTeamId, CoachId = dto.CoachId }
         );
 
-        draft.CurrentPickIndex++;
-        draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
+        draft.CurrentPickIndex = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
+        //draft.PickDeadline = DateTime.Now.AddMinutes(1);
 
         await context.SaveChangesAsync();
 
