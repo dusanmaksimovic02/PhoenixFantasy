@@ -30,7 +30,7 @@ public class StatsController : ControllerBase
     }
 
     [HttpGet("GetPlayersByPosition")]
-    public async Task<IActionResult> GetPlayersByPosition(string position)
+    public async Task<IActionResult> GetPlayersByPosition([FromQuery] string position)
     {
         var players = await _service.GetAllPlayers();
         var playersByPosition = new List<Player>();
@@ -44,10 +44,32 @@ public class StatsController : ControllerBase
         return Ok(playersByPosition);
     }
 
+    [HttpGet("GetPlayersByTeam/{teamId}")]
+    public async Task<IActionResult> GetPlayersByTeam(Guid teamId)
+    {
+        var players = await _service.GetPlayersByTeam(teamId);
+
+        if (players == null)
+            return NotFound("Team ne postoji");
+
+        return Ok(players);
+    }
+
     [HttpGet("GetAllCoaches")]
     public async Task<IActionResult> GetAllCoaches()
     {
         var coaches = await _service.GetAllCoaches();
+        return Ok(coaches);
+    }
+
+    [HttpGet("GetCoachByTeam/{teamId}")]
+    public async Task<IActionResult> GetCoachByTeam(Guid teamId)
+    {
+        var coaches = await _service.GetCoachByTeam(teamId);
+
+        if (coaches == null)
+            return NotFound("Team ne postoji");
+
         return Ok(coaches);
     }
 

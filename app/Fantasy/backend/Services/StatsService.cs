@@ -106,4 +106,28 @@ public class StatsService
 
         return standings.Values.OrderByDescending(x => x.Wins).ToList();
     }
+
+    public async Task<List<Player>?> GetPlayersByTeam(Guid teamId)
+    {
+        var team = await _context
+            .Teams.Include(t => t.Players)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+
+        if (team == null)
+            return null;
+
+        return team.Players!.ToList();
+    }
+
+    public async Task<Coach?> GetCoachByTeam(Guid teamId)
+    {
+        var team = await _context
+            .Teams.Include(t => t.coach)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+
+        if (team?.coach == null)
+            return null;
+
+        return team.coach;
+    }
 }

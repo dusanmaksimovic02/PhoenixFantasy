@@ -9,4 +9,5 @@ export type Coach = {
   role: "Head Coach" | "Assistant Coach" | "Physiotherapist";
   description: string;
   photoUrl: string;
+  dateOfBirth: string;
 };
