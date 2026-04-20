@@ -72,6 +72,8 @@ public class StatsService
                     TeamName = game.HomeTeam.Name,
                     Wins = 0,
                     Losses = 0,
+                    TeamId = game.HomeTeam.Id,
+                    LogoPathUrl = game.HomeTeam.logoPathURL,
                 };
             }
 
@@ -82,6 +84,8 @@ public class StatsService
                     TeamName = game.GuestTeam.Name,
                     Wins = 0,
                     Losses = 0,
+                    TeamId = game.GuestTeam.Id,
+                    LogoPathUrl = game.GuestTeam.logoPathURL,
                 };
             }
 

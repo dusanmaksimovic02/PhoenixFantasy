@@ -9,5 +9,12 @@ export default defineConfig({
     https: {},
     port: 5174,
     strictPort: true,
+    proxy: {
+      "/images": {
+        target: "https://localhost:7034/",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 });
