@@ -5,9 +5,7 @@ export type Player = {
   dateOfBirth: string;
   jerseyNumber: string;
   position:
-    | "Point Guard"
-    | "Shooting Guard"
-    | "Small Forward"
-    | "Power Forward"
+    | "Guard"
+    | "Forward"
     | "Center";
 };

@@ -15,19 +15,10 @@ const formSchema = z.object({
   jerseyNumber: z
     .string()
     .regex(/^(0|[1-9][0-9]?|00)$/, "Jersey number must be between 00 and 99"),
-  position: z.enum(
-    [
-      "Point Guard",
-      "Shooting Guard",
-      "Small Forward",
-      "Power Forward",
-      "Center",
-    ],
-    {
-      message:
-        "Position must be one of: Point Guard, Shooting Guard, Small Forward, Power Forward, Center",
-    },
-  ),
+  position: z.enum(["Guard", "Forward", "Center"], {
+    message:
+      "Position must be one of: Point Guard, Shooting Guard, Small Forward, Power Forward, Center",
+  }),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -131,10 +122,8 @@ const EditPlayerModal: FC<EditPlayerModalProps> = ({
                   }`}
                 >
                   <option value="">Select Position</option>
-                  <option value="Point Guard">Point Guard</option>
-                  <option value="Shooting Guard">Shooting Guard</option>
-                  <option value="Small Forward">Small Forward</option>
-                  <option value="Power Forward">Power Forward</option>
+                  <option value="Guard">Guard</option>
+                  <option value="Forward">Forward</option>
                   <option value="Center">Center</option>
                 </select>
                 {errors.position && (

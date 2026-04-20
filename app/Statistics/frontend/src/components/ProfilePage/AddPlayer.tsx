@@ -16,10 +16,8 @@ const formSchema = z.object({
     .min(1, "Jersey number is required"),
   position: z.enum(
     [
-      "Point Guard",
-      "Shooting Guard",
-      "Small Forward",
-      "Power Forward",
+      "Guard",
+      "Forward",
       "Center",
     ],
     {
@@ -46,7 +44,7 @@ const AddPlayer: FC = () => {
       lastName: "",
       dateOfBirth: "",
       jerseyNumber: "",
-      position: "Point Guard",
+      position: "Guard",
     },
   });
 
@@ -121,10 +119,8 @@ const AddPlayer: FC = () => {
               className={`select select-bordered w-full  bg-neutral-300 dark:bg-neutral-700  focus:outline-black dark:focus:outline-white ${errors.position ? "select-error" : ""}`}
             >
               <option value="">Select Position</option>
-              <option value="Point Guard">Point Guard</option>
-              <option value="Shooting Guard">Shooting Guard</option>
-              <option value="Small Forward">Small Forward</option>
-              <option value="Power Forward">Power Forward</option>
+              <option value="Guard">Guard</option>
+              <option value="Forward">Forward</option>
               <option value="Center">Center</option>
             </select>
             {errors.position && (
