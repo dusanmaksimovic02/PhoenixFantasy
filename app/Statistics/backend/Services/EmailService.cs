@@ -16,7 +16,7 @@ namespace StatsApi.Services
         public async Task SendResetPasswordEmailAsync(string toEmail, string resetLink)
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Phoenix Statistics", _config["Email:From"]));
+            message.From.Add(new MailboxAddress("Phoenix Statistics", _config["Email:From"]??""));
             message.To.Add(new MailboxAddress("", toEmail));
             message.Subject = "Reset Your Password";
 
@@ -51,7 +51,7 @@ namespace StatsApi.Services
         public async Task SendPasswordChangedEmailAsync(string toEmail, string firstName)
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Phoenix Statistics", _config["Email:From"]));
+            message.From.Add(new MailboxAddress("Phoenix Statistics", _config["Email:From"]??""));
             message.To.Add(new MailboxAddress("", toEmail));
             message.Subject = "Your Password Was Changed";
 
