@@ -1,5 +1,5 @@
 export type TeamLineup = {
-  starter: PlayerView[];
+  starters: PlayerView[];
   bench: PlayerView[];
   captain: PlayerView;
   coach: CoachView;

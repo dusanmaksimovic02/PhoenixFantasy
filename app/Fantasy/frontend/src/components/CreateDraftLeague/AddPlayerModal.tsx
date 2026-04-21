@@ -1,11 +1,10 @@
 import type { Player } from "../../models/Player";
-import { getPlayersByPosition } from "../../services/StatsService";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import type { FC } from "react";
-import Loading from "../Loading";
 import jersey from "../../assets/images/jersey.png";
 import { pickPlayer } from "../../services/CreateDraftLeagueService";
 import { toast } from "react-toastify";
+import { useDraft } from "../../context/draft/useDraft";
 
 interface AddPlayerModalProps {
   isOpen: boolean;
@@ -22,19 +21,13 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
   teamId,
   draftId,
 }) => {
-  const {
-    data: freePlayers,
-    isFetching,
-    isFetched,
-  } = useQuery({
-    queryKey: ["freePlayers"],
-    queryFn: () => getPlayersByPosition(position),
-  });
+  const { availablePlayers } = useDraft();
 
   const addPlayerMutation = useMutation({
     mutationFn: (playerId: string) => pickPlayer(draftId, teamId, playerId),
     onSuccess: () => {
       toast.success("Player picked successfully!");
+      setIsOpen(false);
     },
     onError: (err) => {
       console.log(err);
@@ -56,17 +49,15 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
         </h1>
 
         <div className=" flex gap-3 overflow-x-auto flex-wrap">
-          {isFetching ? (
-            <Loading />
-          ) : (
-            isFetched &&
-            freePlayers?.map((p: Player, index) => (
+          {availablePlayers
+            .filter((p) => p.position == position)
+            .map((p: Player) => (
               <div
-                id={p.lastName + index}
+                id={p.id}
                 className="relative w-25 h-30  shrink-0 cursor-pointer"
-                onClick={() => {
-                  addPlayerMutation.mutate(p.id);
-                }}
+                onClick={() =>
+                  !addPlayerMutation.isPending && addPlayerMutation.mutate(p.id)
+                }
               >
                 <img src={jersey} alt="jersey image" className="w-25 h-30" />
                 <div className="absolute inset-0 w-full h-full  text-black flex flex-col justify-center items-center gap-3 pt-8.5">
@@ -78,8 +69,7 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
                   </p>
                 </div>
               </div>
-            ))
-          )}
+            ))}
         </div>
       </div>
     </dialog>

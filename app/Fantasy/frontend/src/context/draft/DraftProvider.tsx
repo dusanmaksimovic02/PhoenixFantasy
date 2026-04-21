@@ -11,6 +11,8 @@ import { getDraftSession } from "../../services/CreateDraftLeagueService";
 import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "react-toastify";
+import type { Player } from "../../models/Player";
+import { freePlayersInLeague } from "../../services/StatsService";
 
 export const createDraftConnection = () => {
   return new signalR.HubConnectionBuilder()
@@ -19,9 +21,19 @@ export const createDraftConnection = () => {
     .build();
 };
 
-type Props = { children: ReactNode; draftId: string; myTeamId: string };
+type Props = {
+  children: ReactNode;
+  draftId: string;
+  myTeamId: string;
+  leagueId: string;
+};
 
-export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
+export const DraftProvider: FC<Props> = ({
+  children,
+  draftId,
+  myTeamId,
+  leagueId,
+}) => {
   const [pickOrder, setPickOrder] = useState<any[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [deadline, setDeadline] = useState<string>("");
@@ -29,6 +41,7 @@ export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
   const [phase, setPhase] = useState<string>("Player");
   const pickOrderRef = useRef<any[]>([]);
   const queryClient = useQueryClient();
+  const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     if (!draftId) return;
@@ -54,6 +67,8 @@ export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
         setDeadline(utcDeadline);
         setDraftStarted(true);
         setPhase(data.phase);
+        const players = await freePlayersInLeague(leagueId);
+        setAvailablePlayers(players);
       } catch (err) {
         console.error("SignalR Connection/Sync Error: ", err);
       }
@@ -78,10 +93,16 @@ export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
       setDeadline(utcDeadline);
     });
 
-    connection.on("PlayerPicked", (data) => {
+    connection.on("PlayerPicked", async (data) => {
       toast.info(
         `Player ${data.playerFull.firstName} ${data.playerFull.lastName} has been picked!`,
       );
+      setAvailablePlayers((prevAvailable) =>
+        prevAvailable.filter((p) => p.id !== data.playerFull.id),
+      );
+      queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
+      const players = await freePlayersInLeague(leagueId);
+      setAvailablePlayers(players);
     });
 
     connection.on("CoachPicked", (data) => {
@@ -130,6 +151,7 @@ export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
         isMyTurn,
         pickOrder,
         phase,
+        availablePlayers,
       }}
     >
       {children}

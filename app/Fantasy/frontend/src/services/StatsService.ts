@@ -49,3 +49,15 @@ export const getCoachGameStats = async (coachId: string, gameId: string) => {
   );
   return response.data;
 };
+
+export const getPlayers = async () => {
+  const response = await apiClient.get<Player[]>("api/Stats/GetAllPlayers");
+  return response.data;
+};
+
+export const freePlayersInLeague = async (leagueId: string) => {
+  const response = await apiClient.get<Player[]>(
+    `FantasyTeam/GetAllFreePlayers/${leagueId}`,
+  );
+  return response.data;
+};

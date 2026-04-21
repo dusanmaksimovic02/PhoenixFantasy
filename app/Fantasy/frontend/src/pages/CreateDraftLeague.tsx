@@ -46,8 +46,16 @@ const CreateDraftLeague: FC = () => {
         <FantasyPlayerInLeague leagueId={res.leagueId} />
       </div>
       {isLeagueStarted && draftId && (
-        <DraftProvider draftId={draftId ? draftId : ""} myTeamId={res.teamId}>
-          <DraftArea teamName={res.teamName} teamId={res.teamId} draftId={draftId} />
+        <DraftProvider
+          draftId={draftId ? draftId : ""}
+          myTeamId={res.teamId}
+          leagueId={res.leagueId}
+        >
+          <DraftArea
+            teamName={res.teamName}
+            teamId={res.teamId}
+            draftId={draftId}
+          />
         </DraftProvider>
       )}
       <div className="flex-1 p-5 flex flex-col gap-10 max-md:justify-center max-md:items-center">

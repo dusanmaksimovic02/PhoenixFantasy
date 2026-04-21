@@ -4,18 +4,17 @@ import AddedPlayerToTeamCard from "./AddedPlayerToTeamCard";
 // import AddedCoachCard from "./NoCoachAddedCard";
 import NoAddedCoachCard from "./NoCoachAddedCard";
 import NoAddedPlayerCard from "./NoAddedPlayerCard";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getLineup } from "../../services/FantasyTeamService";
 import AddedCoachCard from "./AddedCoachCard";
 import AddPlayerModal from "./AddPlayerModal";
+import type { PlayerView } from "../../models/TeamLineUp";
 interface FantasyCourtProps {
   teamId: string;
   draftId: string;
 }
 
 const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
-  const queryClient = useQueryClient();
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [position, setPosition] = useState<string>("");
 
@@ -23,6 +22,10 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
     queryKey: ["teamLineup", teamId],
     queryFn: () => getLineup(teamId),
   });
+
+  const getStartersByPos = (pos: string) => {
+    return teamLineup?.starters?.filter((p: any) => p.position === pos) || [];
+  };
 
   return (
     <div className="relative w-fit border-2 rounded-2xl border-black dark:border-white">
@@ -35,100 +38,84 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
         <div>
           <div className="flex justify-center">
             <div className="shrink-0">
-              {teamLineup?.starter &&
-              teamLineup?.starter.length > 0 &&
-              teamLineup?.starter.filter((p) => p.position == "C") ? (
-                teamLineup?.starter
-                  .filter((p) => p.position == "C")
-                  .map((p) => <AddedPlayerToTeamCard />)
+              {getStartersByPos("Center").length > 0 ? (
+                getStartersByPos("Center").map((p: PlayerView) => (
+                  <div className="shrink-0 ">
+                    <AddedPlayerToTeamCard
+                      key={p.id}
+                      position="C"
+                      jerseyNumber={p.jerseyNumber}
+                      firstName={p.firstName}
+                      lastName={p.lastName}
+                      fantasyPoints={""}
+                    />
+                  </div>
+                ))
               ) : (
-                <NoAddedPlayerCard
-                  onPlusClick={() => {
-                    setPosition("Center");
-                    setIsOpen(true);
-                    queryClient.invalidateQueries({
-                      queryKey: ["freePlayers"],
-                    });
-                  }}
-                />
+                <div className="shrink-0 ">
+                  <NoAddedPlayerCard
+                    onPlusClick={() => {
+                      setPosition("Center");
+                      setIsOpen(true);
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
           <div className="flex px-15 justify-between w-full">
-            {teamLineup?.starter &&
-            teamLineup?.starter.length > 0 &&
-            teamLineup?.starter.filter((p) => p.position == "F") ? (
-              teamLineup?.starter
-                .filter((p) => p.position == "F")
-                .map((p) => (
-                  <div className="shrink-0">
-                    <AddedPlayerToTeamCard />
-                  </div>
-                ))
-            ) : (
-              <>
-                <div className="shrink-0">
+            {[0, 1].map((index) => {
+              const player = getStartersByPos("Forward")[index];
+              return player ? (
+                <div className="shrink-0 ">
+                  <AddedPlayerToTeamCard
+                    key={player.id}
+                    position={"F"}
+                    jerseyNumber={player.jerseyNumber}
+                    firstName={player.firstName}
+                    lastName={player.lastName}
+                    fantasyPoints={""}
+                  />
+                </div>
+              ) : (
+                <div className="shrink-0 ">
                   <NoAddedPlayerCard
+                    key={`f-${index}`}
                     onPlusClick={() => {
                       setPosition("Forward");
                       setIsOpen(true);
-                      queryClient.invalidateQueries({
-                        queryKey: ["freePlayers"],
-                      });
                     }}
                   />
                 </div>
-                <div className="shrink-0">
-                  <NoAddedPlayerCard
-                    onPlusClick={() => {
-                      setPosition("Forward");
-                      setIsOpen(true);
-                      queryClient.invalidateQueries({
-                        queryKey: ["freePlayers"],
-                      });
-                    }}
-                  />
-                </div>
-              </>
-            )}
+              );
+            })}
           </div>
           <div className="flex justify-center gap-10 w-full">
-            {teamLineup?.starter &&
-            teamLineup?.starter.length > 0 &&
-            teamLineup?.starter.filter((p) => p.position == "G") ? (
-              teamLineup?.starter
-                .filter((p) => p.position == "G")
-                .map((p) => (
-                  <div className="shrink-0">
-                    <AddedPlayerToTeamCard />
-                  </div>
-                ))
-            ) : (
-              <>
-                <div className="shrink-0">
+            {[0, 1].map((index) => {
+              const player = getStartersByPos("Guard")[index];
+              return player ? (
+                <div className="shrink-0 ">
+                  <AddedPlayerToTeamCard
+                    key={player.id}
+                    position={"F"}
+                    jerseyNumber={player.jerseyNumber}
+                    firstName={player.firstName}
+                    lastName={player.lastName}
+                    fantasyPoints={""}
+                  />
+                </div>
+              ) : (
+                <div className="shrink-0 ">
                   <NoAddedPlayerCard
+                    key={`f-${index}`}
                     onPlusClick={() => {
                       setPosition("Guard");
                       setIsOpen(true);
-                      queryClient.invalidateQueries({
-                        queryKey: ["freePlayers"],
-                      });
                     }}
                   />
                 </div>
-                <div className="shrink-0">
-                  <NoAddedPlayerCard
-                    onPlusClick={() => {
-                      setPosition("Guard");
-                      setIsOpen(true);
-                      queryClient.invalidateQueries({
-                        queryKey: ["freePlayers"],
-                      });
-                    }}
-                  />
-                </div>
-              </>
-            )}
+              );
+            })}
           </div>
         </div>
         <div className="flex mt-5 border-t-2 border-black dark:border-white overflow-hidden rounded-b-2xl backdrop-blur-xs h-34">
@@ -145,72 +132,32 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
               </>
             )}
           </div>
-          <div className="flex flex-1 w-full justify-start gap-3 items-center min-w-0 overflow-y-hidden overflow-x-auto scroll-m-0 h-full">
-            <div className="shrink-0">
-              {teamLineup?.bench &&
-              teamLineup?.bench.length > 0 &&
-              teamLineup?.bench ? (
-                teamLineup?.bench.map((p) => <AddedPlayerToTeamCard />)
-              ) : (
-                <div className="flex flex-1 w-full justify-start gap-3 items-center min-w-0 overflow-y-hidden overflow-x-auto scroll-m-0 h-full">
-                  <div className="shrink-0">
-                    <NoAddedPlayerCard
-                      onPlusClick={() => {
-                        setPosition("Guard");
-                        setIsOpen(true);
-                        queryClient.invalidateQueries({
-                          queryKey: ["freePlayers"],
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="shrink-0">
-                    <NoAddedPlayerCard
-                      onPlusClick={() => {
-                        setPosition("Guard");
-                        setIsOpen(true);
-                        queryClient.invalidateQueries({
-                          queryKey: ["freePlayers"],
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="shrink-0">
-                    <NoAddedPlayerCard
-                      onPlusClick={() => {
-                        setPosition("Forward");
-                        setIsOpen(true);
-                        queryClient.invalidateQueries({
-                          queryKey: ["freePlayers"],
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="shrink-0">
-                    <NoAddedPlayerCard
-                      onPlusClick={() => {
-                        setPosition("Forward");
-                        setIsOpen(true);
-                        queryClient.invalidateQueries({
-                          queryKey: ["freePlayers"],
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className="shrink-0">
-                    <NoAddedPlayerCard
-                      onPlusClick={() => {
-                        setPosition("Center");
-                        setIsOpen(true);
-                        queryClient.invalidateQueries({
-                          queryKey: ["freePlayers"],
-                        });
-                      }}
-                    />
-                  </div>
+          <div className="flex flex-1 w-full justify-start gap-3 items-center min-w-0 overflow-y-auto overflow-x-auto scroll-m-0 h-full">
+            {[0, 1, 2, 3, 4].map((index) => {
+              const player = teamLineup?.bench?.[index];
+              return player ? (
+                <div className="shrink-0 ">
+                  <AddedPlayerToTeamCard
+                    key={player.id}
+                    position={player.position[0]}
+                    jerseyNumber={player.jerseyNumber}
+                    firstName={player.firstName}
+                    lastName={player.lastName}
+                    fantasyPoints={""}
+                  />
                 </div>
-              )}
-            </div>
+              ) : (
+                <div className="shrink-0 ">
+                  <NoAddedPlayerCard
+                    key={`b-${index}`}
+                    onPlusClick={() => {
+                      setPosition("");
+                      setIsOpen(true);
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

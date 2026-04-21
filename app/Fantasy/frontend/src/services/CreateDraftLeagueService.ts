@@ -131,7 +131,7 @@ export const pickPlayer = async (
     if (axios.isAxiosError(e) && e.response) {
       const message = e.response.data?.message || "Adding player failed";
       toast.error(message);
-      console.log("Adding player ERROR:", message);
+      console.log("Adding player ERROR:", e);
     } else {
       toast.error("Adding player failed! Please try again later.");
       console.log(e);

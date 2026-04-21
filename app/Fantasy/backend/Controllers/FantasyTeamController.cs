@@ -347,6 +347,70 @@ public class FantasyTeamController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("GetDraftTeamStatus/{fantasyTeamId}")]
+    public async Task<IActionResult> GetDraftTeamStatus(Guid fantasyTeamId)
+    {
+        var pickedIds = await context
+            .FantasyTeamPlayers.Where(tp => tp.FantasyTeamId == fantasyTeamId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync();
+
+        var allPlayers = await statsDbContext
+            .Players.Where(p => pickedIds.Contains(p.Id))
+            .Select(p => new PlayerViewDto
+            {
+                PlayerId = p.Id,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                Position = p.Position ?? "N/A",
+                JerseyNumber = p.JerseyNumber,
+            })
+            .ToListAsync();
+
+        var starters = new List<PlayerViewDto>();
+        var bench = new List<PlayerViewDto>();
+
+        var guards = allPlayers.Where(p => p.Position == "Guard").ToList();
+        var forwards = allPlayers.Where(p => p.Position == "Forward").ToList();
+        var centers = allPlayers.Where(p => p.Position == "Center").ToList();
+
+        starters.AddRange(guards.Take(2));
+        starters.AddRange(forwards.Take(2));
+        starters.AddRange(centers.Take(1));
+
+        var starterIds = starters.Select(s => s.PlayerId).ToHashSet();
+        bench = allPlayers.Where(p => !starterIds.Contains(p.PlayerId)).ToList();
+
+        var coachId = await context
+            .FantasyTeamCoaches.Where(c => c.FantasyTeamId == fantasyTeamId)
+            .Select(c => c.CoachId)
+            .FirstOrDefaultAsync();
+
+        CoachViewDto? coach = null;
+        if (coachId != Guid.Empty)
+        {
+            coach = await statsDbContext
+                .Coaches.Where(c => c.Id == coachId)
+                .Select(c => new CoachViewDto
+                {
+                    CoachId = c.Id,
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        return Ok(
+            new TeamLineupDto
+            {
+                Starters = starters,
+                Bench = bench,
+                Captain = starters.FirstOrDefault(),
+                Coach = coach,
+            }
+        );
+    }
+
     [HttpPost("ChangeCaptain")]
     public async Task<IActionResult> ChangeCaptain(ChangeCaptainDto dto)
     {

@@ -12,7 +12,7 @@ const Standing: FC = () => {
     queryFn: () => getStandings(),
   });
   return (
-    <div className="w-screen h-fit flex justify-center items-center p-7 pb-10 pt-14">
+    <div className="w-screen h-fit min-h-screen flex justify-center items-center p-7 pb-10 pt-14">
       <div className="w-full h-fit mt-10 border border-surface overflow-hidden max-sm:overflow-x-scroll ">
         <table className="w-full">
           <thead className="border-[3px] border-surface bg-surface-light text-lg font-medium text-foreground  dark:bg-surface-dark">

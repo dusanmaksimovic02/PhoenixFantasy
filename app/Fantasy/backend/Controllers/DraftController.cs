@@ -33,6 +33,8 @@ public class DraftController : ControllerBase
     {
         var draft = await context
             .DraftSessions.Include(d => d.PickOrder)
+            .Include(d => d.League)
+                .ThenInclude(l => l.fantasyTeams)
             .FirstOrDefaultAsync(d => d.Id == dto.DraftId);
 
         if (draft == null)
