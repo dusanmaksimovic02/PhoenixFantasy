@@ -1,5 +1,5 @@
 export type Coach = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   country: string;

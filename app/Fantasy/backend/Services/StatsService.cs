@@ -43,9 +43,10 @@ public class StatsService
 
     public async Task<CoachGameStats?> GetCoachGameStats(Guid coachId, Guid gameId)
     {
-        return await _context.CoachGameStats.FirstOrDefaultAsync(x =>
-            x.Coach!.Id == coachId && x.Game!.Id == gameId
-        );
+        return await _context
+            .CoachGameStats.Include(x => x.Coach)
+            .Include(x => x.Game)
+            .FirstOrDefaultAsync(x => x.Coach!.Id == coachId && x.Game!.Id == gameId);
     }
 
     public async Task<List<TeamStandingDto>> GetStandings()
@@ -129,5 +130,14 @@ public class StatsService
             return null;
 
         return team.coach;
+    }
+
+    public async Task<List<Game>> GetAllGamesForTeam(Guid teamId)
+    {
+        return await _context
+            .Games.Include(g => g.HomeTeam)
+            .Include(g => g.GuestTeam)
+            .Where(t => t.HomeTeam!.Id == teamId || t.GuestTeam!.Id == teamId)
+            .ToListAsync();
     }
 }

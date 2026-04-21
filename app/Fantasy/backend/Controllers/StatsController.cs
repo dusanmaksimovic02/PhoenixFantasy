@@ -91,7 +91,7 @@ public class StatsController : ControllerBase
         return Ok(stats);
     }
 
-    [HttpGet("GetCoachGameStats")]
+    [HttpGet("GetCoachGameStats/{coachId}/{gameId}")]
     public async Task<IActionResult> GetCoachGameStats(Guid coachId, Guid gameId)
     {
         var stats = await _service.GetCoachGameStats(coachId, gameId);
@@ -107,5 +107,12 @@ public class StatsController : ControllerBase
     {
         var standings = await _service.GetStandings();
         return Ok(standings);
+    }
+
+    [HttpGet("GetAllGamesForTeam/{teamId}")]
+    public async Task<IActionResult> GetAllGamesForTeam(Guid teamId)
+    {
+        var games = await _service.GetAllGamesForTeam(teamId);
+        return Ok(games);
     }
 }

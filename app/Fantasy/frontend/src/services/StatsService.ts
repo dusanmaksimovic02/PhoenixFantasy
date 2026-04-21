@@ -1,7 +1,9 @@
 import type { Coach } from "../models/Coach.modal";
 import type { Player } from "../models/Player";
+import type { Game } from "../models/Game";
 import type { TeamStanding } from "../models/TeamStanding";
 import apiClient from "./client";
+import type { CoachStats } from "@/models/CoachStats";
 
 export const getStandings = async () => {
   const response = await apiClient.get<TeamStanding[]>(
@@ -30,6 +32,20 @@ export const getPlayersByPosition = async (position: string) => {
     {
       params: { position },
     },
+  );
+  return response.data;
+};
+
+export const getAllGamesForTeam = async (teamId: string) => {
+  const response = await apiClient.get<Game[]>(
+    `api/Stats/GetAllGamesForTeam/${teamId}`,
+  );
+  return response.data;
+};
+
+export const getCoachGameStats = async (coachId: string, gameId: string) => {
+  const response = await apiClient.get<CoachStats>(
+    `api/Stats/GetCoachGameStats/${coachId}/${gameId}`,
   );
   return response.data;
 };
