@@ -3,9 +3,12 @@ import jersey from "../../assets/images/jersey.png";
 import { FaPlus } from "react-icons/fa";
 import { useDraft } from "../../context/draft/useDraft";
 
-const NoAddedPlayerCard: FC = () => {
-  const { isMyTurn } = useDraft();
+interface NoAddedPlayerCardProps {
+  onPlusClick: () => void;
+}
 
+const NoAddedPlayerCard: FC<NoAddedPlayerCardProps> = ({ onPlusClick }) => {
+  const { isMyTurn } = useDraft();
   return (
     <div className="relative w-fit">
       <img src={jersey} alt="jersey image" className="w-20 h-30" />
@@ -23,9 +26,9 @@ const NoAddedPlayerCard: FC = () => {
         }}
       >
         <FaPlus
-          className={`text-white ${isMyTurn() ? "hover:cursor-pointer hover:scale-120" : "pointer-events-none hover:cursor-auto"}`}
+          className={`text-white ${isMyTurn ? "hover:cursor-pointer hover:scale-120" : "pointer-events-none hover:cursor-auto"}`}
           size={25}
-          onClick={() => console.log("")}
+          onClick={onPlusClick}
         />
         <p className="text-[13px] text-white">Player</p>
       </div>

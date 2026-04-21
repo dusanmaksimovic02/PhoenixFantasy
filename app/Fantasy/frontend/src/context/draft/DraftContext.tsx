@@ -4,7 +4,9 @@ type DraftContextType = {
   currentTurn: string;
   deadline: string;
   draftStarted: boolean;
-  isMyTurn: () => boolean;
+  isMyTurn: boolean;
+  pickOrder: any[];
+  phase: string;
 };
 
 export const DraftContext = createContext<DraftContextType>(

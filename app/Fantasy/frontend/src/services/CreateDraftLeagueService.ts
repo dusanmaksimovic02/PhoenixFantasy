@@ -115,14 +115,37 @@ export const getDraftSessionId = async (leagueId: string) => {
   return response.data;
 };
 
-export const pickPlayer = async ()=>
-{
-  const response = await apiClient.post("Draft/PickPlayer");
-  return response.data;
-}
+export const pickPlayer = async (
+  draftId: string,
+  fantasyTeamId: string,
+  playerId: string,
+) => {
+  try {
+    const response = await apiClient.post("Draft/PickPlayer", {
+      draftId,
+      fantasyTeamId,
+      playerId,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Adding player failed";
+      toast.error(message);
+      console.log("Adding player ERROR:", message);
+    } else {
+      toast.error("Adding player failed! Please try again later.");
+      console.log(e);
+    }
+    throw e;
+  }
+};
 
-export const pickCoach = async ()=>
-{
+export const pickCoach = async () => {
   const response = await apiClient.post("Draft/PickCoach");
   return response.data;
-}
+};
+
+export const getDraftSession = async (draftId: string) => {
+  const response = await apiClient.get(`Draft/GetDraftStatus/${draftId}`);
+  return response.data;
+};

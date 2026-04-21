@@ -29,7 +29,7 @@ public class DraftController : ControllerBase
     }
 
     [HttpPost("PickPlayer")]
-    public async Task<IActionResult> PickPlayer(PickPlayerDto dto)
+    public async Task<IActionResult> PickPlayer([FromBody] PickPlayerDto dto)
     {
         var draft = await context
             .DraftSessions.Include(d => d.PickOrder)
@@ -57,10 +57,13 @@ public class DraftController : ControllerBase
         if (exists)
             return BadRequest("Igrač već izabran");
 
-        var player = await statsDbContext
+        var playerFull = await statsDbContext
             .Players.Where(p => p.Id == dto.PlayerId)
-            .Select(p => new { p.Id, p.Position })
             .FirstOrDefaultAsync();
+
+        if (playerFull == null) return BadRequest("Igrač nije pronađen");
+
+        var player = new { playerFull.Position, playerFull.Id };
 
         if (player == null)
             return BadRequest("Igrač ne postoji");
@@ -111,7 +114,9 @@ public class DraftController : ControllerBase
 
             await context.SaveChangesAsync();
 
-            await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PlayerPicked", dto);
+            await hubContext
+                .Clients.Group(draft.Id.ToString())
+                .SendAsync("PlayerPicked", new { playerFull });
 
             await hubContext
                 .Clients.Group(draft.Id.ToString())
@@ -255,5 +260,29 @@ public class DraftController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpGet("GetDraftStatus/{draftId}")]
+    public async Task<IActionResult> GetDraftStatus(Guid draftId)
+    {
+        var draft = await context
+            .DraftSessions.Include(d => d.PickOrder)
+            .FirstOrDefaultAsync(d => d.Id == draftId);
+
+        if (draft == null)
+            return NotFound("Sesija nije pronadjena");
+
+        return Ok(
+            new
+            {
+                draft.Id,
+                draft.CurrentPickIndex,
+                draft.PickDeadline,
+                PickOrder = draft
+                    .PickOrder.OrderBy(p => p.Order)
+                    .Select(p => new { p.Order, p.FantasyTeamId }),
+                draft.Phase,
+            }
+        );
     }
 }

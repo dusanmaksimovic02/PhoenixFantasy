@@ -5,7 +5,7 @@ import {
   isDraftStarted,
   startDraft,
 } from "../../services/CreateDraftLeagueService";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type FC } from "react";
 
 interface StartDraftProps {
@@ -14,6 +14,7 @@ interface StartDraftProps {
 
 const StartDraft: FC<StartDraftProps> = ({ leagueId }) => {
   const { id } = useAuth();
+  const queryClient = useQueryClient();
 
   const { data: leagueAdminId } = useQuery({
     queryKey: ["leagueAdminId"],
@@ -23,12 +24,15 @@ const StartDraft: FC<StartDraftProps> = ({ leagueId }) => {
   const { data: isLeagueStarted } = useQuery({
     queryKey: ["isLeagueStarted"],
     queryFn: () => isDraftStarted(leagueId),
+    refetchInterval: 3000,
   });
 
   const startDraftMutation = useMutation({
     mutationFn: async () => startDraft(leagueId),
     onSuccess: () => {
       toast.success("Successfully started draft league!");
+      queryClient.invalidateQueries({ queryKey: ["isLeagueStarted"] });
+      queryClient.invalidateQueries({ queryKey: ["draftId"] });
     },
     onError: (err) => {
       toast.error("Error while starting draft league!");

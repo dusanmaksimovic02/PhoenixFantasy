@@ -25,19 +25,26 @@ public class DraftTimerService : BackgroundService
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<FantasyDbContext>();
 
-            var drafts = context.DraftSessions.Where(d => d.IsActive).ToList();
+            var drafts = await context
+                .DraftSessions.Include(d => d.League)
+                    .ThenInclude(l => l!.fantasyTeams)
+                .Where(d => d.IsActive)
+                .ToListAsync(stoppingToken);
 
             foreach (var draft in drafts)
             {
                 if (DateTime.UtcNow > draft.PickDeadline)
                 {
-                    int v = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
-                    draft.CurrentPickIndex = v;
+                    draft.CurrentPickIndex =
+                        (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
                     draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
                     await _hubContext
                         .Clients.Group(draft.Id.ToString())
-                        .SendAsync("PickSkipped", draft.CurrentPickIndex);
+                        .SendAsync(
+                            "PickSkipped",
+                            new { draft.CurrentPickIndex, draft.PickDeadline }
+                        );
                 }
             }
 

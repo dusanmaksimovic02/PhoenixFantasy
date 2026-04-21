@@ -1,6 +1,23 @@
-import { useEffect, useState, type FC, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  useMemo,
+  type FC,
+  type ReactNode,
+  useRef,
+} from "react";
 import { DraftContext } from "./DraftContext";
-import { createDraftConnection } from "../../components/CreateDraftLeague/CreateDraftConnection";
+import { getDraftSession } from "../../services/CreateDraftLeagueService";
+import { useQueryClient } from "@tanstack/react-query";
+import * as signalR from "@microsoft/signalr";
+import { toast } from "react-toastify";
+
+export const createDraftConnection = () => {
+  return new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7035/draftHub")
+    .withAutomaticReconnect()
+    .build();
+};
 
 type Props = { children: ReactNode; draftId: string; myTeamId: string };
 
@@ -9,49 +26,110 @@ export const DraftProvider: FC<Props> = ({ children, draftId, myTeamId }) => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [deadline, setDeadline] = useState<string>("");
   const [draftStarted, setDraftStarted] = useState<boolean>(false);
+  const [phase, setPhase] = useState<string>("Player");
+  const pickOrderRef = useRef<any[]>([]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    const connection = createDraftConnection(draftId);
+    if (!draftId) return;
+
+    const connection = createDraftConnection();
+
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        console.log("SignalR Connected!");
+
+        await connection.invoke("JoinDraft", draftId);
+
+        const data = await getDraftSession(draftId);
+        console.log("Pokupio sam podatke o sesiji:", data);
+        setPickOrder(data.pickOrder);
+        setCurrentIndex(data.currentPickIndex ?? 0);
+        const rawDeadline = data.pickDeadline;
+        const utcDeadline = rawDeadline.endsWith("Z")
+          ? rawDeadline
+          : rawDeadline + "Z";
+
+        setDeadline(utcDeadline);
+        setDraftStarted(true);
+        setPhase(data.phase);
+      } catch (err) {
+        console.error("SignalR Connection/Sync Error: ", err);
+      }
+    };
 
     connection.on("DraftStarted", (data) => {
+      console.log("DraftStarted", data);
       setDraftStarted(true);
       setPickOrder(data.pickOrder);
       setCurrentIndex(data.currentPickIndex);
       setDeadline(data.pickDeadline);
+      queryClient.invalidateQueries({ queryKey: ["isLeagueStarted"] });
+      queryClient.invalidateQueries({ queryKey: ["draftId"] });
     });
 
     connection.on("TurnChanged", (data) => {
       setCurrentIndex(data.currentPickIndex);
-      setDeadline(data.pickDeadline);
+      const rawDeadline = data.pickDeadline;
+      const utcDeadline = rawDeadline.endsWith("Z")
+        ? rawDeadline
+        : rawDeadline + "Z";
+      setDeadline(utcDeadline);
     });
 
     connection.on("PlayerPicked", (data) => {
-      console.log("Player picked", data);
+      toast.info(
+        `Player ${data.playerFull.firstName} ${data.playerFull.lastName} has been picked!`,
+      );
     });
 
     connection.on("CoachPicked", (data) => {
-      console.log("Coach picked", data);
+      console.log("Trener zauzet:", data.coachId);
     });
+
+    connection.on("PhaseChanged", (newPhase) => {
+      console.log("Nova faza drafta:", newPhase);
+    });
+
+    connection.on("PickSkipped", (data) => {
+      console.log("Korisnik je preskočen, novi index:", data.currentPickIndex);
+      setCurrentIndex(data.currentPickIndex);
+      const rawDeadline = data.pickDeadline;
+      const utcDeadline = rawDeadline.endsWith("Z")
+        ? rawDeadline
+        : rawDeadline + "Z";
+
+      setDeadline(utcDeadline);
+      console.log(pickOrderRef.current);
+    });
+
+    startConnection();
 
     return () => {
       connection.stop();
     };
   }, [draftId]);
 
-  const isMyTurn = (): boolean => {
-    if (!pickOrder || pickOrder.length === 0) return false;
+  useEffect(() => {
+    pickOrderRef.current = pickOrder;
+  }, [pickOrder]);
 
-    const currentTeamId = pickOrder[currentIndex]?.fantasyTeamId;
-    return currentTeamId === myTeamId;
-  };
+  const currentTurnTeamId = useMemo(() => {
+    return pickOrder[currentIndex]?.fantasyTeamId;
+  }, [pickOrder, currentIndex]);
+
+  const isMyTurn = currentTurnTeamId === myTeamId;
 
   return (
     <DraftContext.Provider
       value={{
-        currentTurn: pickOrder[currentIndex]?.fantasyTeamId || "",
+        currentTurn: currentTurnTeamId,
         deadline,
         draftStarted,
         isMyTurn,
+        pickOrder,
+        phase,
       }}
     >
       {children}

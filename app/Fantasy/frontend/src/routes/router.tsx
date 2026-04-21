@@ -17,6 +17,7 @@ import FantasyLayout from "../components/FantasyPage/FantasyLayout";
 import DraftLeague from "../pages/DraftLeague";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
+import { ProtectedLoader } from "./ProtectedLoader";
 
 export const router = createBrowserRouter([
   {
@@ -37,10 +38,12 @@ export const router = createBrowserRouter([
           {
             element: <CreateDraftLeague />,
             path: "draft/:leagueName/:code",
+            loader: ProtectedLoader,
           },
           {
             element: <DraftLeague />,
             path: "draft/:leagueName",
+            loader: ProtectedLoader,
           },
         ],
       },
@@ -59,6 +62,7 @@ export const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+        loader: ProtectedLoader,
       },
       {
         path: "statistics",
