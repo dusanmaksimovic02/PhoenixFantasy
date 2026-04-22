@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using FantasyApi.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,9 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<StatsService>();
 builder.Services.AddHostedService<DraftTimerService>();
 builder.Services.AddScoped<FantasyPointsService>();
+builder.Services.AddScoped<PlayerStatsUpdatedHandler>();
+builder.Services.AddScoped<GameEndedHandler>();
+builder.Services.AddScoped<GameScoreUpdatedHandler>();
 
 builder
     .Services.AddIdentity<Person, IdentityRole>()
@@ -132,6 +136,8 @@ app.UseHttpsRedirection();
 app.UseCors("Frontend");
 
 app.MapHub<DraftHub>("/draftHub");
+app.MapHub<DraftHub>("/fantasyHub");
+app.MapHub<GameScoreHub>("/gameScoreHub");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
-
+using StatsApi.Events;
 using StatsApi.Models;
 using StatsApi.Services;
 using System.Text.Json;
@@ -23,12 +23,9 @@ public class PlayerStatService
     public async Task UpdateStatAsync(UpdatePlayerStatDto dto)
     {
         if (!Guid.TryParse(dto.PlayerId, out var pId) || !Guid.TryParse(dto.GameId, out var gId))
-        {
             throw new Exception("ID format nije validan.");
-        }
 
         var stats = await _context.PlayerGameStats
-        .Include(x => x.Player)
             .Include(x => x.Game).ThenInclude(g => g!.HomeTeam)
             .Include(x => x.Game).ThenInclude(g => g!.GuestTeam)
             .FirstOrDefaultAsync(x => x.PlayerId == pId && x.GameId == gId);
@@ -43,53 +40,78 @@ public class PlayerStatService
         }
 
         await _context.SaveChangesAsync();
+
+       
         var playerEvent = new PlayerStatsUpdatedEvent
         {
             PlayerId = stats.PlayerId,
             GameId = stats.GameId,
-        
             Points = stats.Points ?? 0,
-        
             Made1p = stats.Made1p ?? 0,
             Miss1p = stats.Miss1p ?? 0,
-        
             Made2p = stats.Made2p ?? 0,
             Miss2p = stats.Miss2p ?? 0,
-        
             Made3p = stats.Made3p ?? 0,
             Miss3p = stats.Miss3p ?? 0,
-        
             Assists = stats.Assists ?? 0,
-        
             Rebounds = stats.Rebounds ?? 0,
             OffensiveRebounds = stats.OffensiveRebounds ?? 0,
             DefensiveRebounds = stats.DefensiveRebounds ?? 0,
-        
             Steals = stats.Steals ?? 0,
             Blocks = stats.Blocks ?? 0,
             RecievedBlocks = stats.RecievedBlocks ?? 0,
-        
             Turnovers = stats.Turnovers ?? 0,
-        
             PersonalFouls = stats.PersonalFouls ?? 0,
             RecievedFouls = stats.RecievedFouls ?? 0,
             TechnicalFouls = stats.TechnicalFouls ?? 0,
-        
             Pir = stats.Pir ?? 0,
             SecondsPlayed = stats.SecondsPlayed ?? 0,
-        
             IsStarter = stats.IsStarter ?? false,
-        
             Timestamp = DateTime.Now
         };
 
-        var json = JsonSerializer.Serialize(playerEvent);
+        var playerJson = JsonSerializer.Serialize(playerEvent);
 
         await _rabbitMQ.PublishToExchangeAsync(
             exchangeName: "stats.topic",
             routingKey: "player.stats.updated",
-            message: json
+            message: playerJson
         );
+
+        
+        if (stats.Game?.HomeTeam != null && stats.Game?.GuestTeam != null)
+        {
+            var scoreEvent = new GameScoreUpdatedEvent
+            {
+                GameId = stats.GameId,
+                HomeTeamId = stats.Game.HomeTeam.Id,
+                GuestTeamId = stats.Game.GuestTeam.Id,
+                HomeTeamName = stats.Game.HomeTeam.Name ?? "",
+                GuestTeamName = stats.Game.GuestTeam.Name ?? "",
+                HomeTeamScore = stats.Game.HomeTeamScore,
+                GuestTeamScore = stats.Game.GuestTeamScore,
+                Timestamp = DateTime.Now
+            };
+
+            var scoreJson = JsonSerializer.Serialize(scoreEvent);
+
+            
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _rabbitMQ.PublishToExchangeAsync(
+                        exchangeName: "stats.topic",
+                        routingKey: "game.score.updated",
+                        message: scoreJson
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RabbitMQ ERROR] Failed to publish score update: {ex.Message}");
+                }
+            });
+        }
     }
 
     public async Task<IEnumerable<PlayerGameStats>> GetTeamPlayersFromGame(Guid teamId, Guid gameId)
@@ -125,8 +147,8 @@ public class PlayerStatService
 
         var players = await _context.PlayerGameStats
             .Where(
-                pgs => pgs.Game!.Id == gameId && 
-                teamPlayerIds.Contains(pgs.Player!.Id) && 
+                pgs => pgs.Game!.Id == gameId &&
+                teamPlayerIds.Contains(pgs.Player!.Id) &&
                 pgs.IsStarter == true)
             .Select(pgs => pgs.Player)
             .ToListAsync();
@@ -134,7 +156,7 @@ public class PlayerStatService
         return players!;
 
         // return await _context.PlayerGameStats
-        // .Where(x => x.Game!.Id == gameId && 
+        // .Where(x => x.Game!.Id == gameId &&
         //             x.IsStarter == true &&
         //             _context.Teams.Any(t => t.Id == teamId && t.Players!.Any(p => p.Id == x.Player!.Id)))
         // .Select(pgs => pgs.Player!)
@@ -151,8 +173,8 @@ public class PlayerStatService
 
         var players = await _context.PlayerGameStats
             .Where(
-                pgs => pgs.Game!.Id == gameId && 
-                teamPlayerIds.Contains(pgs.Player!.Id) && 
+                pgs => pgs.Game!.Id == gameId &&
+                teamPlayerIds.Contains(pgs.Player!.Id) &&
                 pgs.IsStarter == false)
             .Select(pgs => pgs.Player)
             .ToListAsync();
@@ -160,7 +182,7 @@ public class PlayerStatService
         return players!;
 
         // return await _context.PlayerGameStats
-        // .Where(x => x.Game!.Id == gameId && 
+        // .Where(x => x.Game!.Id == gameId &&
         //             x.IsStarter == true &&
         //             _context.Teams.Any(t => t.Id == teamId && t.Players!.Any(p => p.Id == x.Player!.Id)))
         // .Select(pgs => pgs.Player!)
@@ -190,10 +212,8 @@ public class PlayerStatService
                 x.Player!.Id == newStarter)
             .FirstOrDefaultAsync();
 
-        if(prevStarterStats == null || newStarterStats == null)
-        {
+        if (prevStarterStats == null || newStarterStats == null)
             return;
-        }
 
         prevStarterStats!.IsStarter = false;
         newStarterStats!.IsStarter = true;

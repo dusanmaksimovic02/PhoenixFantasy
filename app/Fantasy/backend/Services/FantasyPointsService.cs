@@ -27,18 +27,14 @@ public class FantasyPointsService
         foreach (var round in playerRounds)
         {
             var strategy = StrategyFactory.GetStrategy(round.Role);
-
             double points = strategy.CalculatePoints(round.PlayerGameStats, null);
-
             totalPoints += points;
         }
 
         if (coachRound != null)
         {
             var coachStrategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
-
             double coachPoints = coachStrategy.CalculatePoints(null, coachRound.CoachGameStats);
-
             totalPoints += coachPoints;
         }
 
@@ -56,7 +52,6 @@ public class FantasyPointsService
         foreach (var round in playerRounds)
         {
             var strategy = StrategyFactory.GetStrategy(round.Role);
-
             double points = strategy.CalculatePoints(round.PlayerGameStats, null);
 
             var dto = new CalculatePointsDto
@@ -76,7 +71,6 @@ public class FantasyPointsService
         if (coachRound != null)
         {
             var strategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
-
             double points = strategy.CalculatePoints(null, coachRound.CoachGameStats);
 
             var dto = new CalculatePointsDto
@@ -94,5 +88,21 @@ public class FantasyPointsService
         }
 
         return result;
+    }
+
+    
+    public async Task PushPlayerPointsAsync(Guid fantasyTeamId, CalculatePointsDto dto)
+    {
+        await _hubContext
+            .Clients.Group(fantasyTeamId.ToString())
+            .SendAsync("PlayerPointsUpdated", dto);
+    }
+
+   
+    public async Task PushCoachPointsAsync(Guid fantasyTeamId, CalculatePointsDto dto)
+    {
+        await _hubContext
+            .Clients.Group(fantasyTeamId.ToString())
+            .SendAsync("CoachPointsUpdated", dto);
     }
 }

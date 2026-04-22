@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StatsApi.Data;
-using StatsApi.Models;
-using System.Text.Json;
 using StatsApi.Events;
+using StatsApi.Models;
 using StatsApi.Services;
-
+using System.Text.Json;
 
 namespace StatsApi.Controllers;
 
@@ -27,20 +26,20 @@ public class GameController : ControllerBase
     {
         try
         {
-                var game = await context.Games
-                // .AsNoTracking()
-                    // .Include(g => g.HomeTeam)
-                    // .ThenInclude(t => t!.coach)
-                    .Include(g => g.HomeTeam)
-                    // .ThenInclude(t => t!.Players)
-                    .Include(g => g.GuestTeam)
-                    // .ThenInclude(t => t!.coach)
-                    // .Include(g => g.GuestTeam)
-                    // .ThenInclude(t => t!.Players)
-                    .Include(g => g.Referee)
-                    .Where(g => g.Id == id)
-                    // .AsSplitQuery()
-                    .FirstOrDefaultAsync();
+            var game = await context.Games
+            // .AsNoTracking()
+                // .Include(g => g.HomeTeam)
+                // .ThenInclude(t => t!.coach)
+                .Include(g => g.HomeTeam)
+                // .ThenInclude(t => t!.Players)
+                .Include(g => g.GuestTeam)
+                // .ThenInclude(t => t!.coach)
+                // .Include(g => g.GuestTeam)
+                // .ThenInclude(t => t!.Players)
+                .Include(g => g.Referee)
+                .Where(g => g.Id == id)
+                // .AsSplitQuery()
+                .FirstOrDefaultAsync();
             return Ok(game);
         }
         catch (Exception e)
@@ -95,6 +94,7 @@ public class GameController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpPost("AddGame")]
     public async Task<ActionResult> AddGame([FromBody] AddGameDto dto)
     {
@@ -142,11 +142,9 @@ public class GameController : ControllerBase
             ($"Game with Id {game.GameId} doesn't exist");
 
             var homeTeam = await context.Teams.FirstOrDefaultAsync(x => x.Id == game.HomeTeamId);
-
             var guestTeam = await context.Teams.FirstOrDefaultAsync(x => x.Id == game.GuestTeamId);
-
             var referee = await context.Persons.FirstOrDefaultAsync(x => x.Id == game.RefereeId);
-            
+
             if (homeTeam == null || guestTeam == null || referee == null)
             {
                 return BadRequest("One entity doesn't exist!");
@@ -228,46 +226,46 @@ public class GameController : ControllerBase
                 return BadRequest("Maximum 12 players per team allowed");
             if (dto.HomeStartersIds.Count != 5 || dto.GuestStartersIds.Count != 5)
                 return BadRequest("Each team must have exactly 5 starters");
-    
+
             if (!Guid.TryParse(dto.GameId.ToString(), out var gameGuid))
-                 return BadRequest("Invalid Game ID");
-    
+                return BadRequest("Invalid Game ID");
+
             var game = await context.Games
                 .Include(g => g.HomeTeam).ThenInclude(t => t!.coach)
                 .Include(g => g.GuestTeam).ThenInclude(t => t!.coach)
                 .AsSplitQuery()
                 .FirstOrDefaultAsync(g => g.Id == gameGuid)
                 ?? throw new Exception("Game not found");
-    
+
             if (game.HomeTeam?.coach == null || game.GuestTeam?.coach == null)
                 return BadRequest("Both teams must have a coach before starting the game");
-    
+
             var alreadyStarted = await context.PlayerGameStats
-                .AnyAsync(pgs => pgs.GameId == gameGuid); 
-    
+                .AnyAsync(pgs => pgs.GameId == gameGuid);
+
             if (alreadyStarted)
                 return BadRequest("Game already started");
-    
+
             var coachStatsExist = await context.CoachGameStats
                 .AnyAsync(cgs => cgs.Game!.Id == gameGuid);
-    
+
             if (coachStatsExist)
                 return BadRequest("Coach stats already created");
-    
+
             var allPlayerIds = dto.HomeTeamPlayerIds
                 .Concat(dto.GuestTeamPlayerIds)
                 .Distinct()
                 .ToList();
-    
+
             var players = await context.Players
                 .Where(p => allPlayerIds.Contains(p.Id))
                 .ToListAsync();
-    
+
             var stats = new List<PlayerGameStats>();
             foreach (var player in players)
             {
                 bool isHomePlayer = dto.HomeTeamPlayerIds.Contains(player.Id);
-                
+
                 stats.Add(new PlayerGameStats
                 {
                     Id = Guid.NewGuid(),
@@ -275,7 +273,7 @@ public class GameController : ControllerBase
                     PlayerId = player.Id,
                     TeamId = isHomePlayer ? game.HomeTeam!.Id : game.GuestTeam!.Id,
                     IsStarter = dto.HomeStartersIds.Contains(player.Id) || dto.GuestStartersIds.Contains(player.Id),
-                    
+
                     Points = 0,
                     Made1p = 0,
                     Miss1p = 0,
@@ -297,7 +295,7 @@ public class GameController : ControllerBase
                     TechnicalFouls = 0
                 });
             }
-    
+
             var coachStats = new List<CoachGameStats>
             {
                 new CoachGameStats
@@ -319,12 +317,12 @@ public class GameController : ControllerBase
                     Difference = 0
                 }
             };
-    
+
             context.PlayerGameStats.AddRange(stats);
             context.CoachGameStats.AddRange(coachStats);
-    
+
             await context.SaveChangesAsync();
-    
+
             return Ok(new { message = "Game started successfully" });
         }
         catch (Exception e)
@@ -469,16 +467,15 @@ public class GameController : ControllerBase
         try
         {
             var game = await context.Games
-                .Include(g => g.HomeTeam)
-                    .ThenInclude(t => t!.coach)
-                .Include(g => g.GuestTeam)
-                    .ThenInclude(t => t!.coach)
+                .Include(g => g.HomeTeam).ThenInclude(t => t!.coach)
+                .Include(g => g.GuestTeam).ThenInclude(t => t!.coach)
                 .FirstOrDefaultAsync(g => g.Id == gameId)
                 ?? throw new Exception("Game not found");
 
             if (game.HomeTeamScore == 0 || game.GuestTeamScore == 0)
                 return BadRequest("Game score is not set");
 
+            
             var coachStats = await context.CoachGameStats
                 .Where(cgs => cgs.Game!.Id == gameId)
                 .Include(cgs => cgs.Coach)
@@ -487,22 +484,20 @@ public class GameController : ControllerBase
             if (coachStats.Count != 2)
                 return BadRequest("Coach stats not properly initialized");
 
+           
             foreach (var stat in coachStats)
             {
                 if (stat.Coach!.Id == game.HomeTeam!.coach!.Id)
-                {
                     stat.Difference = game.HomeTeamScore - game.GuestTeamScore;
-                }
                 else if (stat.Coach.Id == game.GuestTeam!.coach!.Id)
-                {
                     stat.Difference = game.GuestTeamScore - game.HomeTeamScore;
-                }
             }
 
             context.CoachGameStats.UpdateRange(coachStats);
             await context.SaveChangesAsync();
 
-             var gameEndedEvent = new GameEndedEvent
+            
+            var gameEndedEvent = new GameEndedEvent
             {
                 GameId = game.Id,
                 HomeTeamId = game.HomeTeam!.Id,
@@ -511,12 +506,24 @@ public class GameController : ControllerBase
                 GuestTeamName = game.GuestTeam.Name ?? "",
                 HomeTeamScore = game.HomeTeamScore,
                 GuestTeamScore = game.GuestTeamScore,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now,
+                
+                CoachStats = coachStats.Select(cs => new CoachStatsSnapshot
+                {
+                    CoachId = cs.Coach!.Id,
+                    TeamId = cs.Coach.Id == game.HomeTeam!.coach!.Id
+                        ? game.HomeTeam.Id
+                        : game.GuestTeam!.Id,
+                    Difference = cs.Difference ?? 0,
+                    CoachTechnicalFouls = cs.CoachTechnicalFouls ?? 0,
+                    BenchTechnicalFouls = cs.BenchTechnicalFouls ?? 0,
+                }).ToList()
             };
+
             var json = JsonSerializer.Serialize(gameEndedEvent);
 
-            _ = Task.Run(
-                async () =>
+            
+            _ = Task.Run(async () =>
             {
                 try
                 {
@@ -540,6 +547,4 @@ public class GameController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-
-
 }
