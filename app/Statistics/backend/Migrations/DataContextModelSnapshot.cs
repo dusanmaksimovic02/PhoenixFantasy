@@ -216,7 +216,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChatMessages");
+                    b.ToTable("ChatMessages", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.Coach", b =>
@@ -236,7 +236,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coaches");
+                    b.ToTable("Coaches", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.CoachGameStats", b =>
@@ -266,7 +266,7 @@ namespace backend.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("CoachGameStats");
+                    b.ToTable("CoachGameStats", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.Game", b =>
@@ -307,7 +307,7 @@ namespace backend.Migrations
 
                     b.HasIndex("RefereeId");
 
-                    b.ToTable("Games");
+                    b.ToTable("Games", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.Person", b =>
@@ -422,7 +422,7 @@ namespace backend.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Players");
+                    b.ToTable("Players", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.PlayerGameStats", b =>
@@ -510,7 +510,7 @@ namespace backend.Migrations
                     b.HasIndex(new[] { "PlayerId", "GameId" }, "IX_Player_Game_Unique")
                         .IsUnique();
 
-                    b.ToTable("PlayerGameStats");
+                    b.ToTable("PlayerGameStats", (string)null);
                 });
 
             modelBuilder.Entity("StatsApi.Models.Team", b =>
@@ -533,7 +533,7 @@ namespace backend.Migrations
 
                     b.HasIndex("coachId");
 
-                    b.ToTable("Teams");
+                    b.ToTable("Teams", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

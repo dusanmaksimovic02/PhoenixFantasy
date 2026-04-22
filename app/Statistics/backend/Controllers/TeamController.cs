@@ -430,7 +430,7 @@ public class TeamController : ControllerBase
 
             team.Players.Remove(player);
 
-            player.TeamId = Guid.Empty;
+            player.TeamId = null;
 
             await context.SaveChangesAsync();
 

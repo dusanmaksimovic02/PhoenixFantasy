@@ -9,7 +9,7 @@ interface DraftAreaProps {
 }
 
 const DraftArea: FC<DraftAreaProps> = ({ teamName, teamId, draftId }) => {
-  const { isMyTurn, deadline } = useDraft();
+  const { isMyTurn, deadline, phase } = useDraft();
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
@@ -45,6 +45,7 @@ const DraftArea: FC<DraftAreaProps> = ({ teamName, teamId, draftId }) => {
             Waiting...
           </span>
         )}
+        <span>{phase} phase</span>
       </div>
       <FantasyCourt teamId={teamId} draftId={draftId} />
     </div>

@@ -66,7 +66,9 @@ export const DraftProvider: FC<Props> = ({
 
         setDeadline(utcDeadline);
         setDraftStarted(true);
-        setPhase(data.phase);
+        setPhase(
+          data.phase == 0 ? "Player" : data.phase == 1 ? "Coach" : "Finished",
+        );
         const players = await freePlayersInLeague(leagueId);
         setAvailablePlayers(players);
       } catch (err) {
@@ -80,6 +82,9 @@ export const DraftProvider: FC<Props> = ({
       setPickOrder(data.pickOrder);
       setCurrentIndex(data.currentPickIndex);
       setDeadline(data.pickDeadline);
+      setPhase(
+        data.phase == 0 ? "Player" : data.phase == 1 ? "Coach" : "Finished",
+      );
       queryClient.invalidateQueries({ queryKey: ["isLeagueStarted"] });
       queryClient.invalidateQueries({ queryKey: ["draftId"] });
     });

@@ -46,7 +46,8 @@ public class DraftController : ControllerBase
         if (draft.CurrentPickIndex >= draft.PickOrder.Count)
             return BadRequest("Draft završen");
 
-        var currentPick = draft.PickOrder[draft.CurrentPickIndex];
+        var sortedPickOrder = draft.PickOrder.OrderBy(p => p.Order).ToList();
+        var currentPick = sortedPickOrder[draft.CurrentPickIndex];
 
         if (currentPick.FantasyTeamId != dto.FantasyTeamId)
             return BadRequest("Nije tvoj red");
@@ -54,7 +55,11 @@ public class DraftController : ControllerBase
         if (DateTime.UtcNow > draft.PickDeadline)
             return BadRequest("Isteklo vreme");
 
-        var exists = await context.FantasyTeamPlayers.AnyAsync(x => x.PlayerId == dto.PlayerId);
+        var teamIdsInLeague = draft.League.fantasyTeams.Select(t => t.Id).ToList();
+
+        var exists = await context.FantasyTeamPlayers.AnyAsync(x =>
+            x.PlayerId == dto.PlayerId && teamIdsInLeague.Contains(x.FantasyTeamId)
+        );
 
         if (exists)
             return BadRequest("Igrač već izabran");
@@ -63,7 +68,8 @@ public class DraftController : ControllerBase
             .Players.Where(p => p.Id == dto.PlayerId)
             .FirstOrDefaultAsync();
 
-        if (playerFull == null) return BadRequest("Igrač nije pronađen");
+        if (playerFull == null)
+            return BadRequest("Igrač nije pronađen");
 
         var player = new { playerFull.Position, playerFull.Id };
 

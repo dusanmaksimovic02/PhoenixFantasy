@@ -97,7 +97,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                 <div className="shrink-0 ">
                   <AddedPlayerToTeamCard
                     key={player.id}
-                    position={"F"}
+                    position={"G"}
                     jerseyNumber={player.jerseyNumber}
                     firstName={player.firstName}
                     lastName={player.lastName}
@@ -133,13 +133,32 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
             )}
           </div>
           <div className="flex flex-1 w-full justify-start gap-3 items-center min-w-0 overflow-y-auto overflow-x-auto scroll-m-0 h-full">
-            {[0, 1, 2, 3, 4].map((index) => {
-              const player = teamLineup?.bench?.[index];
+            {[
+              { pos: "Guard", label: "G" },
+              { pos: "Guard", label: "G" },
+              { pos: "Forward", label: "F" },
+              { pos: "Forward", label: "F" },
+              { pos: "Center", label: "C" },
+            ].map((slot, index) => {
+              const benchPlayersOfThisPos =
+                teamLineup?.bench?.filter((p) => p.position === slot.pos) || [];
+
+              const previousSlotsSamePos = [
+                { pos: "Guard" },
+                { pos: "Guard" },
+                { pos: "Forward" },
+                { pos: "Forward" },
+                { pos: "Center" },
+              ]
+                .slice(0, index)
+                .filter((s) => s.pos === slot.pos).length;
+
+              const player = benchPlayersOfThisPos[previousSlotsSamePos];
+
               return player ? (
-                <div className="shrink-0 ">
+                <div key={player.id} className="shrink-0">
                   <AddedPlayerToTeamCard
-                    key={player.id}
-                    position={player.position[0]}
+                    position={slot.label}
                     jerseyNumber={player.jerseyNumber}
                     firstName={player.firstName}
                     lastName={player.lastName}
@@ -147,11 +166,10 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                   />
                 </div>
               ) : (
-                <div className="shrink-0 ">
+                <div key={`bench-slot-${index}`} className="shrink-0">
                   <NoAddedPlayerCard
-                    key={`b-${index}`}
                     onPlusClick={() => {
-                      setPosition("");
+                      setPosition(slot.pos);
                       setIsOpen(true);
                     }}
                   />

@@ -1,6 +1,6 @@
 import type { Player } from "../../models/Player";
 import { useMutation } from "@tanstack/react-query";
-import type { FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import jersey from "../../assets/images/jersey.png";
 import { pickPlayer } from "../../services/CreateDraftLeagueService";
 import { toast } from "react-toastify";
@@ -21,18 +21,35 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
   teamId,
   draftId,
 }) => {
-  const { availablePlayers } = useDraft();
+  const { availablePlayers, isMyTurn } = useDraft();
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const addPlayerMutation = useMutation({
     mutationFn: (playerId: string) => pickPlayer(draftId, teamId, playerId),
     onSuccess: () => {
       toast.success("Player picked successfully!");
+      setSearchTerm("");
       setIsOpen(false);
     },
     onError: (err) => {
       console.log(err);
       toast.error("Error while picking player");
     },
+  });
+
+  useEffect(() => {
+    if (isOpen && !isMyTurn) {
+      setIsOpen(false);
+      setSearchTerm("");
+    }
+  }, [isMyTurn, isOpen, setIsOpen]);
+
+  const filteredPlayers: Player[] = availablePlayers.filter((p: Player) => {
+    const matchesPosition = position ? p.position === position : true;
+    const matchesSearch = (p.firstName + " " + p.lastName)
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesPosition && matchesSearch;
   });
 
   return (
@@ -44,32 +61,53 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
         >
           ✕
         </button>
-        <h1 className="text-phoenix text-center">
-          Select Player to add to your team
-        </h1>
+        <h3 className="text-phoenix text-center">Select Player to add</h3>
 
-        <div className=" flex gap-3 overflow-x-auto flex-wrap">
-          {availablePlayers
-            .filter((p) => p.position == position)
-            .map((p: Player) => (
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search player by name..."
+            className="input input-bordered w-full bg-white dark:bg-neutral-700 text-black dark:text-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex gap-4 overflow-y-auto max-h-96 flex-wrap justify-center p-2">
+          {filteredPlayers.length > 0 ? (
+            filteredPlayers.map((p: Player) => (
               <div
-                id={p.id}
-                className="relative w-25 h-30  shrink-0 cursor-pointer"
-                onClick={() =>
-                  !addPlayerMutation.isPending && addPlayerMutation.mutate(p.id)
-                }
+                key={p.id}
+                className={`relative w-25 h-30 shrink-0 cursor-pointer transition-transform hover:scale-105 ${
+                  addPlayerMutation.isPending
+                    ? "opacity-50 pointer-events-none"
+                    : ""
+                }`}
+                onClick={() => addPlayerMutation.mutate(p.id)}
               >
-                <img src={jersey} alt="jersey image" className="w-25 h-30" />
-                <div className="absolute inset-0 w-full h-full  text-black flex flex-col justify-center items-center gap-3 pt-8.5">
+                <img src={jersey} alt="jersey" className="w-25 h-30" />
+                <div className="absolute inset-0 w-full h-full text-black flex flex-col justify-center items-center pt-2">
+                  <div className="flex items-center gap-5">
+                    <p className="text-[10px] font-bold pt-1">{position[0]}</p>
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/sr/thumb/8/80/KK_Partizan_logo.svg/1920px-KK_Partizan_logo.svg.png"
+                      alt="club logo"
+                      className="w-4 h-4"
+                    />
+                  </div>
                   <p className="text-[15.5px] text-center font-extrabold">
                     {p.jerseyNumber}
                   </p>
-                  <p className="text-[13px] text-center">
+
+                  <p className="text-[13px] font-bold text-center">
                     {p.firstName.charAt(0)}. {p.lastName}
                   </p>
                 </div>
               </div>
-            ))}
+            ))
+          ) : (
+            <p className="text-center py-10 opacity-50">No players found.</p>
+          )}
         </div>
       </div>
     </dialog>
