@@ -4,6 +4,7 @@ import type { Game } from "../models/Game";
 import type { TeamStanding } from "../models/TeamStanding";
 import apiClient from "./client";
 import type { CoachStats } from "@/models/CoachStats";
+import type { PlayerStats } from "../models/PlayerStats";
 
 export const getStandings = async () => {
   const response = await apiClient.get<TeamStanding[]>(
@@ -58,6 +59,13 @@ export const getPlayers = async () => {
 export const freePlayersInLeague = async (leagueId: string) => {
   const response = await apiClient.get<Player[]>(
     `FantasyTeam/GetAllFreePlayers/${leagueId}`,
+  );
+  return response.data;
+};
+
+export const getTeamAveragePlayerStats = async (teamId: string) => {
+  const response = await apiClient.get<PlayerStats[]>(
+    `api/Stats/GetTeamPlayerAverages/${teamId}`,
   );
   return response.data;
 };

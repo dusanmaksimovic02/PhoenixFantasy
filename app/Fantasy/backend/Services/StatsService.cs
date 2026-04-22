@@ -140,4 +140,66 @@ public class StatsService
             .Where(t => t.HomeTeam!.Id == teamId || t.GuestTeam!.Id == teamId)
             .ToListAsync();
     }
+
+    public async Task<List<PlayerStatsDto>> GetTeamAveragePlayerStats(Guid teamId)
+    {
+        var team = await _context
+            .Teams.Include(t => t.Players)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+
+        if (team == null)
+            return new List<PlayerStatsDto>();
+
+        var playerIds = team.Players.Select(p => p.Id).ToList();
+
+        var stats = await _context
+            .PlayerGameStats.Include(x => x.Player)
+            .Where(x => playerIds.Contains(x.PlayerId))
+            .ToListAsync();
+
+        var grouped = stats.GroupBy(x => x.PlayerId);
+
+        var result = grouped
+            .Select(g =>
+            {
+                var player = g.First().Player;
+
+                return new PlayerStatsDto
+                {
+                    PlayerId = g.Key,
+                    JerseyNumber = player?.JerseyNumber,
+                    FullName = $"{player?.FirstName} {player?.LastName}",
+
+                    Points = g.Average(x => x.Points ?? 0),
+                    Assists = g.Average(x => x.Assists ?? 0),
+                    Rebounds = g.Average(x => x.Rebounds ?? 0),
+                    Steals = g.Average(x => x.Steals ?? 0),
+                    Turnovers = g.Average(x => x.Turnovers ?? 0),
+                    Blocks = g.Average(x => x.Blocks ?? 0),
+                    PersonalFouls = g.Average(x => x.PersonalFouls ?? 0),
+                    Pir = g.Average(x => x.Pir ?? 0),
+
+                    FreeThrow = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made1p ?? 0),
+                        Missed = g.Sum(x => x.Miss1p ?? 0),
+                    },
+
+                    TwoPoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made2p ?? 0),
+                        Missed = g.Sum(x => x.Miss2p ?? 0),
+                    },
+
+                    ThreePoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made3p ?? 0),
+                        Missed = g.Sum(x => x.Miss3p ?? 0),
+                    },
+                };
+            })
+            .ToList();
+
+        return result;
+    }
 }

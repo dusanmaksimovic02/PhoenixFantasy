@@ -108,7 +108,12 @@ public class DraftController : ControllerBase
         try
         {
             context.FantasyTeamPlayers.Add(
-                new FantasyTeamPlayer { FantasyTeamId = dto.FantasyTeamId, PlayerId = dto.PlayerId }
+                new FantasyTeamPlayer
+                {
+                    FantasyTeamId = dto.FantasyTeamId,
+                    PlayerId = dto.PlayerId,
+                    Position = playerFull.Position,
+                }
             );
 
             draft.CurrentPickIndex++;

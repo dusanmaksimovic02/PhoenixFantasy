@@ -1,53 +1,56 @@
 import { useNavigate } from "react-router-dom";
 import { type Player } from "../../models/Player.model";
 import { CiCircleInfo } from "react-icons/ci";
+import { useQuery } from "@tanstack/react-query";
+import type { FC } from "react";
+import { getTeamAveragePlayerStats } from "../../services/StatsService";
 
 type Props = {
-  players: Player[];
+  teamId: string;
 };
 
 const TABLE_HEAD = [
-  "",
-  "JN",
-  "FN",
-  "P",
-  "MPG",
+  "No.",
+  "Name",
   "PPG",
   "APG",
   "RPG",
   "SPG",
-  "BPG",
   "TPG",
-  "FGP",
-  "TPP",
-  "TWOPP",
-  "FTP",
+  "BPG",
+  "1P",
+  "1P %",
+  "2P",
+  "2P %",
+  "3P",
+  "3P %",
   "PIR",
-  "+/-",
 ];
 
 const TABLE_HEAD_MEANING = [
-  { abbr: "JN", meaning: "Jersey Number" },
-  { abbr: "FN", meaning: "Full Name" },
-  { abbr: "P", meaning: "Position" },
-  { abbr: "MPG", meaning: "Minutes Per Game" },
+  { abbr: "No.", meaning: "Jersey Number" },
+  { abbr: "Name", meaning: "Full Name" },
   { abbr: "PPG", meaning: "Points Per Game" },
   { abbr: "APG", meaning: "Assists Per Game" },
   { abbr: "RPG", meaning: "Rebounds Per Game" },
   { abbr: "SPG", meaning: "Steals Per Game" },
-  { abbr: "BPG", meaning: "Blocks Per Game" },
   { abbr: "TPG", meaning: "Turnovers Per Game" },
-  { abbr: "FGP", meaning: "Field Goal Percentage" },
-  { abbr: "TPP", meaning: "Three-Point Percentage" },
-  { abbr: "TWOPP", meaning: "Two-Point Percentage" },
-  { abbr: "FTP", meaning: "Free Throw Percentage" },
+  { abbr: "BPG", meaning: "Blocks Per Game" },
+  { abbr: "1P", meaning: "Free Throws" },
+  { abbr: "1P %", meaning: "Free Throw Percentage" },
+  { abbr: "2P", meaning: "Two-Point Shots" },
+  { abbr: "2P %", meaning: "Two-Point Percentage" },
+  { abbr: "3P", meaning: "Three-Point Shots" },
+  { abbr: "3P %", meaning: "Three-Point Percentage" },
   { abbr: "PIR", meaning: "Player Impact Rating" },
-  { abbr: "+/-", meaning: "Plus-Minus (Team Impact)" },
 ];
 
-const PlayersStats = (props: Props) => {
+const PlayersStats: FC<Props> = ({ teamId }) => {
   const navigate = useNavigate();
-
+  const { data: playerStats } = useQuery({
+    queryKey: ["playerStats", teamId],
+    queryFn: () => getTeamAveragePlayerStats(teamId),
+  });
   const handleRowClick = (player: Player) => {
     const playerName = `${player.firstName}-${player.lastName}`
       .toLowerCase()
@@ -58,7 +61,6 @@ const PlayersStats = (props: Props) => {
       state: { player },
     });
   };
-
   return (
     <>
       <div className="p-5 w-full flex justify-end">
@@ -103,51 +105,47 @@ const PlayersStats = (props: Props) => {
             </tr>
           </thead>
           <tbody className="group text-sm text-black dark:text-white ">
-            {props.players.map((player, index) => (
+            {playerStats?.map((player, index) => (
               <tr
                 key={index}
-                data-tip="Click to see full player page"
-                className="tooltip table-row even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
-                onClick={() => handleRowClick(player)}
+                className="table-row even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
+                //onClick={() => handleRowClick(player)}
               >
                 <td className="p-5">{player.jerseyNumber}</td>
-                <td className="p-5 text-nowrap">
-                  {`${player.firstName} ${player.lastName}`}
-                </td>
-                <td className="p-5">{player.position}</td>
-                <td className="p-5">{player.minutesPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.pointsPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.assistsPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.reboundsPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.stealsPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.blocksPerGame.toFixed(2)}</td>
-                <td className="p-5">{player.turnoversPerGame.toFixed(2)}</td>
+                <td className="p-5 text-nowrap">{player.fullName}</td>
+
+                <td className="p-5">{player.points.toFixed(1)}</td>
+                <td className="p-5">{player.assists.toFixed(1)}</td>
+                <td className="p-5">{player.rebounds.toFixed(1)}</td>
+                <td className="p-5">{player.steals.toFixed(1)}</td>
+                <td className="p-5">{player.blocks.toFixed(1)}</td>
+                <td className="p-5">{player.personalFouls.toFixed(1)}</td>
+
                 <td className="p-5">
-                  {`${player.fieldGoalPercentage.toFixed(2)} % ${
-                    player.fieldGoalMade
-                  } /
-                      ${player.fieldGoalMiss + player.fieldGoalMade}`}
+                  {`${player.freeThrow.made}/${player.freeThrow.made + player.freeThrow.missed}`}
                 </td>
+
                 <td className="p-5">
-                  {`${player.threePointPercentage.toFixed(2)} % ${
-                    player.threePointMade
-                  } /
-                      ${player.threePointMade + player.threePointMiss}`}{" "}
+                  {`${player.freeThrow.percentage.toFixed(0)}%`}
                 </td>
+
                 <td className="p-5">
-                  {`${player.twoPointsPercentage.toFixed(2)} % ${
-                    player.twoPointMade
-                  } /
-                      ${player.twoPointMade + player.twoPointMiss}`}{" "}
+                  {`${player.twoPoint.made}/${player.twoPoint.made + player.twoPoint.missed}`}
                 </td>
+
                 <td className="p-5">
-                  {`${player.freeThrowPercentage.toFixed(2)} % ${
-                    player.freeThrowMade
-                  } /
-                      ${player.freeThrowMade + player.freeThrowMiss}`}{" "}
+                  {`${player.twoPoint.percentage.toFixed(0)}%`}
                 </td>
-                <td className="p-5">{player.pir.toFixed(2)}</td>
-                <td className="p-5">{player.plusMinusIndex.toFixed(2)}</td>
+
+                <td className="p-5">
+                  {`${player.threePoint.made}/${player.threePoint.made + player.threePoint.missed}`}
+                </td>
+
+                <td className="p-5">
+                  {`${player.threePoint.percentage.toFixed(0)}%`}
+                </td>
+
+                <td className="p-5">{player.pir.toFixed(1)}</td>
               </tr>
             ))}
           </tbody>

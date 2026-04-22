@@ -141,7 +141,9 @@ const TeamPage: FC = () => {
             onChange={() => setHash("#players-stats")}
           />
           <div className="tab-content border-none p-6 bg-white dark:bg-custom-gray">
-            {hash === "#players-stats" && <PlayersStats players={[]} />}
+            {hash === "#players-stats" && (
+              <PlayersStats teamId={team.teamId} />
+            )}
           </div>
           <input
             type="radio"

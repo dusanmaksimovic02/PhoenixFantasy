@@ -122,6 +122,7 @@ public class DraftTimerService : BackgroundService
                             {
                                 FantasyTeamId = teamId,
                                 PlayerId = selectedPlayer.Id,
+                                Position = selectedPlayer.Position,
                             }
                         );
                     }

@@ -115,4 +115,15 @@ public class StatsController : ControllerBase
         var games = await _service.GetAllGamesForTeam(teamId);
         return Ok(games);
     }
+
+    [HttpGet("GetTeamPlayerAverages/{teamId}")]
+    public async Task<IActionResult> GetTeamPlayerAverages(Guid teamId)
+    {
+        var result = await _service.GetTeamAveragePlayerStats(teamId);
+
+        if (!result.Any())
+            return NotFound();
+
+        return Ok(result);
+    }
 }
