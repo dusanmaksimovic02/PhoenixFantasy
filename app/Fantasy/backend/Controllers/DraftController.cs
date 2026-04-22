@@ -46,8 +46,7 @@ public class DraftController : ControllerBase
         if (draft.CurrentPickIndex >= draft.PickOrder.Count)
             return BadRequest("Draft završen");
 
-        var sortedPickOrder = draft.PickOrder.OrderBy(p => p.Order).ToList();
-        var currentPick = sortedPickOrder[draft.CurrentPickIndex];
+        var currentPick = draft.PickOrder.OrderBy(p => p.Order).ToList()[draft.CurrentPickIndex];
 
         if (currentPick.FantasyTeamId != dto.FantasyTeamId)
             return BadRequest("Nije tvoj red");
@@ -64,17 +63,12 @@ public class DraftController : ControllerBase
         if (exists)
             return BadRequest("Igrač već izabran");
 
-        var playerFull = await statsDbContext
-            .Players.Where(p => p.Id == dto.PlayerId)
-            .FirstOrDefaultAsync();
+        var playerFull = await statsDbContext.Players.FirstOrDefaultAsync(p =>
+            p.Id == dto.PlayerId
+        );
 
         if (playerFull == null)
             return BadRequest("Igrač nije pronađen");
-
-        var player = new { playerFull.Position, playerFull.Id };
-
-        if (player == null)
-            return BadRequest("Igrač ne postoji");
 
         var teamPlayerIds = await context
             .FantasyTeamPlayers.Where(tp => tp.FantasyTeamId == dto.FantasyTeamId)
@@ -91,7 +85,7 @@ public class DraftController : ControllerBase
         int forwards = positionCounts.FirstOrDefault(x => x.Position == "Forward")?.Count ?? 0;
         int centers = positionCounts.FirstOrDefault(x => x.Position == "Center")?.Count ?? 0;
 
-        switch (player.Position)
+        switch (playerFull.Position)
         {
             case "Guard":
                 if (guards >= 4)
@@ -109,18 +103,34 @@ public class DraftController : ControllerBase
                 break;
         }
 
-        context.FantasyTeamPlayers.Add(
-            new FantasyTeamPlayer { FantasyTeamId = dto.FantasyTeamId, PlayerId = dto.PlayerId }
-        );
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
-        //draft.CurrentPickIndex++;
-        draft.CurrentPickIndex = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
-
-        if (draft.CurrentPickIndex < draft.PickOrder.Count)
+        try
         {
+            context.FantasyTeamPlayers.Add(
+                new FantasyTeamPlayer { FantasyTeamId = dto.FantasyTeamId, PlayerId = dto.PlayerId }
+            );
+
+            draft.CurrentPickIndex++;
             draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
+            if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+            {
+                draft.Phase = DraftPhase.Coach;
+                draft.CurrentPickIndex = 0;
+
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                await hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PhaseChanged", "Coach");
+
+                return Ok();
+            }
+
             await context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             await hubContext
                 .Clients.Group(draft.Id.ToString())
@@ -132,16 +142,11 @@ public class DraftController : ControllerBase
 
             return Ok();
         }
-
-        draft.Phase = DraftPhase.Coach;
-        draft.CurrentPickIndex = 0;
-        draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
-
-        await context.SaveChangesAsync();
-
-        await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("PhaseChanged", "Coach");
-
-        return Ok();
+        catch
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "Greška u pickovanju");
+        }
     }
 
     [HttpPost("PickCoach")]
@@ -157,7 +162,12 @@ public class DraftController : ControllerBase
         if (draft.Phase != DraftPhase.Coach)
             return BadRequest("Nije faza za trenere");
 
-        var currentPick = draft.PickOrder[draft.CurrentPickIndex];
+        if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+            return BadRequest("Draft završen");
+
+        var sortedPickOrder = draft.PickOrder.OrderBy(p => p.Order).ToList();
+
+        var currentPick = sortedPickOrder[draft.CurrentPickIndex];
 
         if (currentPick.FantasyTeamId != dto.FantasyTeamId)
             return BadRequest("Nije tvoj red");
@@ -182,22 +192,50 @@ public class DraftController : ControllerBase
         if (!coachExists)
             return BadRequest("Trener ne postoji");
 
-        context.FantasyTeamCoaches.Add(
-            new FantasyTeamCoach { FantasyTeamId = dto.FantasyTeamId, CoachId = dto.CoachId }
-        );
+        await using var transaction = await context.Database.BeginTransactionAsync();
 
-        draft.CurrentPickIndex = (draft.CurrentPickIndex + 1) % draft.League!.fantasyTeams!.Count;
-        //draft.PickDeadline = DateTime.Now.AddMinutes(1);
+        try
+        {
+            context.FantasyTeamCoaches.Add(
+                new FantasyTeamCoach { FantasyTeamId = dto.FantasyTeamId, CoachId = dto.CoachId }
+            );
 
-        await context.SaveChangesAsync();
+            draft.CurrentPickIndex++;
+            draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
-        await hubContext.Clients.Group(draft.Id.ToString()).SendAsync("CoachPicked", dto);
+            if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+            {
+                draft.Phase = DraftPhase.Finished;
+                draft.CurrentPickIndex = 0;
 
-        await hubContext
-            .Clients.Group(draft.Id.ToString())
-            .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-        return Ok();
+                await hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PhaseChanged", "Finished");
+
+                return Ok();
+            }
+
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            await hubContext
+                .Clients.Group(draft.Id.ToString())
+                .SendAsync("CoachPicked", new { dto });
+
+            await hubContext
+                .Clients.Group(draft.Id.ToString())
+                .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
+
+            return Ok();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "Greška prilikom izbora trenera");
+        }
     }
 
     [HttpPost("StartDraft")]
@@ -213,19 +251,22 @@ public class DraftController : ControllerBase
         if (league.fantasyTeams == null || !league.fantasyTeams.Any())
             return BadRequest("Nema timova u ligi");
 
-        // RANDOM redosled
         var teams = league.fantasyTeams.OrderBy(x => Guid.NewGuid()).ToList();
 
-        // Kreiranje PickOrder
         var pickOrderList = new List<DraftPickOrder>();
 
-        for (int i = 0; i < teams.Count; i++)
-        {
-            pickOrderList.Add(new DraftPickOrder { FantasyTeamId = teams[i].Id, Order = i });
-        }
+        int order = 0;
+        int rounds = 10;
 
-        context.AddRange(pickOrderList);
-        await context.SaveChangesAsync();
+        for (int round = 0; round < rounds; round++)
+        {
+            var roundTeams = round % 2 == 0 ? teams : teams.AsEnumerable().Reverse();
+
+            foreach (var team in roundTeams)
+            {
+                pickOrderList.Add(new DraftPickOrder { FantasyTeamId = team.Id, Order = order++ });
+            }
+        }
 
         var draft = new DraftSession
         {
@@ -233,13 +274,14 @@ public class DraftController : ControllerBase
             CurrentPickIndex = 0,
             PickDeadline = DateTime.UtcNow.AddMinutes(1),
             IsActive = true,
+            Phase = DraftPhase.Player,
+            PickOrder = pickOrderList,
         };
 
         context.DraftSessions.Add(draft);
-        draft.PickOrder.AddRange(pickOrderList);
+
         await context.SaveChangesAsync();
 
-        // SignalR - start drafta
         await hubContext
             .Clients.Group(draft.Id.ToString())
             .SendAsync(

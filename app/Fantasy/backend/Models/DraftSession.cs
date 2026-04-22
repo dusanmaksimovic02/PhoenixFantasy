@@ -18,7 +18,7 @@ public class DraftSession
     public DateTime PickDeadline { get; set; }
 
     public bool IsActive { get; set; } = true;
-    public DraftPhase Phase;
+    public DraftPhase Phase { get; set; }
 }
 
 public enum DraftPhase

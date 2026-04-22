@@ -37,7 +37,9 @@ const Games: FC<Props> = ({ teamId }) => {
         const coachStats = getCoachStatsForGame(index);
 
         const isFinished = coachStats && coachStats.difference !== 0;
-
+        console.log("game:", game);
+        console.log("coachId:", game.homeTeam?.coach?.id);
+        console.log("gameId:", game.id);
         return (
           <div
             key={index}
