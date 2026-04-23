@@ -27,7 +27,7 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
   const addPlayerMutation = useMutation({
     mutationFn: (playerId: string) => pickPlayer(draftId, teamId, playerId),
     onSuccess: () => {
-      toast.success("Player picked successfully!");
+      // toast.success("Player picked successfully!");
       setSearchTerm("");
       setIsOpen(false);
     },

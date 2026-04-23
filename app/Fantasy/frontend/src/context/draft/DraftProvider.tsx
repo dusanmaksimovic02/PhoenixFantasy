@@ -17,6 +17,7 @@ import {
   getAllFreeCoaches,
 } from "../../services/StatsService";
 import type { CoachView } from "../../models/TeamLineUp";
+import { useNavigate } from "react-router-dom";
 
 export const createDraftConnection = () => {
   return new signalR.HubConnectionBuilder()
@@ -47,6 +48,7 @@ export const DraftProvider: FC<Props> = ({
   const queryClient = useQueryClient();
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
   const [availableCoaches, setAvailableCoaches] = useState<CoachView[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!draftId) return;
@@ -115,20 +117,27 @@ export const DraftProvider: FC<Props> = ({
       setAvailablePlayers(players);
     });
 
-    connection.on("CoachPicked", async (data) => {
+    connection.on("CoachPicked", (data) => {
       console.log("Trener zauzet:", data.coachId);
-      const coach = availableCoaches.filter((c) => c.id == data.coachId);
-      toast.info(
-        `Coach ${coach[0].firstName} ${coach[0].lastName} has been auto picked!`,
-      );
-      const coaches = await getAllFreeCoaches(leagueId);
-      setAvailableCoaches(coaches);
       queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
+      setAvailableCoaches((prevCoaches) => {
+        const coach = prevCoaches.find((c) => c.id === data.coachId);
+        if (coach) {
+          toast.info(
+            `Coach ${coach.firstName} ${coach.lastName} has been picked!`,
+          );
+        }
+        return prevCoaches.filter((c) => c.id !== data.coachId);
+      });
     });
 
     connection.on("PhaseChanged", (newPhase) => {
       console.log("Nova faza drafta:", newPhase);
       setPhase(newPhase);
+      if (newPhase === "Finished") {
+        toast.info("Draft is finished! Redirecting to league page...");
+        navigate("/fantasy");
+      }
     });
 
     connection.on("PickSkipped", (data) => {

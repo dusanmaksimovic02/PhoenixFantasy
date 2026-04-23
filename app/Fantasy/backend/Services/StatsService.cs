@@ -16,7 +16,7 @@ public class StatsService
 
     public async Task<List<Team>> GetAllTeams()
     {
-        return await _context.Teams.ToListAsync();
+        return await _context.Teams.Include(t => t.coach).ToListAsync();
     }
 
     public async Task<List<Player>> GetAllPlayers()

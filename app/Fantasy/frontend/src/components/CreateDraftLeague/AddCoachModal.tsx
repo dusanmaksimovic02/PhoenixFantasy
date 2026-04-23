@@ -96,7 +96,7 @@ const AddCoachModal: FC<AddCoachModalProps> = ({
                   />
 
                   <p className="text-[13px] font-bold text-center">
-                    {c.firstName.charAt(0)}. {c.lastName}
+                    {c.firstName[0]}. {c.lastName}
                   </p>
                 </div>
               </div>

@@ -235,14 +235,24 @@ public class FantasyTeamController : ControllerBase
             .ToListAsync();
 
         var freeCoaches = await statsDbContext
-            .Coaches.Where(c => !takenCoachesIds.Contains(c.Id))
-            .Select(c => new
+            .Teams.Where(t => !takenCoachesIds.Contains(t.coach!.Id))
+            .Select(t => new
             {
-                c.Id,
-                c.FirstName,
-                c.LastName,
+                id = t.coach!.Id,
+                firstName = t.coach!.FirstName,
+                lastName = t.coach!.LastName,
             })
             .ToListAsync();
+
+        // var freeCoaches = await statsDbContext
+        //     .Coaches.Where(c => !takenCoachesIds.Contains(c.Id))
+        //     .Select(c => new
+        //     {
+        //         c.Id,
+        //         c.FirstName,
+        //         c.LastName,
+        //     })
+        //     .ToListAsync();
 
         return Ok(freeCoaches);
     }
