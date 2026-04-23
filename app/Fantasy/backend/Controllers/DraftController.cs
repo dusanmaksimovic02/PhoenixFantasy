@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FantasyApi.Data;
+using FantasyApi.Enums;
 using FantasyApi.Hubs;
 using FantasyApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -42,6 +43,8 @@ public class DraftController : ControllerBase
 
         if (draft == null)
             return BadRequest("Draft ne postoji");
+
+        var round = draft.League!.CurrentRound;
 
         if (draft.Phase != DraftPhase.Player)
             return BadRequest("Nije faza za biranje igrača");
@@ -106,18 +109,59 @@ public class DraftController : ControllerBase
                 break;
         }
 
+        var totalPlayersInTeam = teamPlayerIds.Count;
+
+        FantasyRole role;
+
+        if (totalPlayersInTeam == 0)
+        {
+            role = FantasyRole.Captain;
+        }
+        else
+        {
+            switch (playerFull.Position)
+            {
+                case "Guard":
+                    role = guards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
+                    break;
+
+                case "Forward":
+                    role = forwards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
+                    break;
+
+                case "Center":
+                    role = centers < 1 ? FantasyRole.Starter : FantasyRole.Bench;
+                    break;
+
+                default:
+                    role = FantasyRole.Bench;
+                    break;
+            }
+        }
+
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
-            context.FantasyTeamPlayers.Add(
-                new FantasyTeamPlayer
+            var fantasyTeamPlayer = new FantasyTeamPlayer
+            {
+                FantasyTeamId = dto.FantasyTeamId,
+                PlayerId = dto.PlayerId,
+                Position = playerFull.Position,
+                Role = role,
+            };
+
+            context.FantasyTeamPlayers.Add(fantasyTeamPlayer);
+
+            /*context.FantasyPlayerRounds.Add(
+                new FantasyPlayerRound
                 {
-                    FantasyTeamId = dto.FantasyTeamId,
-                    PlayerId = dto.PlayerId,
-                    Position = playerFull.Position,
+                    fantasyPlayer = fantasyTeamPlayer,
+                    round = round,
+                    Role = role,
+                    roundPoints = 0,
                 }
-            );
+            );*/
 
             draft.CurrentPickIndex++;
             draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);

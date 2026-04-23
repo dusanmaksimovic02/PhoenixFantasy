@@ -20,50 +20,81 @@ public class ManagerController : ControllerBase
     }
 
     [HttpPost("StartRound/{leagueId}")]
-    public async Task<IActionResult> StartRound(Guid leagueId)
+    public async Task<IActionResult> StartRound()
     {
-        var league = await context.FantasyLeagues.FindAsync(leagueId);
-
-        if (league == null)
-            return BadRequest("Liga ne postoji");
-
-        if (league.IsRoundActive)
-            return BadRequest("Runda je već aktivna");
-
-        league.IsRoundActive = true;
-        league.CurrentRound++;
-
-        var teamPlayers = await context.FantasyTeamPlayers.ToListAsync();
-
-        var rounds = teamPlayers.Select(tp => new FantasyPlayerRound
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        try
         {
-            fantasyPlayer = tp,
-            round = league.CurrentRound,
-            Role = FantasyRole.Bench,
-        });
+            await context.FantasyLeagues.ExecuteUpdateAsync(l =>
+                l.SetProperty(x => x.IsRoundActive, true)
+            );
 
-        context.FantasyPlayerRounds.AddRange(rounds);
+            var leagueRound = await context.FantasyLeagues.FirstOrDefaultAsync();
 
-        await context.SaveChangesAsync();
+            var teams = await context.FantasyTeams.Include(t => t.Players).ToListAsync();
 
-        return Ok(new { league.CurrentRound });
+            var teamRounds = new List<FantasyTeamRound>();
+
+            foreach (var team in teams)
+            {
+                var teamRound = new FantasyTeamRound
+                {
+                    Id = Guid.NewGuid(),
+                    fantasyTeam = team,
+                    round = leagueRound!.CurrentRound,
+                    roundPoints = 0,
+                    Coach = team.Coach!.FirstOrDefault()!,
+                    Players = new List<FantasyPlayerRound>(),
+                };
+
+                foreach (var player in team.Players!)
+                {
+                    var playerRound = new FantasyPlayerRound
+                    {
+                        Id = Guid.NewGuid(),
+                        fantasyPlayer = player,
+                        //FantasyTeamRoundId = teamRound.Id,
+                        roundPoints = 0,
+                        round = leagueRound.CurrentRound,
+                        Role = player.Role,
+                    };
+
+                    teamRound.Players.Add(playerRound);
+                }
+
+                teamRounds.Add(teamRound);
+            }
+
+            await context.FantasyTeamRounds.AddRangeAsync(teamRounds);
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "Greška prilikom startovanja runde");
+        }
     }
 
     [HttpPost("EndRound/{leagueId}")]
-    public async Task<IActionResult> EndRound(Guid leagueId)
+    public async Task<IActionResult> EndRound()
     {
-        var league = await context.FantasyLeagues.FindAsync(leagueId);
-
-        if (league == null)
-            return BadRequest("Liga ne postoji");
-
-        if (!league.IsRoundActive)
-            return BadRequest("Runda nije aktivna");
-
-        league.IsRoundActive = false;
-
-        await context.SaveChangesAsync();
-
-        return Ok();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            await context.FantasyLeagues.ExecuteUpdateAsync(l =>
+                l.SetProperty(x => x.IsRoundActive, false)
+                    .SetProperty(x => x.CurrentRound, x => x.CurrentRound + 1)
+            );
+            await transaction.CommitAsync();
+            return Ok();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return StatusCode(500, "Greška prilikom startovanja runde");
+        }
     }
 }

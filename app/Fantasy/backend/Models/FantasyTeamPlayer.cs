@@ -10,4 +10,5 @@ public class FantasyTeamPlayer
 
     public Guid PlayerId { get; set; }
     public string? Position { get; set; } = null!;
+    public FantasyRole Role { get; set; }
 }

@@ -127,6 +127,7 @@ public class FantasyTeamController : ControllerBase
                 FantasyTeamId = dto.FantasyTeamId,
                 PlayerId = dto.NewPlayerId,
                 Position = dto.NewPlayerPosition,
+                Role = teamPlayer.Role,
             }
         );
 
@@ -273,22 +274,16 @@ public class FantasyTeamController : ControllerBase
         if (league.IsRoundActive)
             return BadRequest("Switch nije dozvoljen dok je runda aktivna");
 
-        var starter = await context
-            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
-            .FirstOrDefaultAsync(x =>
-                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId
-                && x.fantasyPlayer.PlayerId == dto.StarterPlayerId
-            );
+        var starter = await context.FantasyTeamPlayers.FirstOrDefaultAsync(x =>
+            x.FantasyTeamId == dto.FantasyTeamId && x.PlayerId == dto.StarterPlayerId
+        );
 
-        var bench = await context
-            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
-            .FirstOrDefaultAsync(x =>
-                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId
-                && x.fantasyPlayer.PlayerId == dto.BenchPlayerId
-            );
+        var bench = await context.FantasyTeamPlayers.FirstOrDefaultAsync(x =>
+            x.FantasyTeamId == dto.FantasyTeamId && x.PlayerId == dto.BenchPlayerId
+        );
 
         if (starter == null || bench == null)
-            return BadRequest("Igrači nisu pronađeni u rundi");
+            return BadRequest("Igrači nisu pronađeni u timu");
 
         if (starter.Role != FantasyRole.Starter || bench.Role != FantasyRole.Bench)
             return BadRequest("Neispravna zamena (role mismatch)");
@@ -305,9 +300,8 @@ public class FantasyTeamController : ControllerBase
     public async Task<IActionResult> GetLineup(Guid fantasyTeamId)
     {
         var data = await context
-            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
-            .Where(x => x.fantasyPlayer!.FantasyTeamId == fantasyTeamId)
-            .Select(x => new { x.Role, x.fantasyPlayer!.PlayerId })
+            .FantasyTeamPlayers.Where(x => x.FantasyTeamId == fantasyTeamId)
+            .Select(x => new { x.Role, x.PlayerId })
             .ToListAsync();
 
         var playerIds = data.Select(x => x.PlayerId).ToList();
@@ -351,6 +345,7 @@ public class FantasyTeamController : ControllerBase
             Captain = players.FirstOrDefault(p =>
                 data.Any(x => x.PlayerId == p.PlayerId && x.Role == FantasyRole.Captain)
             ),
+
             Coach = coach,
         };
 
@@ -437,29 +432,25 @@ public class FantasyTeamController : ControllerBase
         if (league.IsRoundActive)
             return BadRequest("Promena kapitena nije dozvoljena tokom runde");
 
-        var currentRound = league.CurrentRound;
-
         var players = await context
-            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
-            .Where(x =>
-                x.fantasyPlayer!.FantasyTeamId == dto.FantasyTeamId && x.round == currentRound
-            )
+            .FantasyTeamPlayers.Where(x => x.FantasyTeamId == dto.FantasyTeamId)
             .ToListAsync();
 
         if (!players.Any())
-            return BadRequest("Nema igraca u rundi");
+            return BadRequest("Nema igraca u timu");
 
         var currentCaptain = players.FirstOrDefault(x => x.Role == FantasyRole.Captain);
 
-        var newCaptain = players.FirstOrDefault(x =>
-            x.fantasyPlayer!.PlayerId == dto.NewCaptainPlayerId
-        );
+        var newCaptain = players.FirstOrDefault(x => x.PlayerId == dto.NewCaptainPlayerId);
 
         if (newCaptain == null)
             return BadRequest("Novi kapiten nije u timu");
 
         if (newCaptain.Role == FantasyRole.Bench)
             return BadRequest("Bench igrac ne moze biti kapiten");
+
+        if (newCaptain.Role == FantasyRole.Captain)
+            return Ok();
 
         if (currentCaptain != null)
             currentCaptain.Role = FantasyRole.Starter;
