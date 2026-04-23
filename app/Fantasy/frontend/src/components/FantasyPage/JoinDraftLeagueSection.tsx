@@ -65,7 +65,7 @@ const JoinDraftLeagueSection: FC = () => {
       setIsOpen(false);
     },
     onError: (err) => {
-      toast.error("Error while creating draft league!");
+      // toast.error("Error while joining draft league!");
       console.error(err);
     },
   });

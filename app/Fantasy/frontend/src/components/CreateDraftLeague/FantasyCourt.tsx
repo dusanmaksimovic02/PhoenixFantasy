@@ -9,13 +9,15 @@ import { getLineup } from "../../services/FantasyTeamService";
 import AddedCoachCard from "./AddedCoachCard";
 import AddPlayerModal from "./AddPlayerModal";
 import type { PlayerView } from "../../models/TeamLineUp";
+import AddCoachModal from "./AddCoachModal";
 interface FantasyCourtProps {
   teamId: string;
   draftId: string;
 }
 
 const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenAddPlayer, setIsOpenAddPlayer] = useState<boolean>(false);
+  const [isOpenAddCoach, setIsOpenAddCoach] = useState<boolean>(false);
   const [position, setPosition] = useState<string>("");
 
   const { data: teamLineup } = useQuery({
@@ -56,7 +58,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                   <NoAddedPlayerCard
                     onPlusClick={() => {
                       setPosition("Center");
-                      setIsOpen(true);
+                      setIsOpenAddPlayer(true);
                     }}
                   />
                 </div>
@@ -83,7 +85,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                     key={`f-${index}`}
                     onPlusClick={() => {
                       setPosition("Forward");
-                      setIsOpen(true);
+                      setIsOpenAddPlayer(true);
                     }}
                   />
                 </div>
@@ -110,7 +112,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                     key={`f-${index}`}
                     onPlusClick={() => {
                       setPosition("Guard");
-                      setIsOpen(true);
+                      setIsOpenAddPlayer(true);
                     }}
                   />
                 </div>
@@ -122,12 +124,20 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
           <div className="border-r-2 border-black dark:border-white w-35 flex shrink-0 justify-center items-center">
             {teamLineup?.coach ? (
               <div className="shrink-0">
-                <AddedCoachCard />
+                <AddedCoachCard
+                  firstName={teamLineup.coach.firstName}
+                  lastName={teamLineup.coach.lastName}
+                  fantasyPoints={""}
+                />
               </div>
             ) : (
               <>
                 <div className="shrink-0">
-                  <NoAddedCoachCard />
+                  <NoAddedCoachCard
+                    onPlusClick={() => {
+                      setIsOpenAddCoach(true);
+                    }}
+                  />
                 </div>
               </>
             )}
@@ -170,7 +180,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                   <NoAddedPlayerCard
                     onPlusClick={() => {
                       setPosition(slot.pos);
-                      setIsOpen(true);
+                      setIsOpenAddPlayer(true);
                     }}
                   />
                 </div>
@@ -181,9 +191,15 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
       </div>
 
       <AddPlayerModal
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
+        isOpen={isOpenAddPlayer}
+        setIsOpen={setIsOpenAddPlayer}
         position={position}
+        draftId={draftId}
+        teamId={teamId}
+      />
+      <AddCoachModal
+        isOpen={isOpenAddCoach}
+        setIsOpen={setIsOpenAddCoach}
         draftId={draftId}
         teamId={teamId}
       />

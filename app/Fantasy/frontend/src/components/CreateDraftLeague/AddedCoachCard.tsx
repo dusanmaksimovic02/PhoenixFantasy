@@ -1,7 +1,17 @@
 import { type FC } from "react";
 import coach from "../../assets/images/coach.png";
 
-const AddedCoachCard: FC = () => {
+interface AddedCoachToTeamCardProps {
+  firstName: string;
+  lastName: string;
+  fantasyPoints: string;
+}
+
+const AddedCoachCard: FC<AddedCoachToTeamCardProps> = ({
+  firstName,
+  lastName,
+  fantasyPoints,
+}) => {
   return (
     <div className="relative w-fit">
       <img src={coach} alt="jersey image" className="w-20 h-25 rounded-2xl" />
@@ -14,8 +24,12 @@ const AddedCoachCard: FC = () => {
             className="w-4 h-4 pr-1 "
           />
         </div>
-        <p className="text-[13px] text-center font-bold pt-2">10</p>
-        <p className="text-[13px] left text-center text-nowrap">Z. Obradovic</p>
+        <p className="text-[13px] text-center font-bold pt-2">
+          {fantasyPoints}
+        </p>
+        <p className="text-[13px] left text-center text-nowrap">
+          {firstName[0]}. {lastName}
+        </p>
       </div>
     </div>
   );

@@ -229,13 +229,13 @@ public class FantasyTeamController : ControllerBase
     [HttpGet("GetAllFreeCoaches/{leagueId}")]
     public async Task<IActionResult> GetAllFreeCoaches(Guid leagueId)
     {
+        var takenCoachesIds = await context
+            .FantasyTeamCoaches.Where(tp => tp.FantasyTeam!.LeagueId == leagueId)
+            .Select(tp => tp.CoachId)
+            .ToListAsync();
+
         var freeCoaches = await statsDbContext
-            .Coaches.Where(c =>
-                !context
-                    .FantasyTeamCoaches.Where(tc => tc.FantasyTeam!.LeagueId == leagueId)
-                    .Select(tc => tc.CoachId)
-                    .Contains(c.Id)
-            )
+            .Coaches.Where(c => !takenCoachesIds.Contains(c.Id))
             .Select(c => new
             {
                 c.Id,

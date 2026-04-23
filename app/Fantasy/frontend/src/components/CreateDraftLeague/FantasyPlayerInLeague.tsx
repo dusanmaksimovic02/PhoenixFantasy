@@ -7,9 +7,8 @@ import {
   removeParticipantFromTeam,
 } from "../../services/CreateDraftLeagueService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 
 interface FantasyPlayerInLeagueProps {
   leagueId: string;
@@ -20,20 +19,13 @@ const FantasyPlayerInLeague: FC<FantasyPlayerInLeagueProps> = ({
 }) => {
   const { id } = useAuth();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const [isOpenDelete, setIsOpenDelete] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
 
-  const {
-    data: leagueParticipant,
-    isLoading: isLoadingParticipants,
-    isFetching,
-  } = useQuery({
+  const { data: leagueParticipant } = useQuery({
     queryKey: ["leagueParticipant", leagueId],
     queryFn: () => getFantasyLeagueParticipant(leagueId),
-    refetchInterval: 10000,
-    staleTime: 0,
   });
 
   const { data: leagueAdminId } = useQuery({
@@ -58,27 +50,6 @@ const FantasyPlayerInLeague: FC<FantasyPlayerInLeagueProps> = ({
     },
   });
 
-  useEffect(() => {
-    if (isLoadingParticipants || isFetching) return;
-
-    if (leagueParticipant && id && leagueAdminId) {
-      if (id === leagueAdminId) return;
-
-      const isParticipant = leagueParticipant.some((u: User) => u.id === id);
-
-      if (!isParticipant) {
-        toast.error("You have been removed from this league.");
-        navigate("/fantasy");
-      }
-    }
-  }, [
-    leagueParticipant,
-    id,
-    isLoadingParticipants,
-    isFetching,
-    leagueAdminId,
-    navigate,
-  ]);
   return (
     <div className="overflow-x-auto rounded-xl border border-neutral-300 dark:border-neutral-700 max-md:col-span-2">
       <table className="table w-full bg-white dark:bg-neutral-800">

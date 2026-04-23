@@ -15,17 +15,20 @@ public class DraftController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
     private readonly IHubContext<DraftHub> hubContext;
+    private readonly IHubContext<CreateDraftHub> createHubContext;
     private readonly StatsDbContext statsDbContext;
 
     public DraftController(
         FantasyDbContext context,
         IHubContext<DraftHub> hubContext,
+        IHubContext<CreateDraftHub> createHubContext,
         StatsDbContext statsDbContext
     )
     {
         this.context = context;
         this.hubContext = hubContext;
         this.statsDbContext = statsDbContext;
+        this.createHubContext = createHubContext;
     }
 
     [HttpPost("PickPlayer")]
@@ -226,6 +229,10 @@ public class DraftController : ControllerBase
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            var coach = await context
+                .DraftSessions.Include(d => d.PickOrder)
+                .FirstOrDefaultAsync(d => d.Id == dto.DraftId);
+
             await hubContext
                 .Clients.Group(draft.Id.ToString())
                 .SendAsync("CoachPicked", new { dto });
@@ -299,6 +306,8 @@ public class DraftController : ControllerBase
                     PickOrder = pickOrderList.Select(p => new { p.Order, p.FantasyTeamId }),
                 }
             );
+
+        await createHubContext.Clients.Group(league.Id.ToString()).SendAsync("LeagueStarted");
 
         return Ok(draft.Id);
     }

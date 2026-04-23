@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using FantasyApi.Data;
+using FantasyApi.Handlers;
 using FantasyApi.Hubs;
 using FantasyApi.Models;
 using FantasyApi.Services;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using FantasyApi.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,18 +80,14 @@ builder
         {
             OnMessageReceived = context =>
             {
-                var authHeader = context.Request.Headers["Authorization"];
-                Console.WriteLine($"[DEBUG] Stigao Authorization Header: {authHeader}");
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("[DEBUG] Token uspešno VALIDIRAN!");
                 return Task.CompletedTask;
             },
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine($"[DEBUG] Auth greška: {context.Exception.Message}");
                 return Task.CompletedTask;
             },
         };
@@ -136,6 +132,7 @@ app.UseHttpsRedirection();
 app.UseCors("Frontend");
 
 app.MapHub<DraftHub>("/draftHub");
+app.MapHub<CreateDraftHub>("/createDraftHub");
 app.MapHub<DraftHub>("/fantasyHub");
 app.MapHub<GameScoreHub>("/gameScoreHub");
 

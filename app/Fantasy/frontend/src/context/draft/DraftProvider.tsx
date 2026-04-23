@@ -12,7 +12,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "react-toastify";
 import type { Player } from "../../models/Player";
-import { freePlayersInLeague } from "../../services/StatsService";
+import {
+  freePlayersInLeague,
+  getAllFreeCoaches,
+} from "../../services/StatsService";
+import type { CoachView } from "../../models/TeamLineUp";
 
 export const createDraftConnection = () => {
   return new signalR.HubConnectionBuilder()
@@ -42,6 +46,7 @@ export const DraftProvider: FC<Props> = ({
   const pickOrderRef = useRef<any[]>([]);
   const queryClient = useQueryClient();
   const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
+  const [availableCoaches, setAvailableCoaches] = useState<CoachView[]>([]);
 
   useEffect(() => {
     if (!draftId) return;
@@ -71,6 +76,8 @@ export const DraftProvider: FC<Props> = ({
         );
         const players = await freePlayersInLeague(leagueId);
         setAvailablePlayers(players);
+        const coaches = await getAllFreeCoaches(leagueId);
+        setAvailableCoaches(coaches);
       } catch (err) {
         console.error("SignalR Connection/Sync Error: ", err);
       }
@@ -82,9 +89,7 @@ export const DraftProvider: FC<Props> = ({
       setPickOrder(data.pickOrder);
       setCurrentIndex(data.currentPickIndex);
       setDeadline(data.pickDeadline);
-      setPhase(
-        data.phase == 0 ? "Player" : data.phase == 1 ? "Coach" : "Finished",
-      );
+      setPhase(data.phase);
       queryClient.invalidateQueries({ queryKey: ["isLeagueStarted"] });
       queryClient.invalidateQueries({ queryKey: ["draftId"] });
     });
@@ -110,12 +115,20 @@ export const DraftProvider: FC<Props> = ({
       setAvailablePlayers(players);
     });
 
-    connection.on("CoachPicked", (data) => {
+    connection.on("CoachPicked", async (data) => {
       console.log("Trener zauzet:", data.coachId);
+      const coach = availableCoaches.filter((c) => c.id == data.coachId);
+      toast.info(
+        `Coach ${coach[0].firstName} ${coach[0].lastName} has been auto picked!`,
+      );
+      const coaches = await getAllFreeCoaches(leagueId);
+      setAvailableCoaches(coaches);
+      queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
     });
 
     connection.on("PhaseChanged", (newPhase) => {
       console.log("Nova faza drafta:", newPhase);
+      setPhase(newPhase);
     });
 
     connection.on("PickSkipped", (data) => {
@@ -128,6 +141,18 @@ export const DraftProvider: FC<Props> = ({
 
       setDeadline(utcDeadline);
       console.log(pickOrderRef.current);
+    });
+
+    connection.on("AutoPick", async (data) => {
+      toast.info(
+        `Player ${data.player.firstName} ${data.player.lastName} has been auto picked!`,
+      );
+      setAvailablePlayers((prevAvailable) =>
+        prevAvailable.filter((p) => p.id !== data.player.id),
+      );
+      queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
+      const players = await freePlayersInLeague(leagueId);
+      setAvailablePlayers(players);
     });
 
     startConnection();
@@ -157,6 +182,7 @@ export const DraftProvider: FC<Props> = ({
         pickOrder,
         phase,
         availablePlayers,
+        availableCoaches,
       }}
     >
       {children}

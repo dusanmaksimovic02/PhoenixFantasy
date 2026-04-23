@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using FantasyApi.Data;
+using FantasyApi.Hubs;
 using FantasyApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FantasyApi.Controllers;
@@ -12,10 +14,12 @@ namespace FantasyApi.Controllers;
 public class FantasyLeagueController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
+    private readonly IHubContext<CreateDraftHub> hubContext;
 
-    public FantasyLeagueController(FantasyDbContext context)
+    public FantasyLeagueController(FantasyDbContext context, IHubContext<CreateDraftHub> hubContext)
     {
         this.context = context;
+        this.hubContext = hubContext;
     }
 
     /*[HttpPost("AddFantasyLeague")]
@@ -52,32 +56,10 @@ public class FantasyLeagueController : ControllerBase
     [HttpPost("CreateLeagueWithTeam")]
     public async Task<IActionResult> CreateLeagueWithTeam([FromBody] CreateLeagueWithTeamDTO dto)
     {
-        // Console.WriteLine($"Korisnik autentifikovan: {User.Identity?.IsAuthenticated}");
-        // Console.WriteLine($"Tip autentifikacije: {User.Identity?.AuthenticationType}");
-
-        // var userId =
-        //     User.FindFirst("id")?.Value
-        //     ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-        // if (string.IsNullOrEmpty(userId))
-        // {
-        //     var claims = string.Join(", ", User.Claims.Select(c => $"{c.Type}:{c.Value}"));
-        //     Console.WriteLine($"Stigli claimovi: {claims}");
-        //     return Unauthorized("ID nije pronađen u tokenu. Proveri konzolu bekenda.");
-        // }
-
         using var transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
-            //var userId = User.FindFirst("id")?.Value;
-            /*var userId = User.FindFirst("id")?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("Token je validan, ali ID nije pronađen unutar njega.");
-            }*/
-
             var user = await context.Users.FindAsync(dto.UserId);
 
             if (user == null)
@@ -113,6 +95,10 @@ public class FantasyLeagueController : ControllerBase
             await context.SaveChangesAsync();
 
             await transaction.CommitAsync();
+
+            await hubContext
+                .Clients.Group(league.Id.ToString())
+                .SendAsync("CreateDraftStarted", new { });
 
             return Ok(
                 new
@@ -154,6 +140,8 @@ public class FantasyLeagueController : ControllerBase
             context.FantasyLeagues.Remove(league);
 
             await context.SaveChangesAsync();
+
+            await hubContext.Clients.Group(league.Id.ToString()).SendAsync("DeleteLeague", new { });
 
             return NoContent();
         }
@@ -258,6 +246,10 @@ public class FantasyLeagueController : ControllerBase
 
             context.FantasyTeams.Add(team);
             await context.SaveChangesAsync();
+
+            await hubContext
+                .Clients.Group(league.Id.ToString())
+                .SendAsync("JoinLeague", new { teamName = team.Name });
 
             return Ok(
                 new
@@ -364,6 +356,10 @@ public class FantasyLeagueController : ControllerBase
             context.FantasyTeams.Remove(team);
 
             await context.SaveChangesAsync();
+
+            await hubContext
+                .Clients.Group(league.Id.ToString())
+                .SendAsync("RemovePlayerFromLeague", new { dto.UserId });
 
             return Ok(new { message = "Team removed from league successfully" });
         }

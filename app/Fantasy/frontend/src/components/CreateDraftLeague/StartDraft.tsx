@@ -24,7 +24,6 @@ const StartDraft: FC<StartDraftProps> = ({ leagueId }) => {
   const { data: isLeagueStarted } = useQuery({
     queryKey: ["isLeagueStarted"],
     queryFn: () => isDraftStarted(leagueId),
-    refetchInterval: 3000,
   });
 
   const startDraftMutation = useMutation({

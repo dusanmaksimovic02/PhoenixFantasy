@@ -46,13 +46,25 @@ export const joinToLeague = async (
   joinCode: string,
   teamName: string,
 ) => {
-  const response = await apiClient.post("FantasyLeague/JoinLeague", {
-    userId,
-    joinCode,
-    teamName,
-  });
+  try {
+    const response = await apiClient.post("FantasyLeague/JoinLeague", {
+      userId,
+      joinCode,
+      teamName,
+    });
 
-  return response.data;
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data || "Join League failed";
+      toast.error(message);
+      console.log("Join League ERROR:", message);
+    } else {
+      toast.error("Join League failed! Please try again later.");
+      console.log(e);
+    }
+    throw e;
+  }
 };
 
 export const getLeagueAdmin = async (leagueId: string) => {
@@ -140,9 +152,29 @@ export const pickPlayer = async (
   }
 };
 
-export const pickCoach = async () => {
-  const response = await apiClient.post("Draft/PickCoach");
-  return response.data;
+export const pickCoach = async (
+  draftId: string,
+  fantasyTeamId: string,
+  coachId: string,
+) => {
+  try {
+    const response = await apiClient.post("Draft/PickCoach", {
+      draftId,
+      fantasyTeamId,
+      coachId,
+    });
+    return response.data;
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response) {
+      const message = e.response.data?.message || "Adding coach failed";
+      toast.error(message);
+      console.log("Adding coach ERROR:", e);
+    } else {
+      toast.error("Adding coach failed! Please try again later.");
+      console.log(e);
+    }
+    throw e;
+  }
 };
 
 export const getDraftSession = async (draftId: string) => {
