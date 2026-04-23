@@ -126,13 +126,22 @@ public class DraftController : ControllerBase
             {
                 draft.Phase = DraftPhase.Coach;
                 draft.CurrentPickIndex = 0;
+                draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 await hubContext
                     .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PlayerPicked", new { playerFull });
+
+                await hubContext
+                    .Clients.Group(draft.Id.ToString())
                     .SendAsync("PhaseChanged", "Coach");
+
+                await hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
 
                 return Ok();
             }
@@ -173,11 +182,18 @@ public class DraftController : ControllerBase
         if (draft.CurrentPickIndex >= draft.PickOrder.Count)
             return BadRequest("Draft završen");
 
-        var sortedPickOrder = draft.PickOrder.OrderBy(p => p.Order).ToList();
+        var coachOrder = draft
+            .PickOrder.OrderBy(p => p.Order)
+            .Select(p => p.FantasyTeamId)
+            .Distinct()
+            .ToList();
 
-        var currentPick = sortedPickOrder[draft.CurrentPickIndex];
+        var currentPickId = coachOrder[draft.CurrentPickIndex];
 
-        if (currentPick.FantasyTeamId != dto.FantasyTeamId)
+        if (currentPickId != dto.FantasyTeamId)
+            return BadRequest("Nije tvoj red");
+
+        if (currentPickId != dto.FantasyTeamId)
             return BadRequest("Nije tvoj red");
 
         if (DateTime.UtcNow > draft.PickDeadline)
@@ -190,7 +206,14 @@ public class DraftController : ControllerBase
         if (alreadyHasCoach)
             return BadRequest("Već imaš trenera");
 
-        var exists = await context.FantasyTeamCoaches.AnyAsync(x => x.CoachId == dto.CoachId);
+        var teamIdsInLeague = await context
+            .FantasyTeams.Where(t => t.LeagueId == draft.LeagueId)
+            .Select(t => t.Id)
+            .ToListAsync();
+
+        var exists = await context.FantasyTeamCoaches.AnyAsync(x =>
+            x.CoachId == dto.CoachId && teamIdsInLeague.Contains(x.FantasyTeamId)
+        );
 
         if (exists)
             return BadRequest("Trener već izabran");
@@ -209,15 +232,27 @@ public class DraftController : ControllerBase
             );
 
             draft.CurrentPickIndex++;
-            draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
-            if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+            var totalTeams = draft.PickOrder.Select(p => p.FantasyTeamId).Distinct().Count();
+
+            if (draft.CurrentPickIndex >= coachOrder.Count)
             {
                 draft.Phase = DraftPhase.Finished;
                 draft.CurrentPickIndex = 0;
+                draft.PickDeadline = DateTime.UtcNow;
+
+                draft.IsActive = false;
 
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
+
+                await hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("CoachPicked", new { dto.FantasyTeamId, dto.CoachId });
+
+                /*await hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("DraftFinished", new { draft.Id });*/
 
                 await hubContext
                     .Clients.Group(draft.Id.ToString())
@@ -226,16 +261,14 @@ public class DraftController : ControllerBase
                 return Ok();
             }
 
+            draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
+
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            var coach = await context
-                .DraftSessions.Include(d => d.PickOrder)
-                .FirstOrDefaultAsync(d => d.Id == dto.DraftId);
-
             await hubContext
                 .Clients.Group(draft.Id.ToString())
-                .SendAsync("CoachPicked", new { dto });
+                .SendAsync("CoachPicked", new { dto.FantasyTeamId, dto.CoachId });
 
             await hubContext
                 .Clients.Group(draft.Id.ToString())
