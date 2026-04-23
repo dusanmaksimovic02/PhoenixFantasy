@@ -1,0 +1,36 @@
+import { type FC } from "react";
+import coach from "../../assets/images/coach.png";
+
+interface DraftLeagueCoachCardProps {
+  firstName: string;
+  lastName: string;
+  fantasyPoints: string;
+}
+
+const DraftLeagueCoachCard: FC<DraftLeagueCoachCardProps> = ({
+  firstName,
+  lastName,
+  fantasyPoints,
+}) => {
+  return (
+    <div className="relative w-fit">
+      <img src={coach} alt="coach" className="w-20 h-25 rounded-2xl" />
+      <div className="absolute flex flex-col w-full h-full top-0 left-0 text-black pt-3">
+        <div className="flex items-center justify-between pt-5">
+          <p className="text-[10px] pl-2">HC</p>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/sr/thumb/8/80/KK_Partizan_logo.svg/1920px-KK_Partizan_logo.svg.png"
+            alt="club logo"
+            className="w-4 h-4 pr-1"
+          />
+        </div>
+        <p className="text-[13px] text-center font-bold pt-2">{fantasyPoints}</p>
+        <p className="text-[13px] text-center text-nowrap">
+          {firstName[0]}. {lastName}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default DraftLeagueCoachCard;
