@@ -22,7 +22,7 @@ public class GameEndedHandler
         _fantasyPointsService = fantasyPointsService;
     }
 
-    public async Task HandleAsync(GameEndedEvent gameEvent)
+    public async Task HandleAsync(Events.GameEndedEvent gameEvent)
     {
         if (!gameEvent.CoachStats.Any())
         {

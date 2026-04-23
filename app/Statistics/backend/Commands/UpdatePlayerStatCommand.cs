@@ -120,20 +120,16 @@ public class UpdatePlayerStatCommand// : IPlayerStatCommand
 
     private void UpdateGameScore(int diff)
 {
-    if (diff == 0 || _stats.Game == null || _stats.Player == null)
-        return;
+   var game = _stats.Game;
+    var playerTeamId = _stats.TeamId;
 
-    var game = _stats.Game;
-    
-    var playerTeamId = _stats.Player.TeamId;
-
-    if (game.HomeTeam?.Id == playerTeamId)
+    if (game?.HomeTeam?.Id == playerTeamId)
     {
-        game.HomeTeamScore += diff;
+        game?.HomeTeamScore += diff;
     }
-    else if (game.GuestTeam?.Id == playerTeamId)
+    else if (game?.GuestTeam?.Id == playerTeamId)
     {
-        game.GuestTeamScore += diff;
+        game?.GuestTeamScore += diff;
     }
 }
 }
