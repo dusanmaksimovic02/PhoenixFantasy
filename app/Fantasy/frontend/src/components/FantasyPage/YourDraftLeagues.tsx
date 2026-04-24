@@ -34,7 +34,11 @@ const YourDraftLeagues: FC = () => {
                   teamName: league.teamName,
                 };
                 if (league.isDraftStarted)
-                  navigate(`draft/${league.leagueName}`);
+                  navigate(`draft/${league.leagueName}`, {
+                    state: {
+                      leagueId: league.id,
+                    },
+                  });
                 else
                   navigate(`draft/${league.leagueName}/${league.joinCode}`, {
                     state: {

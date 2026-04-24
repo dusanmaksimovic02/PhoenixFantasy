@@ -368,4 +368,31 @@ public class FantasyLeagueController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet("GetFantasyLeagueStandings/{leagueId}")]
+    public async Task<IActionResult> GetFantasyLeagueStandings(Guid leagueId)
+    {
+        var leagueExists = await context.FantasyLeagues.AnyAsync(l => l.Id == leagueId);
+
+        if (!leagueExists)
+            return NotFound("League not found");
+
+        var standings = await context
+            .FantasyTeams.Where(t => t.LeagueId == leagueId)
+            .Select(t => new FantasyLeagueStandingDto
+            {
+                TeamName = t.Name,
+                TotalPoints =
+                    context
+                        .FantasyTeamRounds.Where(r => r.fantasyTeam!.Id == t.Id)
+                        .Sum(r => (double?)r.roundPoints)
+                    ?? 0,
+                username = t.User!.UserName,
+                userId = t.User!.Id,
+            })
+            .OrderByDescending(t => t.TotalPoints)
+            .ToListAsync();
+
+        return Ok(standings);
+    }
 }
