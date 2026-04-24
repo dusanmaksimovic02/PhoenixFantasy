@@ -126,4 +126,15 @@ public class StatsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("GetPlayerAverages/{playerId}")]
+    public async Task<IActionResult> GetPlayerAverages(Guid playerId)
+    {
+        var result = await _service.GetAveragePlayerStats(playerId);
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
 }

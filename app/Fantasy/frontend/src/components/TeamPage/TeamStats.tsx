@@ -1,36 +1,7 @@
-import { type FC } from "react";
+import { getTeamAveragePlayerStats } from "../../services/StatsService";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, type FC } from "react";
 import { CiCircleInfo } from "react-icons/ci";
-
-const teamStats = {
-  teamName: "Phoenix Suns",
-  position: 1,
-  games: {
-    played: 82,
-    won: 55,
-    lost: 27,
-    winPercentage: ((55 / 82) * 100).toFixed(2) + "%",
-  },
-  statistics: {
-    pointsPerGame: 115.3,
-    assistsPerGame: 27.5,
-    reboundsPerGame: 44.1,
-    stealsPerGame: 7.8,
-    blocksPerGame: 4.5,
-    turnoversPerGame: 13.2,
-    fieldGoalPercentage: "47.5%",
-    threePointPercentage: "37.1%",
-    freeThrowPercentage: "79.3%",
-    offensiveReboundsPerGame: 10.2,
-    defensiveReboundsPerGame: 33.9,
-    pointsAllowedPerGame: 111.2,
-    efficiencyRating: 112.4,
-    pace: 99.3,
-    netRating: "+4.8",
-    fastBreakPointsPerGame: 14.7,
-    pointsInThePaintPerGame: 50.3,
-    secondChancePointsPerGame: 13.5,
-  },
-};
 
 const TABLE_HEAD: string[] = [
   "P",
@@ -41,21 +12,19 @@ const TABLE_HEAD: string[] = [
   "PPG",
   "APG",
   "RPG",
-  "SPG",
-  "BPG",
-  "TPG",
-  "FGP",
-  "TPP",
-  "FTP",
   "ORPG",
   "DRPG",
-  "PAPG",
+  "SPG",
+  "TPG",
+  "BPG",
+  "RBPG",
+  "FPG",
+  "RFPG",
+  "TFPG",
+  "1P %",
+  "2P %",
+  "3P %",
   "ER",
-  "PACE",
-  "NETR",
-  "FBP",
-  "PITP",
-  "SCP",
 ];
 
 const teamStatsMeaning: { abbr: string; meaning: string }[] = [
@@ -67,51 +36,118 @@ const teamStatsMeaning: { abbr: string; meaning: string }[] = [
   { abbr: "PPG", meaning: "Points Per Game" },
   { abbr: "APG", meaning: "Assists Per Game" },
   { abbr: "RPG", meaning: "Rebounds Per Game" },
+  { abbr: "ORPG", meaning: "Offensive Rebounds Per Game" },
+  { abbr: "DRPG", meaning: "Defensive Rebounds Per Game" },
   { abbr: "SPG", meaning: "Steals Per Game" },
-  { abbr: "BPG", meaning: "Blocks Per Game" },
   { abbr: "TPG", meaning: "Turnovers Per Game" },
-  {
-    abbr: "FGP",
-    meaning: "Field Goal Percentage",
-  },
-  {
-    abbr: "TPP",
-    meaning: "Three Point Percentage",
-  },
-  {
-    abbr: "FTP",
-    meaning: "Free Throw Percentage",
-  },
-  {
-    abbr: "ORPG",
-    meaning: "Offensive Rebounds Per Game",
-  },
-  {
-    abbr: "DRPG",
-    meaning: "Defensive Rebounds Per Game",
-  },
-  {
-    abbr: "PAPG",
-    meaning: "Points Allowed Per Game",
-  },
-  { abbr: "ER", meaning: "Efficiency Rating" },
-  { abbr: "PACE", meaning: "Average number of possessions per game" },
-  { abbr: "NETR", meaning: "Net points per 100 possessions" },
-  {
-    abbr: "FBP",
-    meaning: "Fast Break Points Per Game",
-  },
-  {
-    abbr: "PITP",
-    meaning: "Points In The Paint Per Game",
-  },
-  {
-    abbr: "SCP",
-    meaning: "Second Chance Points Per Game",
-  },
+  { abbr: "BPG", meaning: "Blocks Per Game" },
+  { abbr: "RBPG", meaning: "Received Blocks Per Game" },
+  { abbr: "FPG", meaning: "Fouls Per Game" },
+  { abbr: "RFPG", meaning: "Received Fouls Per Game" },
+  { abbr: "TFPG", meaning: "Technical Fouls Per Game" },
+  { abbr: "1P %", meaning: "Free Throw Percentage" },
+  { abbr: "2P %", meaning: "Two-Point Percentage" },
+  { abbr: "3P %", meaning: "Three-Point Percentage" },
+  { abbr: "ER", meaning: "Efficiency Rating (PIR)" },
 ];
 
-const TeamStats: FC = () => {
+interface TeamStatsProps {
+  teamId: string;
+  position: number;
+  gamePlayed: number;
+  gameWon: number;
+  gameLost: number;
+  winPercentage: string;
+}
+
+const TeamStats: FC<TeamStatsProps> = ({
+  teamId,
+  position,
+  gamePlayed,
+  gameWon,
+  gameLost,
+  winPercentage,
+}) => {
+  const { data: playerStats } = useQuery({
+    queryKey: ["playerStats", teamId],
+    queryFn: () => getTeamAveragePlayerStats(teamId),
+  });
+
+  const calculatedTeamStats = useMemo(() => {
+    if (!playerStats || playerStats.length === 0) return null;
+
+    const totals = playerStats.reduce(
+      (acc, player) => {
+        return {
+          ppg: acc.ppg + player.points,
+          apg: acc.apg + player.assists,
+          rpg: acc.rpg + player.rebounds,
+          orpg: acc.orpg + (player.offensiveRebounds ?? 0),
+          drpg: acc.drpg + (player.defensiveRebounds ?? 0),
+          spg: acc.spg + player.steals,
+          bpg: acc.bpg + player.blocks,
+          rbpg: acc.rbpg + player.receivedBlocks,
+          tpg: acc.tpg + player.turnovers,
+          ftMade: acc.ftMade + player.freeThrow.made,
+          ftMissed: acc.ftMissed + player.freeThrow.missed,
+          twoMade: acc.twoMade + player.twoPoint.made,
+          twoMissed: acc.twoMissed + player.twoPoint.missed,
+          threeMade: acc.threeMade + player.threePoint.made,
+          threeMissed: acc.threeMissed + player.threePoint.missed,
+          pir: acc.pir + player.pir,
+          fouls: acc.fouls + (player.personalFouls ?? 0),
+          rfpg: acc.rfpg + (player.receivedFouls ?? 0),
+          tfpg: acc.tfpg + (player.technicalFouls ?? 0),
+        };
+      },
+      {
+        ppg: 0,
+        apg: 0,
+        rpg: 0,
+        orpg: 0,
+        drpg: 0,
+        spg: 0,
+        bpg: 0,
+        rbpg: 0,
+        tpg: 0,
+        ftMade: 0,
+        ftMissed: 0,
+        twoMade: 0,
+        twoMissed: 0,
+        threeMade: 0,
+        threeMissed: 0,
+        pir: 0,
+        fouls: 0,
+        rfpg: 0,
+        tfpg: 0,
+      },
+    );
+
+    const calcPct = (made: number, missed: number) =>
+      made + missed > 0
+        ? ((made / (made + missed)) * 100).toFixed(1) + "%"
+        : "0%";
+
+    return {
+      points: totals.ppg.toFixed(1),
+      assists: totals.apg.toFixed(1),
+      rebounds: totals.rpg.toFixed(1),
+      orpg: totals.orpg.toFixed(1),
+      drpg: totals.drpg.toFixed(1),
+      steals: totals.spg.toFixed(1),
+      turnovers: totals.tpg.toFixed(1),
+      blocks: totals.bpg.toFixed(1),
+      ftp: calcPct(totals.ftMade, totals.ftMissed),
+      twop: calcPct(totals.twoMade, totals.twoMissed),
+      threep: calcPct(totals.threeMade, totals.threeMissed),
+      pir: totals.pir.toFixed(1),
+      fouls: totals.fouls.toFixed(1),
+      rbpg: totals.rbpg.toFixed(1),
+      rfpg: totals.rfpg.toFixed(1),
+      tfpg: totals.tfpg.toFixed(1),
+    };
+  }, [playerStats]);
+
   return (
     <div className="h-100">
       <div className="w-full p-5 flex justify-end">
@@ -157,47 +193,27 @@ const TeamStats: FC = () => {
           </thead>
           <tbody className="group text-sm text-black dark:text-white ">
             <tr className="even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-5">{teamStats.position}</td>
-              <td className="p-5">{teamStats.games.played}</td>
-              <td className="p-5">{teamStats.games.won}</td>
-              <td className="p-5">{teamStats.games.lost}</td>
-              <td className="p-5">{teamStats.games.winPercentage}</td>
-              <td className="p-5">{teamStats.statistics.pointsPerGame}</td>
-              <td className="p-5">{teamStats.statistics.assistsPerGame}</td>
-              <td className="p-5">{teamStats.statistics.reboundsPerGame}</td>
-              <td className="p-5">{teamStats.statistics.stealsPerGame}</td>
-              <td className="p-5">{teamStats.statistics.blocksPerGame}</td>
-              <td className="p-5">{teamStats.statistics.turnoversPerGame}</td>
-              <td className="p-5">
-                {teamStats.statistics.fieldGoalPercentage}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.threePointPercentage}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.freeThrowPercentage}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.offensiveReboundsPerGame}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.defensiveReboundsPerGame}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.pointsAllowedPerGame}
-              </td>
-              <td className="p-5">{teamStats.statistics.efficiencyRating}</td>
-              <td className="p-5">{teamStats.statistics.pace}</td>
-              <td className="p-5">{teamStats.statistics.netRating}</td>
-              <td className="p-5">
-                {teamStats.statistics.fastBreakPointsPerGame}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.pointsInThePaintPerGame}
-              </td>
-              <td className="p-5">
-                {teamStats.statistics.secondChancePointsPerGame}
-              </td>
+              <td className="p-5">{position}</td>
+              <td className="p-5">{gamePlayed}</td>
+              <td className="p-5">{gameWon}</td>
+              <td className="p-5">{gameLost}</td>
+              <td className="p-5">{winPercentage}</td>
+              <td className="p-5">{calculatedTeamStats?.points}</td>
+              <td className="p-5">{calculatedTeamStats?.assists}</td>
+              <td className="p-5">{calculatedTeamStats?.rebounds}</td>
+              <td className="p-5">{calculatedTeamStats?.orpg}</td>
+              <td className="p-5">{calculatedTeamStats?.drpg}</td>
+              <td className="p-5">{calculatedTeamStats?.steals}</td>
+              <td className="p-5">{calculatedTeamStats?.turnovers}</td>
+              <td className="p-5">{calculatedTeamStats?.blocks}</td>
+              <td className="p-5">{calculatedTeamStats?.rbpg}</td>
+              <td className="p-5">{calculatedTeamStats?.fouls}</td>
+              <td className="p-5">{calculatedTeamStats?.rfpg}</td>
+              <td className="p-5">{calculatedTeamStats?.tfpg}</td>
+              <td className="p-5">{calculatedTeamStats?.ftp}</td>
+              <td className="p-5">{calculatedTeamStats?.twop}</td>
+              <td className="p-5">{calculatedTeamStats?.threep}</td>
+              <td className="p-5">{calculatedTeamStats?.pir}</td>
             </tr>
           </tbody>
         </table>

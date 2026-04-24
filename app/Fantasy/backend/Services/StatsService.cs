@@ -173,10 +173,15 @@ public class StatsService
                     Points = g.Average(x => x.Points ?? 0),
                     Assists = g.Average(x => x.Assists ?? 0),
                     Rebounds = g.Average(x => x.Rebounds ?? 0),
+                    OffensiveRebounds = g.Average(x => x.OffensiveRebounds ?? 0),
+                    DefensiveRebounds = g.Average(x => x.DefensiveRebounds ?? 0),
                     Steals = g.Average(x => x.Steals ?? 0),
                     Turnovers = g.Average(x => x.Turnovers ?? 0),
                     Blocks = g.Average(x => x.Blocks ?? 0),
+                    ReceivedBlocks = g.Average(x => x.RecievedBlocks ?? 0),
                     PersonalFouls = g.Average(x => x.PersonalFouls ?? 0),
+                    ReceivedFouls = g.Average(x => x.RecievedFouls ?? 0),
+                    TechnicalFouls = g.Average(x => x.TechnicalFouls ?? 0),
                     Pir = g.Average(x => x.Pir ?? 0),
 
                     FreeThrow = new ShotStatDto
@@ -201,5 +206,63 @@ public class StatsService
             .ToList();
 
         return result;
+    }
+
+    public async Task<PlayerStatsDto> GetAveragePlayerStats(Guid playerId)
+    {
+        var stats = await _context
+            .PlayerGameStats.Include(x => x.Player)
+            .Where(x => x.PlayerId == playerId)
+            .ToListAsync();
+
+        var grouped = stats.GroupBy(x => x.PlayerId);
+
+        var result = grouped
+            .Select(g =>
+            {
+                var player = g.First().Player;
+
+                return new PlayerStatsDto
+                {
+                    PlayerId = g.Key,
+                    JerseyNumber = player?.JerseyNumber,
+                    FullName = $"{player?.FirstName} {player?.LastName}",
+
+                    Points = g.Average(x => x.Points ?? 0),
+                    Assists = g.Average(x => x.Assists ?? 0),
+                    Rebounds = g.Average(x => x.Rebounds ?? 0),
+                    OffensiveRebounds = g.Average(x => x.OffensiveRebounds ?? 0),
+                    DefensiveRebounds = g.Average(x => x.DefensiveRebounds ?? 0),
+                    Steals = g.Average(x => x.Steals ?? 0),
+                    Turnovers = g.Average(x => x.Turnovers ?? 0),
+                    Blocks = g.Average(x => x.Blocks ?? 0),
+                    ReceivedBlocks = g.Average(x => x.RecievedBlocks ?? 0),
+                    PersonalFouls = g.Average(x => x.PersonalFouls ?? 0),
+                    ReceivedFouls = g.Average(x => x.RecievedFouls ?? 0),
+                    TechnicalFouls = g.Average(x => x.TechnicalFouls ?? 0),
+                    Pir = g.Average(x => x.Pir ?? 0),
+
+                    FreeThrow = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made1p ?? 0),
+                        Missed = g.Sum(x => x.Miss1p ?? 0),
+                    },
+
+                    TwoPoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made2p ?? 0),
+                        Missed = g.Sum(x => x.Miss2p ?? 0),
+                    },
+
+                    ThreePoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made3p ?? 0),
+                        Missed = g.Sum(x => x.Miss3p ?? 0),
+                    },
+                };
+            })
+            .FirstOrDefault();
+
+        return result!;
     }
 }

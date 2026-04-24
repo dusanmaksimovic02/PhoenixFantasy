@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { type Player } from "../../models/Player.model";
 import { CiCircleInfo } from "react-icons/ci";
 import { useQuery } from "@tanstack/react-query";
 import type { FC } from "react";
 import { getTeamAveragePlayerStats } from "../../services/StatsService";
+import type { PlayerStats } from "@/models/PlayerStats";
 
 type Props = {
   teamId: string;
+  teamName: string;
 };
 
 const TABLE_HEAD = [
@@ -15,9 +16,15 @@ const TABLE_HEAD = [
   "PPG",
   "APG",
   "RPG",
+  "ORPG",
+  "DRPG",
   "SPG",
   "TPG",
   "BPG",
+  "RBPG",
+  "PF",
+  "RF",
+  "TF",
   "1P",
   "1P %",
   "2P",
@@ -33,9 +40,15 @@ const TABLE_HEAD_MEANING = [
   { abbr: "PPG", meaning: "Points Per Game" },
   { abbr: "APG", meaning: "Assists Per Game" },
   { abbr: "RPG", meaning: "Rebounds Per Game" },
+  { abbr: "ORPG", meaning: "Offensive Rebounds Per Game" },
+  { abbr: "DRPG", meaning: "Defensive Rebounds Per Game" },
   { abbr: "SPG", meaning: "Steals Per Game" },
   { abbr: "TPG", meaning: "Turnovers Per Game" },
   { abbr: "BPG", meaning: "Blocks Per Game" },
+  { abbr: "RBPG", meaning: "Received Blocks Per Game" },
+  { abbr: "PF", meaning: "Personal Fouls Per Game" },
+  { abbr: "RF", meaning: "Received Fouls Per Game" },
+  { abbr: "TF", meaning: "Technical Fouls Per Game" },
   { abbr: "1P", meaning: "Free Throws" },
   { abbr: "1P %", meaning: "Free Throw Percentage" },
   { abbr: "2P", meaning: "Two-Point Shots" },
@@ -45,20 +58,18 @@ const TABLE_HEAD_MEANING = [
   { abbr: "PIR", meaning: "Player Impact Rating" },
 ];
 
-const PlayersStats: FC<Props> = ({ teamId }) => {
+const PlayersStats: FC<Props> = ({ teamId, teamName }) => {
   const navigate = useNavigate();
   const { data: playerStats } = useQuery({
     queryKey: ["playerStats", teamId],
     queryFn: () => getTeamAveragePlayerStats(teamId),
   });
-  const handleRowClick = (player: Player) => {
-    const playerName = `${player.firstName}-${player.lastName}`
-      .toLowerCase()
-      .replace(/\s+/g, "-");
-    const team = player.team.toLowerCase().replace(/\s+/g, "-");
+  const handleRowClick = (player: PlayerStats) => {
+    const playerName = `${player.fullName}`.toLowerCase().replace(/\s+/g, "-");
+    const team = teamName.toLowerCase().replace(/\s+/g, "-");
 
     navigate(`/team/${team}/${playerName}`, {
-      state: { player },
+      state: { playerId: player.playerId, teamName: teamName },
     });
   };
   return (
@@ -109,7 +120,7 @@ const PlayersStats: FC<Props> = ({ teamId }) => {
               <tr
                 key={index}
                 className="table-row even:bg-surface-light dark:even:bg-surface-dark cursor-pointer"
-                //onClick={() => handleRowClick(player)}
+                onClick={() => handleRowClick(player)}
               >
                 <td className="p-5">{player.jerseyNumber}</td>
                 <td className="p-5 text-nowrap">{player.fullName}</td>
@@ -117,9 +128,15 @@ const PlayersStats: FC<Props> = ({ teamId }) => {
                 <td className="p-5">{player.points.toFixed(1)}</td>
                 <td className="p-5">{player.assists.toFixed(1)}</td>
                 <td className="p-5">{player.rebounds.toFixed(1)}</td>
+                <td className="p-5">{player.offensiveRebounds.toFixed(1)}</td>
+                <td className="p-5">{player.defensiveRebounds.toFixed(1)}</td>
                 <td className="p-5">{player.steals.toFixed(1)}</td>
+                <td className="p-5">{player.turnovers.toFixed(1)}</td>
                 <td className="p-5">{player.blocks.toFixed(1)}</td>
+                <td className="p-5">{player.receivedBlocks.toFixed(1)}</td>
                 <td className="p-5">{player.personalFouls.toFixed(1)}</td>
+                <td className="p-5">{player.receivedFouls.toFixed(1)}</td>
+                <td className="p-5">{player.technicalFouls.toFixed(1)}</td>
 
                 <td className="p-5">
                   {`${player.freeThrow.made}/${player.freeThrow.made + player.freeThrow.missed}`}

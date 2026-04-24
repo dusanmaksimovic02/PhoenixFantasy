@@ -8,10 +8,15 @@ public class PlayerStatsDto
     public double Points { get; set; }
     public double Assists { get; set; }
     public double Rebounds { get; set; }
+    public double OffensiveRebounds { get; set; }
+    public double DefensiveRebounds { get; set; }
     public double Steals { get; set; }
     public double Turnovers { get; set; }
     public double Blocks { get; set; }
+    public double ReceivedBlocks { get; set; }
     public double PersonalFouls { get; set; }
+    public double ReceivedFouls { get; set; }
+    public double TechnicalFouls { get; set; }
     public double Pir { get; set; }
 
     public ShotStatDto FreeThrow { get; set; } = new();

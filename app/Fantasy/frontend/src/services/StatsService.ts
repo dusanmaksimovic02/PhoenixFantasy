@@ -71,6 +71,13 @@ export const getTeamAveragePlayerStats = async (teamId: string) => {
   return response.data;
 };
 
+export const getAveragePlayerStats = async (playerId: string) => {
+  const response = await apiClient.get<PlayerStats>(
+    `api/Stats/GetPlayerAverages/${playerId}`,
+  );
+  return response.data;
+};
+
 export const getAllFreeCoaches = async (leagueId: string) => {
   const response = await apiClient.get<CoachView[]>(
     `FantasyTeam/GetAllFreeCoaches/${leagueId}`,

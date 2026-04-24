@@ -6,11 +6,12 @@ import { getPlayersByTeam } from "../../services/StatsService";
 
 type Props = {
   teamId: string;
+  teamName: string;
 };
 
 const TABLE_HEAD = ["No", "Full name", "Position", "Date of birth"];
 
-const Players: FC<Props> = ({ teamId }) => {
+const Players: FC<Props> = ({ teamId, teamName }) => {
   const navigate = useNavigate();
 
   const { data: players } = useQuery({
@@ -22,7 +23,7 @@ const Players: FC<Props> = ({ teamId }) => {
     const playerName = `${player.firstName}-${player.lastName}`
       .toLowerCase()
       .replace(/\s+/g, "-");
-    const team = player.lastName.toLowerCase().replace(/\s+/g, "-");
+    const team = teamName.toLowerCase().replace(/\s+/g, "-");
 
     navigate(`/team/${team}/${playerName}`, {
       state: { player },
