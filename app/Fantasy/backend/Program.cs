@@ -133,7 +133,7 @@ app.UseCors("Frontend");
 
 app.MapHub<DraftHub>("/draftHub");
 app.MapHub<CreateDraftHub>("/createDraftHub");
-app.MapHub<DraftHub>("/fantasyHub");
+app.MapHub<FantasyHub>("/fantasyHub");
 app.MapHub<GameScoreHub>("/gameScoreHub");
 
 app.UseAuthentication();
