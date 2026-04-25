@@ -21,6 +21,8 @@ public class StatsConsumerService : BackgroundService
     private const string GameEndedRoutingKey = "game.ended";
     private const string GameScoreQueueName = "fantasy.game.score";
     private const string GameScoreRoutingKey = "game.score.updated";
+    private const string GameStartedQueueName = "fantasy.game.started";
+    private const string GameStartedRoutingKey = "game.started";
 
     public StatsConsumerService(IConfiguration config, IServiceScopeFactory scopeFactory)
     {
@@ -56,6 +58,7 @@ public class StatsConsumerService : BackgroundService
             await SetupQueueAsync(PlayerStatsQueueName, PlayerStatsRoutingKey, stoppingToken);
             await SetupQueueAsync(GameEndedQueueName, GameEndedRoutingKey, stoppingToken);
             await SetupQueueAsync(GameScoreQueueName, GameScoreRoutingKey, stoppingToken);
+            await SetupQueueAsync(GameStartedQueueName, GameStartedRoutingKey, stoppingToken);
 
             Console.WriteLine("[Fantasy RabbitMQ] Connected and listening!");
 
@@ -110,6 +113,24 @@ public class StatsConsumerService : BackgroundService
                 queue: GameScoreQueueName,
                 autoAck: false,
                 consumer: gameScoreConsumer,
+                cancellationToken: stoppingToken
+            );
+
+         
+            var gameStartedConsumer = new AsyncEventingBasicConsumer(_channel);
+            gameStartedConsumer.ReceivedAsync += async (model, ea) =>
+            {
+                await RouteMessageAsync<GameStartedEvent>(
+                    ea,
+                    async (evt, scope) =>
+                        await scope.GetRequiredService<GameStartedHandler>().HandleAsync(evt)
+                );
+            };
+
+            await _channel.BasicConsumeAsync(
+                queue: GameStartedQueueName,
+                autoAck: false,
+                consumer: gameStartedConsumer,
                 cancellationToken: stoppingToken
             );
 

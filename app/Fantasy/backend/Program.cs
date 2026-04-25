@@ -47,6 +47,7 @@ builder.Services.AddScoped<FantasyPointsService>();
 builder.Services.AddScoped<PlayerStatsUpdatedHandler>();
 builder.Services.AddScoped<GameEndedHandler>();
 builder.Services.AddScoped<GameScoreUpdatedHandler>();
+builder.Services.AddScoped<GameStartedHandler>();
 
 builder
     .Services.AddIdentity<Person, IdentityRole>()
@@ -135,6 +136,7 @@ app.MapHub<DraftHub>("/draftHub");
 app.MapHub<CreateDraftHub>("/createDraftHub");
 app.MapHub<FantasyHub>("/fantasyHub");
 app.MapHub<GameScoreHub>("/gameScoreHub");
+app.MapHub<GameStartedHub>("/gameStartedHub");
 
 app.UseAuthentication();
 app.UseAuthorization();

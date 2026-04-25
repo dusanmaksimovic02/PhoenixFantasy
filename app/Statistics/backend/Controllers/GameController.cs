@@ -322,6 +322,40 @@ public class GameController : ControllerBase
             context.CoachGameStats.AddRange(coachStats);
 
             await context.SaveChangesAsync();
+            
+
+            var gameStartedEvent = new GameStartedEvent
+            {
+                GameId = game.Id,
+                HomeTeamId = game.HomeTeam!.Id,
+                GuestTeamId = game.GuestTeam!.Id,
+                HomeTeamName = game.HomeTeam.Name ?? "",
+                GuestTeamName = game.GuestTeam.Name ?? "",
+                Round = game.Round ?? 0,
+                DateTime = game.dateTime,
+                Venue = game.Venue ?? "",
+                Timestamp = DateTime.Now
+            };
+
+            var json = JsonSerializer.Serialize(gameStartedEvent);
+
+            
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _rabbitMQ.PublishToExchangeAsync(
+                        exchangeName: "stats.topic",
+                        routingKey: "game.started",
+                        message: json
+                    );
+                    Console.WriteLine($"[RabbitMQ] Published GameStartedEvent for game {game.Id}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RabbitMQ ERROR] Failed to publish GameStartedEvent: {ex.Message}");
+                }
+            });
 
             return Ok(new { message = "Game started successfully" });
         }
