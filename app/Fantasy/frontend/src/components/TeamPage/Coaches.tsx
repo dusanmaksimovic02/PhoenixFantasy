@@ -7,10 +7,7 @@ type Props = {
   teamId: string;
 };
 
-const TABLE_HEAD = [
-  "Full name",
-  "Date of birth",
-];
+const TABLE_HEAD = ["", "Full name", "Date of birth"];
 
 const Coaches: FC<Props> = ({ teamId }) => {
   const { data: coach } = useQuery<Coach>({
@@ -35,6 +32,14 @@ const Coaches: FC<Props> = ({ teamId }) => {
         <tbody className="group text-sm text-black dark:text-white">
           {coach && (
             <tr className="even:bg-surface-light dark:even:bg-surface-dark">
+              <td>
+                {" "}
+                <img
+                  src={`/images/coaches/${coach.id}.webp`}
+                  alt="photo"
+                  className="w-50 h-60 max-sm:w-75 max-sm:h-87.5 "
+                />
+              </td>
               <td className="p-3 text-nowrap">{`${coach.firstName} ${coach.lastName}`}</td>
               <td className="p-3">{coach.dateOfBirth}</td>
             </tr>

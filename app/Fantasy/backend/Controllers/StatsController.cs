@@ -128,14 +128,25 @@ public class StatsController : ControllerBase
     }
 
     [HttpGet("GetPlayerAverages/{playerId}")]
-    public async Task<IActionResult> GetPlayerAverages(Guid playerId)
+    public async Task<
+        ActionResult<(PlayerStatsDto playerStats, Player player, String imageUrl)>
+    > GetPlayerAverages(Guid playerId)
     {
         var result = await _service.GetAveragePlayerStats(playerId);
 
-        if (result == null)
-            return NotFound();
+        var imageUrl = $"/images/players/{playerId}.webp";
 
-        return Ok(result);
+        // if (result.playerStats == null || result.player == null)
+        //     return NotFound();
+
+        return Ok(
+            new
+            {
+                result.playerStats,
+                result.player,
+                imageUrl,
+            }
+        );
     }
 
     [HttpGet("GetGamesByRound")]

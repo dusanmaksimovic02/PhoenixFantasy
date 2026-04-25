@@ -10,6 +10,16 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     proxy: {
+      "/images/players": {
+        target: "https://localhost:7035/",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/images/coaches": {
+        target: "https://localhost:7035/",
+        changeOrigin: true,
+        secure: false,
+      },
       "/images": {
         target: "https://localhost:7034/",
         changeOrigin: true,

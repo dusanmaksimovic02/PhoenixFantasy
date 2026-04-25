@@ -73,9 +73,11 @@ export const getTeamAveragePlayerStats = async (teamId: string) => {
 };
 
 export const getAveragePlayerStats = async (playerId: string) => {
-  const response = await apiClient.get<PlayerStats>(
-    `api/Stats/GetPlayerAverages/${playerId}`,
-  );
+  const response = await apiClient.get<{
+    playerStats: PlayerStats;
+    player: Player;
+    imageUrl: string;
+  }>(`api/Stats/GetPlayerAverages/${playerId}`);
   return response.data;
 };
 

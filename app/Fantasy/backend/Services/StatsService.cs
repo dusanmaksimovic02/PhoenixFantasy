@@ -208,7 +208,9 @@ public class StatsService
         return result;
     }
 
-    public async Task<PlayerStatsDto> GetAveragePlayerStats(Guid playerId)
+    public async Task<(PlayerStatsDto playerStats, Player player)> GetAveragePlayerStats(
+        Guid playerId
+    )
     {
         var stats = await _context
             .PlayerGameStats.Include(x => x.Player)
@@ -262,8 +264,9 @@ public class StatsService
                 };
             })
             .FirstOrDefault();
+        var player = grouped.First().First().Player;
 
-        return result!;
+        return (result!, player!);
     }
 
     public async Task<object> GetGamesByRound()

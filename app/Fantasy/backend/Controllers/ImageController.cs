@@ -125,4 +125,32 @@ public class ImageController : ControllerBase
 
         return Ok(new { imageUrl = relativePath });
     }
+
+    [HttpGet("GetPlayerImage/{playerId}")]
+    public async Task<IActionResult> GetPlayerImage(Guid playerId)
+    {
+        var playerImage = await context.PlayerImages.FirstOrDefaultAsync(x =>
+            x.PlayerId == playerId
+        );
+
+        if (playerImage == null)
+        {
+            return NotFound(new { message = "Player image not found" });
+        }
+
+        return Ok(new { imageUrl = playerImage.ImageUrl });
+    }
+
+    [HttpGet("GetCoachImage/{coachId}")]
+    public async Task<IActionResult> GetCoachImage(Guid coachId)
+    {
+        var coachImage = await context.CoachImages.FirstOrDefaultAsync(x => x.CoachId == coachId);
+
+        if (coachImage == null)
+        {
+            return NotFound(new { message = "Coach image not found" });
+        }
+
+        return Ok(new { imageUrl = coachImage.ImageUrl });
+    }
 }

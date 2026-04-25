@@ -27,7 +27,7 @@ const GamePage: FC = () => {
   useEffect(() => {
     const allowed = [
       "",
-      "#game-info",
+      "#stats-leaders",
       "#team-stats",
       "#home-players",
       "#away-players",
@@ -104,12 +104,12 @@ const GamePage: FC = () => {
                     type="radio"
                     name="game_tabs"
                     className="tab bg-phoenix/80 hover:bg-phoenix flex-1 rounded-none checked:bg-phoenix"
-                    aria-label="Game info"
-                    checked={hash === "" || hash === "#game-info"}
-                    onChange={() => setHash("#game-info")}
+                    aria-label="Stats leaders"
+                    checked={hash === "" || hash === "#stats-leaders"}
+                    onChange={() => setHash("#stats-leaders")}
                   />
                   <div className="tab-content border-none p-6 bg-white dark:bg-custom-gray">
-                    {(hash === "" || hash === "#game-info") && (
+                    {(hash === "" || hash === "#stats-leaders") && (
                       <GameInfo
                         gameId={game.id}
                         homeTeamId={game.homeTeam.id}
