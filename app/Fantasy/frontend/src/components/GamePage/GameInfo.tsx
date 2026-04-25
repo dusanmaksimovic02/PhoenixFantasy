@@ -1,6 +1,97 @@
+import type { PlayerStats } from "../../models/PlayerStats";
+import { getPlayersStatsFromGame } from "../../services/StatsService";
+import { useQuery } from "@tanstack/react-query";
 import type { FC } from "react";
 
-const GameInfo: FC = () => {
+interface GameInfoProps {
+  gameId: string;
+  homeTeamId: string;
+  guestTeamId: string;
+}
+
+const GameInfo: FC<GameInfoProps> = ({ gameId, homeTeamId, guestTeamId }) => {
+  const { data: homeTeamPayersStats } = useQuery({
+    queryKey: ["homeTeamPlayersStats", gameId, homeTeamId],
+    queryFn: () => getPlayersStatsFromGame(gameId, homeTeamId),
+  });
+
+  const { data: guestTeamPayersStats } = useQuery({
+    queryKey: ["guestTeamPlayersStats", gameId, guestTeamId],
+    queryFn: () => getPlayersStatsFromGame(gameId, guestTeamId),
+  });
+
+  const getLeader = (stats: PlayerStats[] | undefined, path: string) => {
+    if (!stats || stats.length === 0) return { name: "-", value: 0 };
+
+    const getValue = (obj: any, path: string): number => {
+      return path.split(".").reduce((acc, part) => acc && acc[part], obj) || 0;
+    };
+
+    const leader = stats.reduce((prev, current) =>
+      getValue(prev, path) >= getValue(current, path) ? prev : current,
+    );
+
+    return {
+      name: leader.fullName,
+      value: getValue(leader, path),
+    };
+  };
+
+  const formatValue = (value: number, isPercentage: boolean) => {
+    return isPercentage ? value.toFixed(1) : value.toString();
+  };
+
+  const statCategories = [
+    { label: "PIR", path: "pir", isPercentage: false },
+    { label: "Points", path: "points", isPercentage: false },
+    { label: "Assists", path: "assists", isPercentage: false },
+    { label: "Total Rebounds", path: "rebounds", isPercentage: false },
+    {
+      label: "Offensive Rebounds",
+      path: "offensiveRebounds",
+      isPercentage: false,
+    },
+    {
+      label: "Defensive Rebounds",
+      path: "defensiveRebounds",
+      isPercentage: false,
+    },
+    { label: "Steals", path: "steals", isPercentage: false },
+    { label: "Blocks", path: "blocks", isPercentage: false },
+    {
+      label: "Turnovers",
+      path: "turnovers",
+      isPercentage: false,
+      lowerIsBetter: true,
+    },
+    {
+      label: "Blocks Received",
+      path: "receivedBlocks",
+      isPercentage: false,
+      lowerIsBetter: true,
+    },
+    {
+      label: "Personal Fouls",
+      path: "personalFouls",
+      isPercentage: false,
+      lowerIsBetter: true,
+    },
+    { label: "Fouls Received", path: "receivedFouls", isPercentage: false },
+    {
+      label: "Technical Fouls",
+      path: "technicalFouls",
+      isPercentage: false,
+      lowerIsBetter: true,
+    },
+    {
+      label: "Free Throws %",
+      path: "freeThrow.percentage",
+      isPercentage: true,
+    },
+    { label: "2FG %", path: "twoPoint.percentage", isPercentage: true },
+    { label: "3FG %", path: "threePoint.percentage", isPercentage: true },
+  ];
+
   return (
     <>
       <h3 className="text-center text-black dark:text-white font-semibold">
@@ -97,100 +188,49 @@ const GameInfo: FC = () => {
             </tr>
           </thead>
           <tbody className="group text-black dark:text-white">
-            <tr className="border-2 border-surface  even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">26.9</td>
-              <td className="p-3 text-center font-bold text-lg">
-                Performance Index Rating
-              </td>
-              <td className="p-3 text-center">32.5</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">+23</td>
-              <td className="p-3 text-center font-bold text-lg">+/- Index</td>
-              <td className="p-3 text-center">+14</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">21</td>
-              <td className="p-3 text-center font-bold text-lg">Points</td>
-              <td className="p-3 text-center">29</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">6</td>
-              <td className="p-3 text-center font-bold text-lg">Assist</td>
-              <td className="p-3 text-center">3</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">12</td>
-              <td className="p-3 text-center font-bold text-lg">Rebounds</td>
-              <td className="p-3 text-center">8</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">33.5</td>
-              <td className="p-3 text-center font-bold text-lg">
-                Minutes Played
-              </td>
-              <td className="p-3 text-center">35.9</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">2</td>
-              <td className="p-3 text-center font-bold text-lg">Steals</td>
-              <td className="p-3 text-center">1</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">0</td>
-              <td className="p-3 text-center font-bold text-lg">Block</td>
-              <td className="p-3 text-center">3</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">4</td>
-              <td className="p-3 text-center font-bold text-lg">Turnovers</td>
-              <td className="p-3 text-center">4</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">92%</td>
-              <td className="p-3 text-center font-bold text-lg">
-                Free Throws Percentage
-              </td>
-              <td className="p-3 text-center">100%</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">95%</td>
-              <td className="p-3 text-center font-bold text-lg">
-                Two Points Percentage
-              </td>
-              <td className="p-3 text-center">78%</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
-            <tr className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark">
-              <td className="p-3 text-center">Player 1</td>
-              <td className="p-3 text-center">100%</td>
-              <td className="p-3 text-center font-bold text-lg">
-                Three Points Percentage
-              </td>
-              <td className="p-3 text-center">59%</td>
-              <td className="p-3 text-center">Player 2</td>
-            </tr>
+            {statCategories.map((cat) => {
+              const homeLeader = getLeader(homeTeamPayersStats, cat.path);
+              const guestLeader = getLeader(guestTeamPayersStats, cat.path);
+
+              let homeIsWinner = false;
+              let guestIsWinner = false;
+
+              if (cat.lowerIsBetter) {
+                homeIsWinner = homeLeader.value <= guestLeader.value;
+                guestIsWinner = guestLeader.value <= homeLeader.value;
+              } else {
+                homeIsWinner = homeLeader.value >= guestLeader.value;
+                guestIsWinner = guestLeader.value >= homeLeader.value;
+              }
+              return (
+                <tr
+                  key={cat.path}
+                  className="border-2 border-surface even:bg-surface-light dark:even:bg-surface-dark"
+                >
+                  <td className="p-3 text-center">{homeLeader.name}</td>
+                  <td
+                    className={`p-3 text-center font-semibold ${
+                      homeIsWinner ? "bg-phoenix text-white" : ""
+                    }`}
+                  >
+                    {formatValue(homeLeader.value, cat.isPercentage)}
+                    {cat.isPercentage ? "%" : ""}
+                  </td>
+                  <td className="p-3 text-center font-bold text-lg border-x-2 border-surface">
+                    {cat.label}
+                  </td>
+                  <td
+                    className={`p-3 text-center font-semibold ${
+                      guestIsWinner ? "bg-phoenix text-white" : ""
+                    }`}
+                  >
+                    {formatValue(guestLeader.value, cat.isPercentage)}
+                    {cat.isPercentage ? "%" : ""}
+                  </td>
+                  <td className="p-3 text-center">{guestLeader.name}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

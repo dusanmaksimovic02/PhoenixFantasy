@@ -1,19 +1,23 @@
 import { useNavigate } from "react-router-dom";
-import type { Matchup } from "./Rounds";
+import type { Game } from "../../models/Game";
 import type { FC } from "react";
 
 type Props = {
-  matchup: Matchup;
+  game: Game;
 };
 
 const GameCard: FC<Props> = (props) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    const team1 = props.matchup.team1.name.replace(/\s+/g, "-");
-    const team2 = props.matchup.team2.name.replace(/\s+/g, "-");
+    const team1 = props.game.homeTeam.name.replace(/\s+/g, "-");
+    const team2 = props.game.guestTeam.name.replace(/\s+/g, "-");
 
-    navigate(`/game/${team1}/vs/${team2}`);
+    navigate(`/game/${team1}/vs/${team2}`, {
+      state: {
+        gameId: props.game.id,
+      },
+    });
   };
 
   return (
@@ -23,25 +27,33 @@ const GameCard: FC<Props> = (props) => {
     >
       <div className="flex justify-center items-center gap-3 max-lg:w-37.5">
         <img
-          src={props.matchup.team1.logo}
-          alt={`${props.matchup.team1.name} logo`}
+          src={`${props.game.homeTeam.logoPathURL}`}
+          alt={`${props.game.homeTeam.name} logo`}
           className="w-10 rounded-full"
         />
         <span className="text-2xl font-semibold max-lg:text-[17px]">
-          {props.matchup.team1.name}
+          {props.game.homeTeam.name}
         </span>
       </div>
 
-      <p>{props.matchup.date}</p>
+      <p>
+        {new Date(props.game.dateTime).toLocaleString("sr-RS", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </p>
 
       <div className="flex justify-center items-center gap-3 max-lg:w-37.5">
         <img
-          src={props.matchup.team2.logo}
-          alt={`${props.matchup.team2.name} logo`}
+          src={`${props.game.guestTeam.logoPathURL}`}
+          alt={`${props.game.guestTeam.name} logo`}
           className="w-10 rounded-full"
         />
         <span className="text-2xl font-semibold max-lg:text-[17px]">
-          {props.matchup.team2.name}
+          {props.game.guestTeam.name}
         </span>
       </div>
     </div>

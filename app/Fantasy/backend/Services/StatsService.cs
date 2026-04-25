@@ -150,7 +150,7 @@ public class StatsService
         if (team == null)
             return new List<PlayerStatsDto>();
 
-        var playerIds = team.Players.Select(p => p.Id).ToList();
+        var playerIds = team!.Players!.Select(p => p.Id).ToList();
 
         var stats = await _context
             .PlayerGameStats.Include(x => x.Player)
@@ -262,6 +262,95 @@ public class StatsService
                 };
             })
             .FirstOrDefault();
+
+        return result!;
+    }
+
+    public async Task<object> GetGamesByRound()
+    {
+        var gamesGrouped = await _context
+            .Games.Include(g => g.HomeTeam)
+            .Include(g => g.GuestTeam)
+            .GroupBy(g => g.Round)
+            .Select(group => new { Round = group.Key, Games = group.ToList() })
+            .ToListAsync();
+
+        return gamesGrouped;
+    }
+
+    public async Task<Game> GetGameById(Guid gameId)
+    {
+        return await _context
+                .Games.Include(g => g.HomeTeam)
+                .Include(g => g.GuestTeam)
+                .Where(g => g.Id == gameId)
+                .FirstOrDefaultAsync()
+            ?? new Game();
+    }
+
+    public async Task<List<PlayerStatsDto>> GetPlayersStatsFromGame(Guid gameId, Guid teamId)
+    {
+        var team = await _context
+            .Teams.Include(t => t.Players)
+            .FirstOrDefaultAsync(t => t.Id == teamId);
+
+        if (team == null)
+            return new List<PlayerStatsDto>();
+
+        var playerIds = team!.Players!.Select(p => p.Id).ToList();
+
+        var stats = await _context
+            .PlayerGameStats.Include(x => x.Player)
+            .Where(x => x!.Game!.Id == gameId && playerIds.Contains(x.PlayerId))
+            .ToListAsync();
+
+        var grouped = stats.GroupBy(x => x.PlayerId);
+
+        var result = grouped
+            .Select(g =>
+            {
+                var player = g.First().Player;
+
+                return new PlayerStatsDto
+                {
+                    PlayerId = g.Key,
+                    JerseyNumber = player?.JerseyNumber,
+                    FullName = $"{player?.FirstName} {player?.LastName}",
+
+                    Points = g.Average(x => x.Points ?? 0),
+                    Assists = g.Average(x => x.Assists ?? 0),
+                    Rebounds = g.Average(x => x.Rebounds ?? 0),
+                    OffensiveRebounds = g.Average(x => x.OffensiveRebounds ?? 0),
+                    DefensiveRebounds = g.Average(x => x.DefensiveRebounds ?? 0),
+                    Steals = g.Average(x => x.Steals ?? 0),
+                    Turnovers = g.Average(x => x.Turnovers ?? 0),
+                    Blocks = g.Average(x => x.Blocks ?? 0),
+                    ReceivedBlocks = g.Average(x => x.RecievedBlocks ?? 0),
+                    PersonalFouls = g.Average(x => x.PersonalFouls ?? 0),
+                    ReceivedFouls = g.Average(x => x.RecievedFouls ?? 0),
+                    TechnicalFouls = g.Average(x => x.TechnicalFouls ?? 0),
+                    Pir = g.Average(x => x.Pir ?? 0),
+
+                    FreeThrow = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made1p ?? 0),
+                        Missed = g.Sum(x => x.Miss1p ?? 0),
+                    },
+
+                    TwoPoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made2p ?? 0),
+                        Missed = g.Sum(x => x.Miss2p ?? 0),
+                    },
+
+                    ThreePoint = new ShotStatDto
+                    {
+                        Made = g.Sum(x => x.Made3p ?? 0),
+                        Missed = g.Sum(x => x.Miss3p ?? 0),
+                    },
+                };
+            })
+            .ToList();
 
         return result!;
     }

@@ -6,6 +6,7 @@ import apiClient from "./client";
 import type { CoachStats } from "../models/CoachStats";
 import type { PlayerStats } from "../models/PlayerStats";
 import type { CoachView } from "../models/TeamLineUp";
+import type { GamesRound } from "../models/GamesRound";
 
 export const getStandings = async () => {
   const response = await apiClient.get<TeamStanding[]>(
@@ -85,3 +86,24 @@ export const getAllFreeCoaches = async (leagueId: string) => {
   return response.data;
 };
 
+export const getGamesByRound = async () => {
+  const response = await apiClient.get<GamesRound[]>(
+    "api/Stats/GetGamesByRound",
+  );
+  return response.data;
+};
+
+export const getGameById = async (gameId: string) => {
+  const response = await apiClient.get<Game>(`api/Stats/GetGameById/${gameId}`);
+  return response.data;
+};
+
+export const getPlayersStatsFromGame = async (
+  gameId: string,
+  teamId: string,
+) => {
+  const response = await apiClient.get<PlayerStats[]>(
+    `api/Stats/GetPlayersStatsFromGame/${gameId}/${teamId}`,
+  );
+  return response.data;
+};

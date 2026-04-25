@@ -137,4 +137,37 @@ public class StatsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("GetGamesByRound")]
+    public async Task<IActionResult> GetGamesByRound()
+    {
+        var result = await _service.GetGamesByRound();
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpGet("GetGameById/{gameId}")]
+    public async Task<IActionResult> GetGameById(Guid gameId)
+    {
+        var result = await _service.GetGameById(gameId);
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpGet("GetPlayersStatsFromGame/{gameId}/{teamId}")]
+    public async Task<IActionResult> GetPlayersStatsFromGame(Guid gameId, Guid teamId)
+    {
+        var result = await _service.GetPlayersStatsFromGame(gameId, teamId);
+
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
 }
