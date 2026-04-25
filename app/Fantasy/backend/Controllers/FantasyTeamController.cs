@@ -204,6 +204,41 @@ public class FantasyTeamController : ControllerBase
         return Ok(freePlayers);
     }
 
+    [HttpGet("GetAllFreePlayersSorted/{leagueId}")]
+    public async Task<IActionResult> GetAllFreePlayersSorted(Guid leagueId)
+    {
+        var takenPlayerIds = await context
+            .FantasyTeamPlayers.Where(tp => tp.FantasyTeam!.LeagueId == leagueId)
+            .Select(tp => tp.PlayerId)
+            .ToListAsync();
+
+        var playerAverages = await context
+            .FantasyPlayerRounds.Where(r =>
+                r.fantasyPlayer != null && r.fantasyPlayer.FantasyTeam!.LeagueId == leagueId
+            )
+            .GroupBy(r => r.fantasyPlayer!.PlayerId)
+            .Select(g => new { PlayerId = g.Key, AvgPoints = g.Average(x => x.roundPoints) })
+            .ToListAsync();
+
+        var avgDict = playerAverages.ToDictionary(x => x.PlayerId, x => x.AvgPoints);
+
+        var freePlayers = await statsDbContext
+            .Players.Where(p => !takenPlayerIds.Contains(p.Id))
+            .Select(p => new
+            {
+                p.Id,
+                p.FirstName,
+                p.LastName,
+                p.JerseyNumber,
+                p.Position,
+                AvgPoints = avgDict.ContainsKey(p.Id) ? avgDict[p.Id] : 0,
+            })
+            .OrderByDescending(p => p.AvgPoints)
+            .ToListAsync();
+
+        return Ok(freePlayers);
+    }
+
     [HttpGet("GetAllFreePlayersByPosition/{leagueId}")]
     public async Task<IActionResult> GetAllFreePlayersByPosition(Guid leagueId, string position)
     {
