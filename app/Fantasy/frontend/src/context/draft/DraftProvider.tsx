@@ -11,12 +11,11 @@ import { getDraftSession } from "../../services/CreateDraftLeagueService";
 import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
 import { toast } from "react-toastify";
-import type { Player } from "../../models/Player";
 import {
   freePlayersInLeague,
   getAllFreeCoaches,
-} from "../../services/StatsService";
-import type { CoachView } from "../../models/TeamLineUp";
+} from "../../services/FantasyTeamService";
+import type { CoachView, PlayerView } from "../../models/TeamLineUp";
 import { useNavigate } from "react-router-dom";
 
 export const createDraftConnection = () => {
@@ -46,7 +45,7 @@ export const DraftProvider: FC<Props> = ({
   const [phase, setPhase] = useState<string>("Player");
   const pickOrderRef = useRef<any[]>([]);
   const queryClient = useQueryClient();
-  const [availablePlayers, setAvailablePlayers] = useState<Player[]>([]);
+  const [availablePlayers, setAvailablePlayers] = useState<PlayerView[]>([]);
   const [availableCoaches, setAvailableCoaches] = useState<CoachView[]>([]);
   const navigate = useNavigate();
 
@@ -110,7 +109,7 @@ export const DraftProvider: FC<Props> = ({
         `Player ${data.playerFull.firstName} ${data.playerFull.lastName} has been picked!`,
       );
       setAvailablePlayers((prevAvailable) =>
-        prevAvailable.filter((p) => p.id !== data.playerFull.id),
+        prevAvailable.filter((p) => p.playerId !== data.playerFull.id),
       );
       queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
       const players = await freePlayersInLeague(leagueId);
@@ -121,13 +120,13 @@ export const DraftProvider: FC<Props> = ({
       console.log("Trener zauzet:", data.coachId);
       queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
       setAvailableCoaches((prevCoaches) => {
-        const coach = prevCoaches.find((c) => c.id === data.coachId);
+        const coach = prevCoaches.find((c) => c.coachId === data.coachId);
         if (coach) {
           toast.info(
             `Coach ${coach.firstName} ${coach.lastName} has been picked!`,
           );
         }
-        return prevCoaches.filter((c) => c.id !== data.coachId);
+        return prevCoaches.filter((c) => c.coachId !== data.coachId);
       });
     });
 
@@ -157,7 +156,7 @@ export const DraftProvider: FC<Props> = ({
         `Player ${data.player.firstName} ${data.player.lastName} has been auto picked!`,
       );
       setAvailablePlayers((prevAvailable) =>
-        prevAvailable.filter((p) => p.id !== data.player.id),
+        prevAvailable.filter((p) => p.playerId !== data.player.id),
       );
       queryClient.invalidateQueries({ queryKey: ["teamLineup", myTeamId] });
       const players = await freePlayersInLeague(leagueId);

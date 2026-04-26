@@ -5,7 +5,7 @@ import AddedPlayerToTeamCard from "./AddedPlayerToTeamCard";
 import NoAddedCoachCard from "./NoCoachAddedCard";
 import NoAddedPlayerCard from "./NoAddedPlayerCard";
 import { useQuery } from "@tanstack/react-query";
-import { getLineup } from "../../services/FantasyTeamService";
+import { getDraftTeamStatus } from "../../services/FantasyTeamService";
 import AddedCoachCard from "./AddedCoachCard";
 import AddPlayerModal from "./AddPlayerModal";
 import type { PlayerView } from "../../models/TeamLineUp";
@@ -22,7 +22,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
 
   const { data: teamLineup } = useQuery({
     queryKey: ["teamLineup", teamId],
-    queryFn: () => getLineup(teamId),
+    queryFn: () => getDraftTeamStatus(teamId),
   });
 
   const getStartersByPos = (pos: string) => {
@@ -44,7 +44,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
                 getStartersByPos("Center").map((p: PlayerView) => (
                   <div className="shrink-0 ">
                     <AddedPlayerToTeamCard
-                      key={p.id}
+                      key={p.playerId}
                       position="C"
                       jerseyNumber={p.jerseyNumber}
                       firstName={p.firstName}
@@ -71,7 +71,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
               return player ? (
                 <div className="shrink-0 ">
                   <AddedPlayerToTeamCard
-                    key={player.id}
+                    key={player.playerId}
                     position={"F"}
                     jerseyNumber={player.jerseyNumber}
                     firstName={player.firstName}
@@ -98,7 +98,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
               return player ? (
                 <div className="shrink-0 ">
                   <AddedPlayerToTeamCard
-                    key={player.id}
+                    key={player.playerId}
                     position={"G"}
                     jerseyNumber={player.jerseyNumber}
                     firstName={player.firstName}
@@ -166,7 +166,7 @@ const FantasyCourt: FC<FantasyCourtProps> = ({ teamId, draftId }) => {
               const player = benchPlayersOfThisPos[previousSlotsSamePos];
 
               return player ? (
-                <div key={player.id} className="shrink-0">
+                <div key={player.playerId} className="shrink-0">
                   <AddedPlayerToTeamCard
                     position={slot.label}
                     jerseyNumber={player.jerseyNumber}

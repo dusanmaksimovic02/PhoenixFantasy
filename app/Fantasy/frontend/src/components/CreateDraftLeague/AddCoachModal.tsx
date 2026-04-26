@@ -3,7 +3,7 @@ import { useDraft } from "../../context/draft/useDraft";
 import { useEffect, useState, type FC } from "react";
 import { pickCoach } from "../../services/CreateDraftLeagueService";
 import { toast } from "react-toastify";
-import type { CoachView } from "@/models/TeamLineUp";
+import type { CoachView } from "../../models/TeamLineUp";
 import coach from "../../assets/images/coach.png";
 
 interface AddCoachModalProps {
@@ -75,13 +75,13 @@ const AddCoachModal: FC<AddCoachModalProps> = ({
           {filteredCoaches.length > 0 ? (
             filteredCoaches.map((c: CoachView) => (
               <div
-                key={c.id}
+                key={c.coachId}
                 className={`relative w-25 h-30 shrink-0 cursor-pointer transition-transform hover:scale-105 ${
                   addCoachMutation.isPending
                     ? "opacity-50 pointer-events-none"
                     : ""
                 }`}
-                onClick={() => addCoachMutation.mutate(c.id)}
+                onClick={() => addCoachMutation.mutate(c.coachId)}
               >
                 <img
                   src={coach}

@@ -5,4 +5,7 @@ export type Player = {
   dateOfBirth: string;
   jerseyNumber: string;
   position: string;
+  avgPoints: number;
+  points: number;
+  teamName: string;
 };

@@ -5,7 +5,6 @@ import type { TeamStanding } from "../models/TeamStanding";
 import apiClient from "./client";
 import type { CoachStats } from "../models/CoachStats";
 import type { PlayerStats } from "../models/PlayerStats";
-import type { CoachView } from "../models/TeamLineUp";
 import type { GamesRound } from "../models/GamesRound";
 
 export const getStandings = async () => {
@@ -58,13 +57,6 @@ export const getPlayers = async () => {
   return response.data;
 };
 
-export const freePlayersInLeague = async (leagueId: string) => {
-  const response = await apiClient.get<Player[]>(
-    `FantasyTeam/GetAllFreePlayers/${leagueId}`,
-  );
-  return response.data;
-};
-
 export const getTeamAveragePlayerStats = async (teamId: string) => {
   const response = await apiClient.get<PlayerStats[]>(
     `api/Stats/GetTeamPlayerAverages/${teamId}`,
@@ -78,13 +70,6 @@ export const getAveragePlayerStats = async (playerId: string) => {
     player: Player;
     imageUrl: string;
   }>(`api/Stats/GetPlayerAverages/${playerId}`);
-  return response.data;
-};
-
-export const getAllFreeCoaches = async (leagueId: string) => {
-  const response = await apiClient.get<CoachView[]>(
-    `FantasyTeam/GetAllFreeCoaches/${leagueId}`,
-  );
   return response.data;
 };
 

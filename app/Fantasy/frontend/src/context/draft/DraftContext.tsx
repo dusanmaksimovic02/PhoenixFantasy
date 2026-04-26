@@ -1,5 +1,4 @@
-import type { CoachView } from "../../models/TeamLineUp";
-import type { Player } from "../../models/Player";
+import type { CoachView, PlayerView } from "../../models/TeamLineUp";
 import { createContext } from "react";
 
 type DraftContextType = {
@@ -9,7 +8,7 @@ type DraftContextType = {
   isMyTurn: boolean;
   pickOrder: any[];
   phase: string;
-  availablePlayers: Player[];
+  availablePlayers: PlayerView[];
   availableCoaches: CoachView[];
 };
 

@@ -1,10 +1,10 @@
-import type { Player } from "../../models/Player";
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState, type FC } from "react";
 import jersey from "../../assets/images/jersey.png";
 import { pickPlayer } from "../../services/CreateDraftLeagueService";
 import { toast } from "react-toastify";
 import { useDraft } from "../../context/draft/useDraft";
+import type { PlayerView } from "../../models/TeamLineUp";
 
 interface AddPlayerModalProps {
   isOpen: boolean;
@@ -44,13 +44,15 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
     }
   }, [isMyTurn, isOpen, setIsOpen]);
 
-  const filteredPlayers: Player[] = availablePlayers.filter((p: Player) => {
-    const matchesPosition = position ? p.position === position : true;
-    const matchesSearch = (p.firstName + " " + p.lastName)
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesPosition && matchesSearch;
-  });
+  const filteredPlayers: PlayerView[] = availablePlayers.filter(
+    (p: PlayerView) => {
+      const matchesPosition = position ? p.position === position : true;
+      const matchesSearch = (p.firstName + " " + p.lastName)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesPosition && matchesSearch;
+    },
+  );
 
   return (
     <dialog open={isOpen} className="modal">
@@ -75,15 +77,15 @@ const AddPlayerModal: FC<AddPlayerModalProps> = ({
 
         <div className="flex gap-4 overflow-y-auto max-h-96 flex-wrap justify-center p-2">
           {filteredPlayers.length > 0 ? (
-            filteredPlayers.map((p: Player) => (
+            filteredPlayers.map((p: PlayerView) => (
               <div
-                key={p.id}
+                key={p.playerId}
                 className={`relative w-25 h-30 shrink-0 cursor-pointer transition-transform hover:scale-105 ${
                   addPlayerMutation.isPending
                     ? "opacity-50 pointer-events-none"
                     : ""
                 }`}
-                onClick={() => addPlayerMutation.mutate(p.id)}
+                onClick={() => addPlayerMutation.mutate(p.playerId)}
               >
                 <img src={jersey} alt="jersey" className="w-25 h-30" />
                 <div className="absolute inset-0 w-full h-full text-black flex flex-col justify-center items-center pt-2">

@@ -6,15 +6,21 @@ export type TeamLineup = {
 };
 
 export type PlayerView = {
-  id: string;
+  playerId: string;
   firstName: string;
   lastName: string;
   position: string;
   jerseyNumber: string;
+  avgPoints: number;
+  points: number;
+  teamName: string;
 };
 
 export type CoachView = {
-  id: string;
+  coachId: string;
   firstName: string;
   lastName: string;
+  avgPoints: number;
+  points: number;
+  teamName: string;
 };

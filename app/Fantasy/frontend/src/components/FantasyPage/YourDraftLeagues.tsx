@@ -37,6 +37,8 @@ const YourDraftLeagues: FC = () => {
                   navigate(`draft/${league.leagueName}`, {
                     state: {
                       leagueId: league.id,
+                      teamId: res.teamId,
+                      teamName: res.teamName
                     },
                   });
                 else

@@ -193,7 +193,7 @@ public class FantasyTeamController : ControllerBase
             .Players.Where(p => !takenPlayerIds.Contains(p.Id))
             .Select(p => new
             {
-                p.Id,
+                playerId = p.Id,
                 p.FirstName,
                 p.LastName,
                 p.JerseyNumber,
@@ -222,7 +222,7 @@ public class FantasyTeamController : ControllerBase
 
         var avgDict = playerAverages.ToDictionary(x => x.PlayerId, x => x.AvgPoints);
 
-        var freePlayers = await statsDbContext
+        var freePlayersFromDb = await statsDbContext
             .Players.Where(p => !takenPlayerIds.Contains(p.Id))
             .Select(p => new
             {
@@ -231,12 +231,29 @@ public class FantasyTeamController : ControllerBase
                 p.LastName,
                 p.JerseyNumber,
                 p.Position,
-                AvgPoints = avgDict.ContainsKey(p.Id) ? avgDict[p.Id] : 0,
             })
-            .OrderByDescending(p => p.AvgPoints)
             .ToListAsync();
 
-        return Ok(freePlayers);
+        var teams = await statsDbContext
+            .Teams.Include(t => t.Players)
+            .Where(t => t.Players != null && t.Players.Any(p => takenPlayerIds.Contains(p.Id)))
+            .ToListAsync();
+
+        var sortedPlayers = freePlayersFromDb
+            .Select(p => new
+            {
+                playerId = p.Id,
+                p.FirstName,
+                p.LastName,
+                p.JerseyNumber,
+                p.Position,
+                AvgPoints = avgDict.ContainsKey(p.Id) ? avgDict[p.Id] : 0,
+                TeamName = teams.FirstOrDefault(t => t.Players!.Any(pl => pl.Id == p.Id))?.Name,
+            })
+            .OrderByDescending(p => p.AvgPoints)
+            .ToList();
+
+        return Ok(sortedPlayers);
     }
 
     [HttpGet("GetAllFreePlayersByPosition/{leagueId}")]
@@ -274,9 +291,10 @@ public class FantasyTeamController : ControllerBase
             .Teams.Where(t => !takenCoachesIds.Contains(t.coach!.Id))
             .Select(t => new
             {
-                id = t.coach!.Id,
+                coachId = t.coach!.Id,
                 firstName = t.coach!.FirstName,
                 lastName = t.coach!.LastName,
+                teamName = t.Name,
             })
             .ToListAsync();
 
@@ -348,6 +366,7 @@ public class FantasyTeamController : ControllerBase
                 PlayerId = p.Id,
                 FirstName = p.FirstName,
                 LastName = p.LastName,
+                JerseyNumber = p.JerseyNumber,
                 Position = p.Position!,
             })
             .ToListAsync();
@@ -369,7 +388,9 @@ public class FantasyTeamController : ControllerBase
 
         var result = new TeamLineupDto
         {
-            Starters = data.Where(x => x.Role == FantasyRole.Starter)
+            Starters = data.Where(x =>
+                    x.Role == FantasyRole.Starter || x.Role == FantasyRole.Captain
+                )
                 .Select(x => players.First(p => p.PlayerId == x.PlayerId))
                 .ToList(),
 
