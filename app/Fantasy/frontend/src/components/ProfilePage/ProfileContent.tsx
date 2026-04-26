@@ -3,6 +3,7 @@ import ProfileInfo from "./ProfileInfo";
 import ChangePassword from "./ChangePassword";
 import MyLeagues from "./MyLeagues";
 import { toast } from "react-toastify";
+import StartRound from "./StartRound";
 
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
@@ -17,10 +18,10 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
     component: <MyLeagues />,
     roles: ["User"],
   },
-  // "#section3": {
-  //   component: <div>Stavka 3</div>,
-  //   roles: ["Manager", "Admin", "User"],
-  // },
+  "#start-round": {
+    component: <StartRound />,
+    roles: ["Manager"],
+  },
 };
 
 const ProfileContent: FC<{ section: string }> = ({ section }) => {

@@ -6,16 +6,13 @@ import {
 import { useState, type FC } from "react";
 import { CiSearch } from "react-icons/ci";
 import type { CoachView, PlayerView } from "../../models/TeamLineUp";
+import { getFantasyLeague } from "../../services/FantasyLeagueService";
 
 interface TradePlayerPanelProps {
   leagueId: string;
   selectedFreePlayerCoach: PlayerView | CoachView | null;
   onSelectPlayer: (player: PlayerView | CoachView) => void;
 }
-
-const MOCK_ROUND = 1;
-const MOCK_IS_ACTIVE = true;
-const MOCK_TOTAL_POINTS = 91.0;
 
 type TradeItem =
   | (PlayerView & { isCoach: false })
@@ -39,6 +36,11 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
   const { data: freeCoaches } = useQuery({
     queryKey: ["freeCoaches", leagueId],
     queryFn: () => getAllFreeCoaches(leagueId),
+  });
+
+  const { data: league } = useQuery({
+    queryKey: ["league", leagueId],
+    queryFn: () => getFantasyLeague(leagueId),
   });
 
   const combinedList = [
@@ -77,13 +79,13 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
       <div className="bg-phoenix px-4 py-3">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-white font-bold text-lg">Round {MOCK_ROUND}</h2>
+            <h2 className="text-white font-bold text-lg">Round {league && league.currentRound}</h2>
             <p className="text-white/70 text-xs">
-              {MOCK_IS_ACTIVE ? "Round in progress" : "Round not started"}
+              {league && league.isRoundActive ? "Round in progress" : "Round not started"}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-white font-bold text-2xl">{MOCK_TOTAL_POINTS}</p>
+            <p className="text-white font-bold text-2xl">0</p>
             <p className="text-white/70 text-xs">total pts</p>
           </div>
         </div>
@@ -93,15 +95,15 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
         <span
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
             ${
-              MOCK_IS_ACTIVE
+              league && league.isRoundActive
                 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                 : "bg-gray-100 text-gray-500 dark:bg-neutral-700 dark:text-neutral-400"
             }`}
         >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${MOCK_IS_ACTIVE ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
+            className={`w-1.5 h-1.5 rounded-full ${ league && league.isRoundActive ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
           />
-          {MOCK_IS_ACTIVE ? "Live" : "Inactive"}
+          { league && league.isRoundActive ? "Live" : "Inactive"}
         </span>
       </div>
 

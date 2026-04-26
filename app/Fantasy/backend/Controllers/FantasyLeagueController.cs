@@ -314,6 +314,38 @@ public class FantasyLeagueController : ControllerBase
         }
     }
 
+    [HttpGet("GetFantasyLeague/{leagueId}")]
+    public async Task<IActionResult> GetTeamLeague(Guid leagueId)
+    {
+        try
+        {
+            var league = await context
+                .FantasyLeagues.Where(l => l.Id == leagueId)
+                .FirstOrDefaultAsync();
+
+            return Ok(league);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("GetCurrentRound")]
+    public async Task<ActionResult<FantasyLeague>> GetCurrentRound()
+    {
+        try
+        {
+            var league = await context.FantasyLeagues.FirstOrDefaultAsync();
+
+            return Ok(league);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     //[Authorize]
     [HttpDelete("RemovePlayerFromLeague")]
     public async Task<IActionResult> RemovePlayerFromLeague(

@@ -22,7 +22,7 @@ public class ManagerController : ControllerBase
         this.fantasyPointsService = fantasyPointsService;
     }
 
-    [HttpPost("StartRound/{leagueId}")]
+    [HttpPost("StartRound")]
     public async Task<IActionResult> StartRound()
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
@@ -74,10 +74,10 @@ public class ManagerController : ControllerBase
 
             return Ok();
         }
-        catch
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return StatusCode(500, "Greška prilikom startovanja runde");
+            return StatusCode(500, ex);
         }
     }
 

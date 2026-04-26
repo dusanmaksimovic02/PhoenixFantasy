@@ -10,4 +10,6 @@ export type FantasyLeague = {
   teamName: string;
   teamId: string;
   isDraftStarted: boolean;
+  currentRound: number;
+  isRoundActive: boolean;
 };
