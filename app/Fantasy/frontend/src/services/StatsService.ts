@@ -57,6 +57,11 @@ export const getPlayers = async () => {
   return response.data;
 };
 
+export const getCoaches = async () => {
+  const response = await apiClient.get<Coach[]>("api/Stats/GetAllCoaches");
+  return response.data;
+};
+
 export const getTeamAveragePlayerStats = async (teamId: string) => {
   const response = await apiClient.get<PlayerStats[]>(
     `api/Stats/GetTeamPlayerAverages/${teamId}`,

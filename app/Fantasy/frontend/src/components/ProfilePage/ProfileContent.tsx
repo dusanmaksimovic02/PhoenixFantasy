@@ -4,6 +4,8 @@ import ChangePassword from "./ChangePassword";
 import MyLeagues from "./MyLeagues";
 import { toast } from "react-toastify";
 import StartRound from "./StartRound";
+import AllPlayers from "./AllPlayers";
+import AllCoaches from "./AllCoaches";
 
 const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   "#info": {
@@ -20,6 +22,14 @@ const SECTION_MAP: Record<string, { component: ReactNode; roles: string[] }> = {
   },
   "#start-round": {
     component: <StartRound />,
+    roles: ["Manager"],
+  },
+  "#players": {
+    component: <AllPlayers />,
+    roles: ["Manager"],
+  },
+  "#coaches": {
+    component: <AllCoaches />,
     roles: ["Manager"],
   },
 };

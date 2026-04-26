@@ -30,6 +30,16 @@ const PROFILE_TABS: ProfileTab[] = [
     label: "Start round",
     roles: ["Manager"],
   },
+  {
+    key: "#players",
+    label: "Players",
+    roles: ["Manager"],
+  },
+  {
+    key: "#coaches",
+    label: "Coaches",
+    roles: ["Manager"],
+  },
 ];
 
 type Props = {

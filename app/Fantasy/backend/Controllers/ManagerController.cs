@@ -34,7 +34,10 @@ public class ManagerController : ControllerBase
 
             var leagueRound = await context.FantasyLeagues.FirstOrDefaultAsync();
 
-            var teams = await context.FantasyTeams.Include(t => t.Players).ToListAsync();
+            var teams = await context
+                .FantasyTeams.Include(t => t.Players)
+                .Include(t => t.Coach)
+                .ToListAsync();
 
             var teamRounds = new List<FantasyTeamRound>();
 
@@ -77,7 +80,7 @@ public class ManagerController : ControllerBase
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return StatusCode(500, ex);
+            return StatusCode(500, ex.Message);
         }
     }
 
