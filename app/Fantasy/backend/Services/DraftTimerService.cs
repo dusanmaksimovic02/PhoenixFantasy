@@ -1,4 +1,5 @@
 using FantasyApi.Data;
+using FantasyApi.Enums;
 using FantasyApi.Hubs;
 using FantasyApi.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -190,12 +191,43 @@ public class DraftTimerService : BackgroundService
 
             Console.WriteLine($"[DRAFT] Selected player: {selected.Id}");
 
+            var totalPlayersInTeam = teamPlayerIds.Count;
+
+            FantasyRole role;
+
+            if (totalPlayersInTeam == 0)
+            {
+                role = FantasyRole.Captain;
+            }
+            else
+            {
+                switch (selected.Position)
+                {
+                    case "Guard":
+                        role = guards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
+                        break;
+
+                    case "Forward":
+                        role = forwards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
+                        break;
+
+                    case "Center":
+                        role = centers < 1 ? FantasyRole.Starter : FantasyRole.Bench;
+                        break;
+
+                    default:
+                        role = FantasyRole.Bench;
+                        break;
+                }
+            }
+
             context.FantasyTeamPlayers.Add(
                 new FantasyTeamPlayer
                 {
                     FantasyTeamId = teamId,
                     PlayerId = selected.Id,
                     Position = selected.Position,
+                    Role = role,
                 }
             );
 

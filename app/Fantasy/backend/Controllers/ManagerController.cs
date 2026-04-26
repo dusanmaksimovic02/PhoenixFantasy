@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FantasyApi.Data;
 using FantasyApi.Enums;
 using FantasyApi.Models;
+using FantasyApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace FantasyApi.Controllers;
 public class ManagerController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
+    private readonly FantasyPointsService fantasyPointsService;
 
-    public ManagerController(FantasyDbContext context)
+    public ManagerController(FantasyDbContext context, FantasyPointsService fantasyPointsService)
     {
         this.context = context;
+        this.fantasyPointsService = fantasyPointsService;
     }
 
     [HttpPost("StartRound/{leagueId}")]
@@ -78,23 +81,89 @@ public class ManagerController : ControllerBase
         }
     }
 
-    [HttpPost("EndRound/{leagueId}")]
+    [HttpPost("EndRound")]
     public async Task<IActionResult> EndRound()
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
         try
         {
-            await context.FantasyLeagues.ExecuteUpdateAsync(l =>
-                l.SetProperty(x => x.IsRoundActive, false)
-                    .SetProperty(x => x.CurrentRound, x => x.CurrentRound + 1)
-            );
+            var leagues = await context.FantasyLeagues.Where(l => l.IsRoundActive).ToListAsync();
+
+            if (!leagues.Any())
+                return Ok("Nema aktivnih liga");
+
+            foreach (var league in leagues)
+            {
+                var currentRound = league.CurrentRound;
+
+                var teams = await context
+                    .FantasyTeams.Where(t => t.LeagueId == league.Id)
+                    .ToListAsync();
+
+                var teamIds = teams.Select(t => t.Id).ToList();
+
+                var allPlayerRounds = await context
+                    .FantasyPlayerRounds.Where(r =>
+                        teamIds.Contains(r.fantasyPlayer!.FantasyTeamId) && r.round == currentRound
+                    )
+                    .Include(r => r.PlayerGameStats)
+                    .ToListAsync();
+
+                var allCoachRounds = await context
+                    .FantasyCoachRounds.Where(r =>
+                        teamIds.Contains(r.fantasyCoach!.FantasyTeamId) && r.round == currentRound
+                    )
+                    .Include(r => r.CoachGameStats)
+                    .ToListAsync();
+
+                var playerRoundsByTeam = allPlayerRounds
+                    .GroupBy(r => r.fantasyPlayer!.FantasyTeamId)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var coachRoundsByTeam = allCoachRounds.ToDictionary(
+                    r => r.fantasyCoach!.FantasyTeamId,
+                    r => r
+                );
+
+                var teamRoundsToInsert = new List<FantasyTeamRound>();
+
+                foreach (var team in teams)
+                {
+                    playerRoundsByTeam.TryGetValue(team.Id, out var playerRounds);
+                    coachRoundsByTeam.TryGetValue(team.Id, out var coachRound);
+
+                    double points = fantasyPointsService.CalculateTeamPoints(
+                        playerRounds ?? new List<FantasyPlayerRound>(),
+                        coachRound!
+                    );
+
+                    teamRoundsToInsert.Add(
+                        new FantasyTeamRound
+                        {
+                            Id = Guid.NewGuid(),
+                            fantasyTeam = team,
+                            round = currentRound,
+                            roundPoints = points,
+                        }
+                    );
+                }
+
+                await context.FantasyTeamRounds.AddRangeAsync(teamRoundsToInsert);
+
+                league.IsRoundActive = false;
+                league.CurrentRound += 1;
+            }
+
+            await context.SaveChangesAsync();
+
             await transaction.CommitAsync();
+
             return Ok();
         }
-        catch
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return StatusCode(500, "Greška prilikom startovanja runde");
+            return StatusCode(500, $"Greška: {ex.Message}");
         }
     }
 }
