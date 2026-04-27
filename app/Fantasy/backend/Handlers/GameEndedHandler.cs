@@ -36,7 +36,6 @@ public class GameEndedHandler
 
         foreach (var coachSnapshot in gameEvent.CoachStats)
         {
-            
             var tempCoachStats = new CoachGameStats
             {
                 Difference = coachSnapshot.Difference,
@@ -47,7 +46,6 @@ public class GameEndedHandler
             var strategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
             double calculatedPoints = strategy.CalculatePoints(null, tempCoachStats);
 
-            
             var fantasyTeamCoaches = await _fantasyDb
                 .FantasyTeamCoaches.AsNoTracking()
                 .Where(ftc => ftc.CoachId == coachSnapshot.CoachId)
@@ -57,40 +55,28 @@ public class GameEndedHandler
             {
                 var league = await _fantasyDb
                     .FantasyLeagues.AsNoTracking()
-                    .FirstOrDefaultAsync(l =>
-                        l.Id
-                        == _fantasyDb
+                    .Where(l =>
+                        _fantasyDb
                             .FantasyTeams.Where(t => t.Id == fantasyTeamCoach.FantasyTeamId)
                             .Select(t => t.LeagueId)
-                            .FirstOrDefault()
-                    );
+                            .Contains(l.Id)
+                    )
+                    .FirstOrDefaultAsync();
 
                 if (league == null)
                     continue;
 
-                var existingRound = await _fantasyDb
-                    .FantasyCoachRounds.AsNoTracking()
-                    .FirstOrDefaultAsync(cr =>
+                await _fantasyDb
+                    .FantasyCoachRounds.Where(cr =>
                         cr.fantasyCoach!.FantasyTeamId == fantasyTeamCoach.FantasyTeamId
                         && cr.fantasyCoach.CoachId == coachSnapshot.CoachId
                         && cr.round == league.CurrentRound
-                    );
+                    )
+                    .ExecuteDeleteAsync();
 
-                
-                if (existingRound != null && existingRound.roundPoints != 0)
-                    continue;
-
-                if (existingRound != null)
-                {
-                    await _fantasyDb
-                        .FantasyCoachRounds.Where(cr => cr.Id == existingRound.Id)
-                        .ExecuteDeleteAsync();
-                }
-
-                
                 await _fantasyDb.Database.ExecuteSqlRawAsync(
-                    @"INSERT INTO FantasyCoachRounds (Id, FantasyTeamId, CoachId, round, Role, roundPoints)
-                      VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
+                    @"INSERT INTO FantasyCoachRounds (Id, fantasyCoachFantasyTeamId, fantasyCoachCoachId, round, Role, roundPoints)
+      VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
                     Guid.NewGuid(),
                     fantasyTeamCoach.FantasyTeamId,
                     fantasyTeamCoach.CoachId,
@@ -98,6 +84,29 @@ public class GameEndedHandler
                     (int)FantasyRole.Coach,
                     calculatedPoints
                 );
+
+                var playerRounds = await _fantasyDb
+                    .FantasyPlayerRounds.AsNoTracking()
+                    .Include(p => p.fantasyPlayer)
+                    .Where(x =>
+                        x.fantasyPlayer!.FantasyTeamId == fantasyTeamCoach.FantasyTeamId
+                        && x.round == league.CurrentRound
+                    )
+                    .ToListAsync();
+
+                var mockCoachRound = new FantasyCoachRound { roundPoints = calculatedPoints };
+                var totalPoints = _fantasyPointsService.CalculateTeamPoints(
+                    playerRounds,
+                    mockCoachRound
+                );
+
+                await _fantasyDb
+                    .FantasyTeamRounds.Include(t => t.fantasyTeam)
+                    .Where(t =>
+                        t.fantasyTeam!.Id == fantasyTeamCoach.FantasyTeamId
+                        && t.round == league.CurrentRound
+                    )
+                    .ExecuteUpdateAsync(s => s.SetProperty(p => p.roundPoints, totalPoints));
 
                 pushTasks.Add(
                     _fantasyPointsService.PushCoachPointsAsync(
@@ -116,6 +125,8 @@ public class GameEndedHandler
                 );
             }
         }
+
+        await _fantasyPointsService.PushLeaderboard();
 
         await Task.WhenAll(pushTasks);
 

@@ -43,30 +43,31 @@ export const FantasyPointsProvider: FC<Props> = ({
     connection.on("RoundStarted", async (data) => {
       console.log("RoundStarted: ", data);
       await queryClient.invalidateQueries({ queryKey: ["league", leagueId] });
-      toast.info("Round started!");
+      // toast.info("Round started!");
     });
 
     connection.on("RoundEnded", async () => {
       console.log("RoundEnded: ");
       await queryClient.invalidateQueries({ queryKey: ["league", leagueId] });
-      toast.info("Round ended!");
+      await queryClient.invalidateQueries({ queryKey: ["teamPoint", teamId] });
+      // toast.info("Round ended!");
     });
 
     connection.on("PlayerPointsUpdated", async (data) => {
       console.log("PlayerPointsUpdated: ", data);
       await queryClient.invalidateQueries({ queryKey: ["teamPoint", teamId] });
       await queryClient.invalidateQueries({ queryKey: ["teamPoints", teamId] });
-      toast.info("PlayerPointsUpdated!");
+      // toast.info("PlayerPointsUpdated!");
     });
-    
+
     connection.on("LeaderboardUpdate", async (data) => {
       console.log("LeaderboardUpdate: ", data);
       await queryClient.invalidateQueries({
         queryKey: ["leagueLeaderboard", leagueId],
       });
-      toast.info("LeaderboardUpdate!");
+      // toast.info("LeaderboardUpdate!");
     });
-    
+
     connection.on("CoachPointsUpdated", async (data) => {
       console.log("CoachPointsUpdated: ", data);
       await queryClient.invalidateQueries({ queryKey: ["teamPoint", teamId] });
@@ -74,7 +75,7 @@ export const FantasyPointsProvider: FC<Props> = ({
       await queryClient.invalidateQueries({
         queryKey: ["leagueLeaderboard", leagueId],
       });
-      toast.info("CoachPointsUpdated!");
+      // toast.info("CoachPointsUpdated!");
     });
 
     startConnection();

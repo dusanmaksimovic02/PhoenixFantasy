@@ -44,8 +44,8 @@ const AddStats: FC<Props> = ({
     <Loading />
   ) : (
     <dialog open={isOpenStats} className="modal">
-      <div className="modal-box flex flex-col justify-center items-center w-7/12 max-w-5xl rounded-4xl bg-surface-light dark:bg-surface-dark overflow-hidden ">
-        <div className="modal-action text flex flex-col gap-10 w-full">
+      <div className="modal-box flex flex-col justify-center items-center w-7/12 max-w-5xl rounded-4xl bg-surface-light dark:bg-surface-dark overflow-auto ">
+        <div className="modal-action text flex flex-col gap-10 w-full shrink-0 overflow-auto">
           <button
             type="button"
             className="btn btn-sm text-red-600 btn-circle btn-ghost absolute right-2 top-2"

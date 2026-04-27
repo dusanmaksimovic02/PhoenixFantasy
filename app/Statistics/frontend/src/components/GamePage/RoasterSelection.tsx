@@ -66,14 +66,20 @@ const RoasterSelection: FC<RoasterSelectionProps> = ({
 
                 <td className="text-center">
                   <button
-                    disabled={selectedIds.length >= 12}
+                    disabled={!isInRoster && selectedIds.length >= 12}
                     onClick={() => {
-                      setSelectedIds(
-                        selectedIds.includes(player.id)
-                          ? selectedIds.filter((id) => id != player.id)
-                          : [...selectedIds, player.id],
-                      );
-                      setStarterIds(starterIds.filter((id) => id != player.id));
+                      if (isInRoster) {
+                        setSelectedIds(
+                          selectedIds.filter((id) => id !== player.id),
+                        );
+                        setStarterIds(
+                          starterIds.filter((id) => id !== player.id),
+                        );
+                      } else {
+                        if (selectedIds.length < 12) {
+                          setSelectedIds([...selectedIds, player.id]);
+                        }
+                      }
                     }}
                     className={`text-2xl transition-all hover:scale-110 ${isInRoster ? "text-green-500" : "text-neutral-300"}`}
                   >

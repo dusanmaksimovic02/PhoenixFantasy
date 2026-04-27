@@ -120,7 +120,10 @@ public class PlayerStatsUpdatedHandler
 
             var coachRound = await _fantasyDb
                 .FantasyCoachRounds.Include(x => x.fantasyCoach)
-                .FirstOrDefaultAsync(x => x.fantasyCoach!.FantasyTeamId == fantasyTeam.Id);
+                .FirstOrDefaultAsync(x =>
+                    x.fantasyCoach!.FantasyTeamId == fantasyTeam.Id
+                    && x.round == league.CurrentRound
+                );
 
             var totalPoints = _fantasyPointsService.CalculateTeamPoints(playerRounds, coachRound!);
 

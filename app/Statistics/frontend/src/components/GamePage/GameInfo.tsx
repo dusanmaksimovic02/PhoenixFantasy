@@ -244,14 +244,14 @@ const GameInfo: FC<GameInfoProps> = (props) => {
               </p>
               <div className="flex flex-col gap-3 mt-2">
                 <button
-                  className="hover:cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => setTime((t) => Math.min(600, t + 1))}
                 >
                   <FaAngleUp />
                 </button>
 
                 <button
-                  className="hover:cursor-pointer"
+                  className="cursor-pointer"
                   onClick={() => setTime((t) => Math.max(0, t - 1))}
                 >
                   <FaAngleDown />

@@ -263,21 +263,19 @@ const DraftLeagueCourt: FC<DraftLeagueCourtProps> = ({
 
       <div
         className={`relative w-fit border-2 rounded-2xl border-black dark:border-white transition-all duration-500 ${
-          isRoundActive ? "ring-2 ring-red-500/50 shadow-inner" : ""
+          isRoundActive ? "ring-5 ring-red-500/50 shadow-inner" : ""
         }`}
       >
         <img
           src={halfCourt}
           alt="basketball half court"
-          className="w-160 h-150 rounded-2xl relative"
+          className="w-160 h-157 rounded-2xl relative"
           onClick={() => setSelectedTeamPlayer(null)}
         />
 
         <div className="absolute top-0 left-0 w-full h-full">
           <div
-            className={
-              isRoundActive ? "cursor-not-allowed pointer-events-none" : ""
-            }
+            className={`flex flex-col gap-5 ${isRoundActive ? "cursor-not-allowed pointer-events-none" : ""}`}
           >
             <div className="flex justify-center">
               {teamLineup &&
@@ -401,7 +399,7 @@ const DraftLeagueCourt: FC<DraftLeagueCourtProps> = ({
             </div>
           </div>
 
-          <div className="flex mt-15 border-t-2 border-black dark:border-white overflow-hidden rounded-b-2xl backdrop-blur-xs h-45">
+          <div className="flex mt-12 border-t-2 border-black dark:border-white overflow-hidden rounded-b-2xl backdrop-blur-xs h-45">
             <div
               className={`border-r-2 border-black dark:border-white w-35 flex shrink-0 justify-center items-center transition-all duration-300 ${(selectedFreePlayerCoach as any)?.position === "HC" ? "ring-4 ring-yellow-400 scale-105 z-20 cursor-pointer shadow-2xl bg-yellow-400/20" : ""}`}
               onClick={() => teamLineup && handleCoachClick(teamLineup.coach)}

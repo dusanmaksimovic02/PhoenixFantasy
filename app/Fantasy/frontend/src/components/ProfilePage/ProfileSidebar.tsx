@@ -91,9 +91,9 @@ const ProfileSidebar: FC<Props> = ({ mobileOpen, setMobileOpen }) => {
       >
         <div className="flex flex-col flex-1 min-h-[calc(100vh-3.75rem)] ">
           <div className="p-6 flex flex-col items-center border-b dark:border-neutral-700">
-            <div className="w-24 h-24 rounded-full bg-neutral-300 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
+            {/* <div className="w-24 h-24 rounded-full bg-neutral-300 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
               Team image
-            </div>
+            </div> */}
             <p className="mt-3 font-semibold">My Profile</p>
           </div>
 

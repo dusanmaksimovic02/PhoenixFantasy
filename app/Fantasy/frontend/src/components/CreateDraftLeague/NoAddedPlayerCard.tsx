@@ -26,7 +26,7 @@ const NoAddedPlayerCard: FC<NoAddedPlayerCardProps> = ({ onPlusClick }) => {
         }}
       >
         <FaPlus
-          className={`text-white ${isMyTurn ? "hover:cursor-pointer hover:scale-120" : "pointer-events-none hover:cursor-auto"}`}
+          className={`text-white ${isMyTurn ? "cursor-pointer hover:scale-120" : "pointer-events-none hover:cursor-auto"}`}
           size={25}
           onClick={onPlusClick}
         />

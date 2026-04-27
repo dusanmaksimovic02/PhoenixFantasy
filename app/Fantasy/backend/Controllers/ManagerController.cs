@@ -125,59 +125,59 @@ public class ManagerController : ControllerBase
                     .FantasyTeams.Where(t => t.LeagueId == league.Id)
                     .ToListAsync();
 
-                var teamIds = teams.Select(t => t.Id).ToList();
+                // var teamIds = teams.Select(t => t.Id).ToList();
 
-                var allPlayerRounds = await context
-                    .FantasyPlayerRounds.Where(r =>
-                        teamIds.Contains(r.fantasyPlayer!.FantasyTeamId) && r.round == currentRound
-                    )
-                    .Include(r => r.fantasyPlayer)
-                    .Include(r => r.PlayerGameStats)
-                    .ToListAsync();
+                // var allPlayerRounds = await context
+                //     .FantasyPlayerRounds.Where(r =>
+                //         teamIds.Contains(r.fantasyPlayer!.FantasyTeamId) && r.round == currentRound
+                //     )
+                //     .Include(r => r.fantasyPlayer)
+                //     .Include(r => r.PlayerGameStats)
+                //     .ToListAsync();
 
-                var allCoachRounds = await context
-                    .FantasyCoachRounds.Where(r =>
-                        teamIds.Contains(r.fantasyCoach!.FantasyTeamId) && r.round == currentRound
-                    )
-                    .Include(r => r.fantasyCoach)
-                    .Include(r => r.CoachGameStats)
-                    .ToListAsync();
+                // var allCoachRounds = await context
+                //     .FantasyCoachRounds.Where(r =>
+                //         teamIds.Contains(r.fantasyCoach!.FantasyTeamId) && r.round == currentRound
+                //     )
+                //     .Include(r => r.fantasyCoach)
+                //     .Include(r => r.CoachGameStats)
+                //     .ToListAsync();
 
-                var playerRoundsByTeam = allPlayerRounds
-                    .GroupBy(r => r.fantasyPlayer!.FantasyTeamId)
-                    .ToDictionary(g => g.Key, g => g.ToList());
+                // var playerRoundsByTeam = allPlayerRounds
+                //     .GroupBy(r => r.fantasyPlayer!.FantasyTeamId)
+                //     .ToDictionary(g => g.Key, g => g.ToList());
 
-                var coachRoundsByTeam = allCoachRounds.ToDictionary(
-                    r => r.fantasyCoach!.FantasyTeamId,
-                    r => r
-                );
+                // var coachRoundsByTeam = allCoachRounds.ToDictionary(
+                //     r => r.fantasyCoach!.FantasyTeamId,
+                //     r => r
+                // );
 
-                var teamRoundsToInsert = new List<FantasyTeamRound>();
+                // var teamRoundsToInsert = new List<FantasyTeamRound>();
 
                 foreach (var team in teams)
                 {
                     teamsIds.Add(team.Id);
 
-                    playerRoundsByTeam.TryGetValue(team.Id, out var playerRounds);
-                    coachRoundsByTeam.TryGetValue(team.Id, out var coachRound);
+                    // playerRoundsByTeam.TryGetValue(team.Id, out var playerRounds);
+                    // coachRoundsByTeam.TryGetValue(team.Id, out var coachRound);
 
-                    double points = fantasyPointsService.CalculateTeamPoints(
-                        playerRounds ?? new List<FantasyPlayerRound>(),
-                        coachRound!
-                    );
+                    // double points = fantasyPointsService.CalculateTeamPoints(
+                    //     playerRounds ?? new List<FantasyPlayerRound>(),
+                    //     coachRound!
+                    // );
 
-                    teamRoundsToInsert.Add(
-                        new FantasyTeamRound
-                        {
-                            Id = Guid.NewGuid(),
-                            fantasyTeam = team,
-                            round = currentRound,
-                            roundPoints = points,
-                        }
-                    );
+                    // teamRoundsToInsert.Add(
+                    //     new FantasyTeamRound
+                    //     {
+                    //         Id = Guid.NewGuid(),
+                    //         fantasyTeam = team,
+                    //         round = currentRound,
+                    //         roundPoints = points,
+                    //     }
+                    // );
                 }
 
-                await context.FantasyTeamRounds.AddRangeAsync(teamRoundsToInsert);
+                // await context.FantasyTeamRounds.AddRangeAsync(teamRoundsToInsert);
 
                 league.IsRoundActive = false;
                 league.CurrentRound += 1;
