@@ -59,5 +59,7 @@ public class FantasyDbContext : IdentityDbContext<Person>
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<FantasyTeamCoach>().HasIndex(x => x.CoachId);
+
+        modelBuilder.Entity<FantasyTeamPlayer>().HasQueryFilter(tp => tp.IsActive);
     }
 }

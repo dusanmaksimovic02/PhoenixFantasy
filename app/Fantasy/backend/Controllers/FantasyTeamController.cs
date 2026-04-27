@@ -112,14 +112,16 @@ public class FantasyTeamController : ControllerBase
         );
 
         if (teamPlayer == null)
-            return BadRequest("Igrač ne postoji");
+            return BadRequest("Igrač nije pronađen u tvom timu");
 
-        var exists = await context.FantasyTeamPlayers.AnyAsync(x => x.PlayerId == dto.NewPlayerId);
+        var exists = await context.FantasyTeamPlayers.AnyAsync(x =>
+            x.PlayerId == dto.NewPlayerId && x.IsActive
+        );
 
         if (exists)
             return BadRequest("Igrač je već u nekom timu");
 
-        context.FantasyTeamPlayers.Remove(teamPlayer);
+        teamPlayer.IsActive = false;
 
         context.FantasyTeamPlayers.Add(
             new FantasyTeamPlayer
@@ -128,6 +130,7 @@ public class FantasyTeamController : ControllerBase
                 PlayerId = dto.NewPlayerId,
                 Position = dto.NewPlayerPosition,
                 Role = teamPlayer.Role,
+                IsActive = true,
             }
         );
 
