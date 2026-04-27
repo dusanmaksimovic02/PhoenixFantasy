@@ -72,53 +72,28 @@ public class DraftTimerService : BackgroundService
 
         try
         {
-            Console.WriteLine($"[DRAFT] Start processing: {draftId}");
-
-            var draft = await context.DraftSessions.FirstOrDefaultAsync(
-                d => d.Id == draftId,
-                stoppingToken
-            );
+            // 1. Učitaj draft sa svim potrebnim podacima (isto kao u Controlleru)
+            var draft = await context
+                .DraftSessions.Include(d => d.PickOrder)
+                .FirstOrDefaultAsync(d => d.Id == draftId, stoppingToken);
 
             if (draft == null)
-            {
-                Console.WriteLine("[DRAFT] Draft not found");
                 return;
-            }
 
-            var currentPick = await context
-                .DraftSessions.Where(d => d.Id == draft.Id)
-                .SelectMany(d => d.PickOrder)
-                .OrderBy(p => p.Order)
-                .Skip(draft.CurrentPickIndex)
-                .FirstOrDefaultAsync(stoppingToken);
+            // Pronađi čiji je red (prema CurrentPickIndex)
+            var pickOrderList = draft.PickOrder.OrderBy(p => p.Order).ToList();
 
-            if (currentPick == null)
-            {
-                Console.WriteLine("[DRAFT] No more picks → switching phase");
-
-                draft.Phase = DraftPhase.Coach;
-                draft.CurrentPickIndex = 0;
-                draft.PickDeadline = DateTime.UtcNow;
-
-                await context.SaveChangesAsync(stoppingToken);
-
-                await _hubContext
-                    .Clients.Group(draft.Id.ToString())
-                    .SendAsync("PhaseChanged", "Coach");
-
+            if (draft.CurrentPickIndex >= pickOrderList.Count)
                 return;
-            }
 
+            var currentPick = pickOrderList[draft.CurrentPickIndex];
             var teamId = currentPick.FantasyTeamId;
 
-            Console.WriteLine("[DRAFT] Fetching team players");
-
+            // --- Logika za odabir igrača ---
             var teamPlayerIds = await context
                 .FantasyTeamPlayers.Where(tp => tp.FantasyTeamId == teamId)
                 .Select(tp => tp.PlayerId)
                 .ToListAsync(stoppingToken);
-
-            Console.WriteLine($"[DRAFT] Team players count: {teamPlayerIds.Count}");
 
             var positionCounts = await statsDbContext
                 .Players.Where(p => teamPlayerIds.Contains(p.Id))
@@ -130,14 +105,11 @@ public class DraftTimerService : BackgroundService
             int forwards = positionCounts.FirstOrDefault(x => x.Position == "Forward")?.Count ?? 0;
             int centers = positionCounts.FirstOrDefault(x => x.Position == "Center")?.Count ?? 0;
 
-            Console.WriteLine($"[DRAFT] G:{guards} F:{forwards} C:{centers}");
-
+            // Filtriraj dostupne igrače
             var takenPlayerIds = await context
                 .FantasyTeamPlayers.Where(fp => fp.FantasyTeam!.LeagueId == draft.LeagueId)
                 .Select(fp => fp.PlayerId)
                 .ToListAsync(stoppingToken);
-
-            Console.WriteLine($"[DRAFT] Taken players in league: {takenPlayerIds.Count}");
 
             var validPlayers = await statsDbContext
                 .Players.Where(p =>
@@ -148,79 +120,39 @@ public class DraftTimerService : BackgroundService
                         || (p.Position == "Center" && centers < 2)
                     )
                 )
-                .Select(p => new
-                {
-                    p.Id,
-                    p.Position,
-                    p.FirstName,
-                    p.LastName,
-                })
                 .ToListAsync(stoppingToken);
 
-            Console.WriteLine($"[DRAFT] Valid players: {validPlayers.Count}");
-
+            // Fallback ako nema validnih
             if (!validPlayers.Any())
             {
-                Console.WriteLine("[DRAFT] Using fallback players");
-
                 validPlayers = await statsDbContext
                     .Players.Where(p => !takenPlayerIds.Contains(p.Id))
-                    .Select(p => new
-                    {
-                        p.Id,
-                        p.Position,
-                        p.FirstName,
-                        p.LastName,
-                    })
                     .ToListAsync(stoppingToken);
             }
 
             if (!validPlayers.Any())
-            {
-                Console.WriteLine("[DRAFT] NO PLAYERS LEFT → ending draft");
-
-                draft.Phase = DraftPhase.Coach;
-                draft.CurrentPickIndex = 0;
-                draft.PickDeadline = DateTime.UtcNow;
-
-                await context.SaveChangesAsync(stoppingToken);
-                return;
-            }
+                return; // Nema igrača, kraj
 
             var selected = validPlayers[_random.Next(validPlayers.Count)];
 
-            Console.WriteLine($"[DRAFT] Selected player: {selected.Id}");
+            // Odredi ulogu
+            FantasyRole role =
+                (teamPlayerIds.Count == 0)
+                    ? FantasyRole.Captain
+                    : selected.Position switch
+                    {
+                        "Guard" => guards < 2 ? FantasyRole.Starter : FantasyRole.Bench,
+                        "Forward" => forwards < 2 ? FantasyRole.Starter : FantasyRole.Bench,
+                        "Center" => centers < 1 ? FantasyRole.Starter : FantasyRole.Bench,
+                        _ => FantasyRole.Bench,
+                    };
 
-            var totalPlayersInTeam = teamPlayerIds.Count;
+            // --- Transakcija ---
+            await using var transaction = await context.Database.BeginTransactionAsync(
+                stoppingToken
+            );
 
-            FantasyRole role;
-
-            if (totalPlayersInTeam == 0)
-            {
-                role = FantasyRole.Captain;
-            }
-            else
-            {
-                switch (selected.Position)
-                {
-                    case "Guard":
-                        role = guards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
-                        break;
-
-                    case "Forward":
-                        role = forwards < 2 ? FantasyRole.Starter : FantasyRole.Bench;
-                        break;
-
-                    case "Center":
-                        role = centers < 1 ? FantasyRole.Starter : FantasyRole.Bench;
-                        break;
-
-                    default:
-                        role = FantasyRole.Bench;
-                        break;
-                }
-            }
-
+            // Dodaj igrača
             context.FantasyTeamPlayers.Add(
                 new FantasyTeamPlayer
                 {
@@ -234,19 +166,50 @@ public class DraftTimerService : BackgroundService
             draft.CurrentPickIndex++;
             draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
-            await context.SaveChangesAsync(stoppingToken);
+            // --- Logika za završetak drafta (identično kao u Controlleru) ---
+            if (draft.CurrentPickIndex >= draft.PickOrder.Count)
+            {
+                draft.Phase = DraftPhase.Coach;
+                draft.CurrentPickIndex = 0;
+                draft.PickDeadline = DateTime.UtcNow.AddMinutes(1);
 
-            //await _hubContext.Clients.Group(draft.Id.ToString()).SendAsync("AutoPick", selected);
+                await context.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
 
-            await _hubContext
-                .Clients.Group(draft.Id.ToString())
-                .SendAsync("AutoPick", new { player = selected });
+                await _hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PlayerPicked", new { playerFull = selected }, stoppingToken);
+                await _hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PhaseChanged", "Coach", stoppingToken);
+                await _hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync(
+                        "TurnChanged",
+                        new { draft.CurrentPickIndex, draft.PickDeadline },
+                        stoppingToken
+                    );
+            }
+            else
+            {
+                await context.SaveChangesAsync(stoppingToken);
+                await transaction.CommitAsync(stoppingToken);
 
-            await _hubContext
-                .Clients.Group(draft.Id.ToString())
-                .SendAsync("TurnChanged", new { draft.CurrentPickIndex, draft.PickDeadline });
+                await _hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync("PlayerPicked", new { playerFull = selected }, stoppingToken);
+                await _hubContext
+                    .Clients.Group(draft.Id.ToString())
+                    .SendAsync(
+                        "TurnChanged",
+                        new { draft.CurrentPickIndex, draft.PickDeadline },
+                        stoppingToken
+                    );
+            }
 
-            Console.WriteLine("[DRAFT] Finished");
+            Console.WriteLine(
+                $"[DRAFT] Auto-picked {selected.FirstName} {selected.LastName} for team {teamId}"
+            );
         }
         catch (Exception ex)
         {

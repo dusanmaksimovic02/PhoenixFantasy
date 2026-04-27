@@ -357,4 +357,21 @@ public class StatsService
 
         return result!;
     }
+
+    public async Task<int?> GetNextRound()
+    {
+        var rounds = await _context
+            .Games.GroupBy(g => g.Round)
+            .Select(group => new
+            {
+                Round = group.Key,
+                AllNotStarted = group.All(g => g.HomeTeamScore == 0 && g.GuestTeamScore == 0),
+            })
+            .Where(g => g.AllNotStarted)
+            .OrderBy(g => g.Round)
+            .Select(g => g.Round)
+            .FirstOrDefaultAsync();
+
+        return rounds == 0 ? null : rounds;
+    }
 }

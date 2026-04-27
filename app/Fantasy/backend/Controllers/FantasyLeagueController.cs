@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FantasyApi.Data;
 using FantasyApi.Hubs;
 using FantasyApi.Models;
+using FantasyApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -15,11 +16,17 @@ public class FantasyLeagueController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
     private readonly IHubContext<CreateDraftHub> hubContext;
+    private StatsService service;
 
-    public FantasyLeagueController(FantasyDbContext context, IHubContext<CreateDraftHub> hubContext)
+    public FantasyLeagueController(
+        FantasyDbContext context,
+        IHubContext<CreateDraftHub> hubContext,
+        StatsService service
+    )
     {
         this.context = context;
         this.hubContext = hubContext;
+        this.service = service;
     }
 
     /*[HttpPost("AddFantasyLeague")]
@@ -71,12 +78,16 @@ public class FantasyLeagueController : ControllerBase
                 joinCode = GenerateJoinCode();
             } while (await context.FantasyLeagues.AnyAsync(l => l.JoinCode == joinCode));
 
+            var nextRound = await service.GetNextRound();
+
             var league = new FantasyLeague
             {
                 Id = Guid.NewGuid(),
                 LeagueName = dto.LeagueName,
                 leagueAdminId = dto.UserId,
                 JoinCode = joinCode,
+
+                CurrentRound = nextRound ?? 1,
             };
 
             context.FantasyLeagues.Add(league);
