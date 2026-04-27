@@ -24,7 +24,7 @@ public class FantasyRoundController : ControllerBase
     public async Task<IActionResult> CalculateTeamPoints(Guid fantasyTeamId)
     {
         var playerRounds = await context
-            .FantasyPlayerRounds.Include(x => x.PlayerGameStats)
+            .FantasyPlayerRounds //.Include(x => x.PlayerGameStats)
             .Include(x => x.fantasyPlayer)
             .Where(x => x.fantasyPlayer.FantasyTeamId == fantasyTeamId)
             .ToListAsync();
