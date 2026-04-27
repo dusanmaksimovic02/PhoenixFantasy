@@ -142,6 +142,7 @@ public class PlayerStatsUpdatedHandler
             };
 
             await _fantasyPointsService.PushPlayerPointsAsync(fantasyTeam.Id, dto);
+            await _fantasyPointsService.PushLeaderboard();
 
             Console.WriteLine(
                 $"[Handler] Player {statsEvent.PlayerId} → team {fantasyTeam.Id}: {playerRound.roundPoints} pts"

@@ -43,8 +43,8 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
     queryFn: () => getAllFreeCoaches(leagueId),
   });
 
-  const { data: teamPoints } = useQuery({
-    queryKey: ["teamPoints", teamId],
+  const { data: teamPoint } = useQuery({
+    queryKey: ["teamPoint", teamId],
     queryFn: () => getFantasyTeamPoints(teamId, league.currentRound),
     enabled: !!league,
   });
@@ -100,7 +100,9 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
             </p>
           </div>
           <div className="text-right">
-            <p className="text-white font-bold text-2xl">{}</p>
+            <p className="text-white font-bold text-2xl">
+              {teamPoint ? teamPoint.roundPoints : "0"}
+            </p>
             <p className="text-white/70 text-xs">total pts</p>
           </div>
         </div>

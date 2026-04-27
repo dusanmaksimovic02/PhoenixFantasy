@@ -56,8 +56,8 @@ const DraftLeaguePlayerCard: FC<DraftLeaguePlayerCardProps> = ({
         <p className="text-[13px] text-center">
           {firstName.charAt(0)}. {lastName}
         </p>
-        <p className="text-[13px] text-center font-bold text-nowrap max-md:text-[8px]">
-          {fantasyPoints} 
+        <p className="text-[13px] text-center font-bold text-nowrap bg-phoenix rounded-2xl">
+          {fantasyPoints} p
         </p>
       </div>
     </div>

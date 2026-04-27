@@ -269,7 +269,7 @@ const DraftLeagueCourt: FC<DraftLeagueCourtProps> = ({
         <img
           src={halfCourt}
           alt="basketball half court"
-          className="w-150 h-129 rounded-2xl relative"
+          className="w-160 h-150 rounded-2xl relative"
           onClick={() => setSelectedTeamPlayer(null)}
         />
 
@@ -401,7 +401,7 @@ const DraftLeagueCourt: FC<DraftLeagueCourtProps> = ({
             </div>
           </div>
 
-          <div className="flex mt-5 border-t-2 border-black dark:border-white overflow-hidden rounded-b-2xl backdrop-blur-xs h-34">
+          <div className="flex mt-15 border-t-2 border-black dark:border-white overflow-hidden rounded-b-2xl backdrop-blur-xs h-45">
             <div
               className={`border-r-2 border-black dark:border-white w-35 flex shrink-0 justify-center items-center transition-all duration-300 ${(selectedFreePlayerCoach as any)?.position === "HC" ? "ring-4 ring-yellow-400 scale-105 z-20 cursor-pointer shadow-2xl bg-yellow-400/20" : ""}`}
               onClick={() => teamLineup && handleCoachClick(teamLineup.coach)}

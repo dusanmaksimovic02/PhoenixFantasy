@@ -19,7 +19,8 @@ public class GameEndedHandler
     public GameEndedHandler(
         FantasyDbContext fantasyDb,
         FantasyPointsService fantasyPointsService,
-        IHubContext<GameScoreHub> hubContext)
+        IHubContext<GameScoreHub> hubContext
+    )
     {
         _fantasyDb = fantasyDb;
         _fantasyPointsService = fantasyPointsService;
@@ -28,7 +29,8 @@ public class GameEndedHandler
 
     public async Task HandleAsync(GameEndedEvent gameEvent)
     {
-        if (!gameEvent.CoachStats.Any()) return;
+        if (!gameEvent.CoachStats.Any())
+            return;
 
         var pushTasks = new List<Task>();
 
@@ -46,36 +48,42 @@ public class GameEndedHandler
             double calculatedPoints = strategy.CalculatePoints(null, tempCoachStats);
 
             // AsNoTracking so EF doesn't try to update these entities
-            var fantasyTeamCoaches = await _fantasyDb.FantasyTeamCoaches
-                .AsNoTracking()
+            var fantasyTeamCoaches = await _fantasyDb
+                .FantasyTeamCoaches.AsNoTracking()
                 .Where(ftc => ftc.CoachId == coachSnapshot.CoachId)
                 .ToListAsync();
 
             foreach (var fantasyTeamCoach in fantasyTeamCoaches)
             {
-                var league = await _fantasyDb.FantasyLeagues
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(l => l.Id == _fantasyDb.FantasyTeams
-                        .Where(t => t.Id == fantasyTeamCoach.FantasyTeamId)
-                        .Select(t => t.LeagueId)
-                        .FirstOrDefault());
+                var league = await _fantasyDb
+                    .FantasyLeagues.AsNoTracking()
+                    .FirstOrDefaultAsync(l =>
+                        l.Id
+                        == _fantasyDb
+                            .FantasyTeams.Where(t => t.Id == fantasyTeamCoach.FantasyTeamId)
+                            .Select(t => t.LeagueId)
+                            .FirstOrDefault()
+                    );
 
-                if (league == null) continue;
+                if (league == null)
+                    continue;
 
-                var existingRound = await _fantasyDb.FantasyCoachRounds
-                    .AsNoTracking()
+                var existingRound = await _fantasyDb
+                    .FantasyCoachRounds.AsNoTracking()
                     .FirstOrDefaultAsync(cr =>
-                        cr.fantasyCoach!.FantasyTeamId == fantasyTeamCoach.FantasyTeamId &&
-                        cr.fantasyCoach.CoachId == coachSnapshot.CoachId &&
-                        cr.round == league.CurrentRound);
+                        cr.fantasyCoach!.FantasyTeamId == fantasyTeamCoach.FantasyTeamId
+                        && cr.fantasyCoach.CoachId == coachSnapshot.CoachId
+                        && cr.round == league.CurrentRound
+                    );
 
                 // skip if already calculated
-                if (existingRound != null && existingRound.roundPoints != 0) continue;
+                if (existingRound != null && existingRound.roundPoints != 0)
+                    continue;
 
                 if (existingRound != null)
                 {
-                    await _fantasyDb.FantasyCoachRounds
-                        .Where(cr => cr.Id == existingRound.Id)
+                    await _fantasyDb
+                        .FantasyCoachRounds.Where(cr => cr.Id == existingRound.Id)
                         .ExecuteDeleteAsync();
                 }
 
@@ -91,17 +99,21 @@ public class GameEndedHandler
                     calculatedPoints
                 );
 
-                pushTasks.Add(_fantasyPointsService.PushCoachPointsAsync(
-                    fantasyTeamCoach.FantasyTeamId,
-                    new CalculatePointsDto
-                    {
-                        Id = coachSnapshot.CoachId,
-                        Role = FantasyRole.Coach,
-                        Points = calculatedPoints
-                    }
-                ));
+                pushTasks.Add(
+                    _fantasyPointsService.PushCoachPointsAsync(
+                        fantasyTeamCoach.FantasyTeamId,
+                        new CalculatePointsDto
+                        {
+                            Id = coachSnapshot.CoachId,
+                            Role = FantasyRole.Coach,
+                            Points = calculatedPoints,
+                        }
+                    )
+                );
 
-                Console.WriteLine($"[Handler] Coach {coachSnapshot.CoachId} → team {fantasyTeamCoach.FantasyTeamId}: {calculatedPoints} pts");
+                Console.WriteLine(
+                    $"[Handler] Coach {coachSnapshot.CoachId} → team {fantasyTeamCoach.FantasyTeamId}: {calculatedPoints} pts"
+                );
             }
         }
 
@@ -116,12 +128,14 @@ public class GameEndedHandler
             guestTeamId = gameEvent.GuestTeamId,
             homeTeamScore = gameEvent.HomeTeamScore,
             guestTeamScore = gameEvent.GuestTeamScore,
-            gameEnded = true
+            gameEnded = true,
         };
 
-        await _hubContext.Clients.Group(gameEvent.HomeTeamId.ToString())
+        await _hubContext
+            .Clients.Group(gameEvent.HomeTeamId.ToString())
             .SendAsync("GameEnded", gameEndedPayload);
-        await _hubContext.Clients.Group(gameEvent.GuestTeamId.ToString())
+        await _hubContext
+            .Clients.Group(gameEvent.GuestTeamId.ToString())
             .SendAsync("GameEnded", gameEndedPayload);
 
         Console.WriteLine($"[Handler] Game {gameEvent.GameId} ended — SignalR notified both teams");

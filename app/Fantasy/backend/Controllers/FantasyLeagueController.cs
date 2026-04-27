@@ -440,7 +440,7 @@ public class FantasyLeagueController : ControllerBase
                 t.round,
                 t.roundPoints,
             })
-            .ToListAsync();
+            .FirstOrDefaultAsync();
 
         return Ok(standings);
     }

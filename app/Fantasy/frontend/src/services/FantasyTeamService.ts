@@ -119,8 +119,10 @@ export const calculateTeamPoints = async (
 };
 
 export const getFantasyTeamPoints = async (teamId: string, round: number) => {
-  const response = await apiClient.get(
-    `FantasyTeam/GetFantasyTeamPoints/${teamId}/${round}`,
-  );
+  const response = await apiClient.get<{
+    id: string;
+    round: number;
+    roundPoints: number;
+  }>(`FantasyLeague/GetFantasyTeamPoints/${teamId}/${round}`);
   return response.data;
 };

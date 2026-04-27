@@ -52,6 +52,31 @@ export const FantasyPointsProvider: FC<Props> = ({
       toast.info("Round ended!");
     });
 
+    connection.on("PlayerPointsUpdated", async (data) => {
+      console.log("PlayerPointsUpdated: ", data);
+      await queryClient.invalidateQueries({ queryKey: ["teamPoint", teamId] });
+      await queryClient.invalidateQueries({ queryKey: ["teamPoints", teamId] });
+      toast.info("PlayerPointsUpdated!");
+    });
+    
+    connection.on("LeaderboardUpdate", async (data) => {
+      console.log("LeaderboardUpdate: ", data);
+      await queryClient.invalidateQueries({
+        queryKey: ["leagueLeaderboard", leagueId],
+      });
+      toast.info("LeaderboardUpdate!");
+    });
+    
+    connection.on("CoachPointsUpdated", async (data) => {
+      console.log("CoachPointsUpdated: ", data);
+      await queryClient.invalidateQueries({ queryKey: ["teamPoint", teamId] });
+      await queryClient.invalidateQueries({ queryKey: ["teamPoints", teamId] });
+      await queryClient.invalidateQueries({
+        queryKey: ["leagueLeaderboard", leagueId],
+      });
+      toast.info("CoachPointsUpdated!");
+    });
+
     startConnection();
 
     return () => {

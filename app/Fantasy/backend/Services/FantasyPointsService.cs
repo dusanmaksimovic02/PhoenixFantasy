@@ -20,7 +20,7 @@ public class FantasyPointsService
     public double CalculateTeamPoints(
         List<FantasyPlayerRound> playerRounds,
         FantasyCoachRound coachRound
-        // int round
+    // int round
     )
     {
         double totalPoints = 0;
@@ -113,5 +113,10 @@ public class FantasyPointsService
         await _hubContext
             .Clients.Group(fantasyTeamId.ToString())
             .SendAsync("CoachPointsUpdated", dto);
+    }
+
+    public async Task PushLeaderboard()
+    {
+        await _hubContext.Clients.All.SendAsync("LeaderboardUpdate");
     }
 }
