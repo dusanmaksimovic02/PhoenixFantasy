@@ -14,4 +14,5 @@ public class Game
     public int? Round { get; set; }
     public int HomeTeamScore { get; set; }
     public int GuestTeamScore { get; set; }
+     public bool? GameEnded{get; set; } = false;
 }

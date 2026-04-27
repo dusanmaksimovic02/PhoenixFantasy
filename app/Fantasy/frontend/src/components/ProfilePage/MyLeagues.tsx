@@ -35,7 +35,13 @@ const MyLeagues: FC = () => {
                     teamName: league.teamName,
                   };
                   if (league.isDraftStarted)
-                    navigate(`/fantasy/draft/${league.leagueName}`);
+                    navigate(`/fantasy/draft/${league.leagueName}`, {
+                      state: {
+                        leagueId: league.id,
+                        teamId: res.teamId,
+                        teamName: res.teamName,
+                      },
+                    });
                   else
                     navigate(
                       `/fantasy/draft/${league.leagueName}/${league.joinCode}`,

@@ -9,6 +9,7 @@ public class GameEndedEvent
     public string GuestTeamName { get; set; } = "";
     public int HomeTeamScore { get; set; }
     public int GuestTeamScore { get; set; }
+    public bool GameEnded { get; set; } = true;
     public DateTime Timestamp { get; set; }
     public List<CoachStatsSnapshot> CoachStats { get; set; } = new();
 }

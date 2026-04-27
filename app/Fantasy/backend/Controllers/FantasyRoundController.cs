@@ -15,26 +15,33 @@ public class FantasyRoundController : ControllerBase
     private FantasyDbContext context { get; set; }
     private FantasyPointsService service { get; set; }
 
-    public FantasyRoundController(FantasyDbContext context)
+    public FantasyRoundController(FantasyDbContext context, FantasyPointsService service)
     {
         this.context = context;
+        this.service = service;
     }
 
-    [HttpGet("CalculateTeamPoints/{fantasyTeamId}")]
-    public async Task<IActionResult> CalculateTeamPoints(Guid fantasyTeamId)
+    [HttpPut("CalculateTeamPoints/{fantasyTeamId}/{round}")]
+    public async Task<IActionResult> CalculateTeamPoints(Guid fantasyTeamId, int round)
     {
         var playerRounds = await context
-            .FantasyPlayerRounds //.Include(x => x.PlayerGameStats)
-            .Include(x => x.fantasyPlayer)
-            .Where(x => x.fantasyPlayer.FantasyTeamId == fantasyTeamId)
+            .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+            .Where(x => x.fantasyPlayer!.FantasyTeamId == fantasyTeamId && x.round == round)
             .ToListAsync();
 
         var coachRound = await context
-            .FantasyCoachRounds.Include(x => x.CoachGameStats)
-            .Include(x => x.fantasyCoach)
-            .FirstOrDefaultAsync(x => x.fantasyCoach.FantasyTeamId == fantasyTeamId);
+            .FantasyCoachRounds.Include(x => x.fantasyCoach)
+            .FirstOrDefaultAsync(x => x.fantasyCoach!.FantasyTeamId == fantasyTeamId);
 
         var totalPoints = service.CalculateTeamPoints(playerRounds, coachRound);
+
+        var teamRound = await context
+            .FantasyTeamRounds.Include(t => t.fantasyTeam)
+            .FirstOrDefaultAsync(t => t.fantasyTeam!.Id == fantasyTeamId && t.round == round);
+
+        teamRound!.roundPoints = totalPoints;
+
+        await context.SaveChangesAsync();
 
         return Ok(totalPoints);
     }

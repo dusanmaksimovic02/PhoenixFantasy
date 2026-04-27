@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using FantasyApi.Data;
 using FantasyApi.Enums;
+using FantasyApi.Hubs;
 using FantasyApi.Models;
 using FantasyApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace FantasyApi.Controllers;
@@ -15,16 +17,24 @@ public class ManagerController : ControllerBase
 {
     private FantasyDbContext context { get; set; }
     private readonly FantasyPointsService fantasyPointsService;
+    private readonly IHubContext<FantasyHub> hubContext;
 
-    public ManagerController(FantasyDbContext context, FantasyPointsService fantasyPointsService)
+    public ManagerController(
+        FantasyDbContext context,
+        FantasyPointsService fantasyPointsService,
+        IHubContext<FantasyHub> hubContext
+    )
     {
         this.context = context;
         this.fantasyPointsService = fantasyPointsService;
+        this.hubContext = hubContext;
     }
 
     [HttpPost("StartRound")]
     public async Task<IActionResult> StartRound()
     {
+        var teamIds = new List<Guid>();
+
         await using var transaction = await context.Database.BeginTransactionAsync();
         try
         {
@@ -43,6 +53,7 @@ public class ManagerController : ControllerBase
 
             foreach (var team in teams)
             {
+                teamIds.Add(team.Id);
                 var teamRound = new FantasyTeamRound
                 {
                     Id = Guid.NewGuid(),
@@ -69,11 +80,20 @@ public class ManagerController : ControllerBase
                 }
 
                 teamRounds.Add(teamRound);
+
+                // await hubContext
+                //     .Clients.Group(team.Id.ToString())
+                //     .SendAsync("RoundStarted", new { leagueId = team.LeagueId });
             }
 
             await context.FantasyTeamRounds.AddRangeAsync(teamRounds);
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            foreach (var teamId in teamIds)
+            {
+                await hubContext.Clients.Group(teamId.ToString()).SendAsync("RoundEnded");
+            }
 
             return Ok();
         }
@@ -87,6 +107,8 @@ public class ManagerController : ControllerBase
     [HttpPost("EndRound")]
     public async Task<IActionResult> EndRound()
     {
+        var teamsIds = new List<Guid>();
+
         await using var transaction = await context.Database.BeginTransactionAsync();
         try
         {
@@ -109,6 +131,7 @@ public class ManagerController : ControllerBase
                     .FantasyPlayerRounds.Where(r =>
                         teamIds.Contains(r.fantasyPlayer!.FantasyTeamId) && r.round == currentRound
                     )
+                    .Include(r => r.fantasyPlayer)
                     .Include(r => r.PlayerGameStats)
                     .ToListAsync();
 
@@ -116,6 +139,7 @@ public class ManagerController : ControllerBase
                     .FantasyCoachRounds.Where(r =>
                         teamIds.Contains(r.fantasyCoach!.FantasyTeamId) && r.round == currentRound
                     )
+                    .Include(r => r.fantasyCoach)
                     .Include(r => r.CoachGameStats)
                     .ToListAsync();
 
@@ -132,6 +156,8 @@ public class ManagerController : ControllerBase
 
                 foreach (var team in teams)
                 {
+                    teamsIds.Add(team.Id);
+
                     playerRoundsByTeam.TryGetValue(team.Id, out var playerRounds);
                     coachRoundsByTeam.TryGetValue(team.Id, out var coachRound);
 
@@ -161,12 +187,17 @@ public class ManagerController : ControllerBase
 
             await transaction.CommitAsync();
 
+            foreach (var teamId in teamsIds)
+            {
+                await hubContext.Clients.Group(teamId.ToString()).SendAsync("RoundEnded");
+            }
+
             return Ok();
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return StatusCode(500, $"Greška: {ex.Message}");
+            return StatusCode(500, $"Greska: {ex.ToString()}");
         }
     }
 }

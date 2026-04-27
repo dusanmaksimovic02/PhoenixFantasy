@@ -427,4 +427,21 @@ public class FantasyLeagueController : ControllerBase
 
         return Ok(standings);
     }
+
+    [HttpGet("GetFantasyTeamPoints/{teamId}/{round}")]
+    public async Task<IActionResult> GetFantasyTeamPoints(Guid teamId, int round)
+    {
+        var standings = await context
+            .FantasyTeamRounds.Include(t => t.fantasyTeam)
+            .Where(t => t.fantasyTeam!.Id == teamId && t.round == round)
+            .Select(t => new
+            {
+                t.Id,
+                t.round,
+                t.roundPoints,
+            })
+            .FirstOrDefaultAsync();
+
+        return Ok(standings);
+    }
 }

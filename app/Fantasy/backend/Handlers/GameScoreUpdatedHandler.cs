@@ -15,21 +15,25 @@ public class GameScoreUpdatedHandler
 
     public async Task HandleAsync(GameScoreUpdatedEvent scoreEvent)
     {
-      
-        await _hubContext
-            .Clients.Group(scoreEvent.GameId.ToString())
-            .SendAsync("GameScoreUpdated", new
-            {
-                gameId = scoreEvent.GameId,
-                homeTeamId = scoreEvent.HomeTeamId,
-                guestTeamId = scoreEvent.GuestTeamId,
-                homeTeamName = scoreEvent.HomeTeamName,
-                guestTeamName = scoreEvent.GuestTeamName,
-                homeTeamScore = scoreEvent.HomeTeamScore,
-                guestTeamScore = scoreEvent.GuestTeamScore,
-                timestamp = scoreEvent.Timestamp
-            });
+        var payload = new
+        {
+            gameId = scoreEvent.GameId,
+            homeTeamId = scoreEvent.HomeTeamId,
+            guestTeamId = scoreEvent.GuestTeamId,
+            homeTeamName = scoreEvent.HomeTeamName,
+            guestTeamName = scoreEvent.GuestTeamName,
+            homeTeamScore = scoreEvent.HomeTeamScore,
+            guestTeamScore = scoreEvent.GuestTeamScore,
+            gameEnded = scoreEvent.GameEnded,
+            timestamp = scoreEvent.Timestamp
+        };
 
-        Console.WriteLine($"[GameScoreHub] Score update pushed: {scoreEvent.HomeTeamName} {scoreEvent.HomeTeamScore} - {scoreEvent.GuestTeamScore} {scoreEvent.GuestTeamName}");
+        
+        await _hubContext.Clients.Group(scoreEvent.HomeTeamId.ToString())
+            .SendAsync("GameScoreUpdated", payload);
+        await _hubContext.Clients.Group(scoreEvent.GuestTeamId.ToString())
+            .SendAsync("GameScoreUpdated", payload);
+
+        Console.WriteLine($"[GameScoreHub] Score pushed: {scoreEvent.HomeTeamName} {scoreEvent.HomeTeamScore} - {scoreEvent.GuestTeamScore} {scoreEvent.GuestTeamName} | Ended: {scoreEvent.GameEnded}");
     }
 }

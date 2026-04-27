@@ -1,5 +1,6 @@
 import { type FC } from "react";
 import jersey from "../../assets/images/jersey.png";
+import logo from "../../assets/images/phoenixLogo2.png";
 
 interface DraftLeaguePlayerCardProps {
   position: string;
@@ -8,7 +9,7 @@ interface DraftLeaguePlayerCardProps {
   lastName: string;
   fantasyPoints: string;
   isCaptain: boolean;
-  onCaptainToggle: () => void;
+  onCaptainToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
   isStarter: boolean;
 }
 
@@ -31,7 +32,7 @@ const DraftLeaguePlayerCard: FC<DraftLeaguePlayerCardProps> = ({
           onClick={onCaptainToggle}
           className={`
           absolute top-1 right-1 w-5 h-5 rounded-full text-white text-[10px] font-bold
-          flex items-center justify-center cursor-pointer transition-all z-10
+          flex items-center justify-center cursor-pointer transition-all z-1
           ${
             isCaptain
               ? "bg-red-500 shadow-lg shadow-red-500/50 scale-110"
@@ -45,13 +46,9 @@ const DraftLeaguePlayerCard: FC<DraftLeaguePlayerCardProps> = ({
       )}
 
       <div className="absolute flex flex-col w-full h-full top-0 left-0 text-black p-4 pt-7">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <p className="text-[10px] pl-1.5 pt-1">{position}</p>
-          <img
-            src="https://upload.wikimedia.org/wikipedia/sr/thumb/8/80/KK_Partizan_logo.svg/1920px-KK_Partizan_logo.svg.png"
-            alt="club logo"
-            className="w-4 h-4 pr-1"
-          />
+          <img src={logo} alt="club logo" className="w-3 h-5" />
         </div>
         <p className="text-[15.5px] text-center font-extrabold">
           {jerseyNumber}
@@ -59,8 +56,8 @@ const DraftLeaguePlayerCard: FC<DraftLeaguePlayerCardProps> = ({
         <p className="text-[13px] text-center">
           {firstName.charAt(0)}. {lastName}
         </p>
-        <p className="text-[13px] text-center font-bold text-nowrap max-md:text-[8px]">
-          {fantasyPoints}
+        <p className="text-[13px] text-center font-bold text-nowrap bg-phoenix rounded-2xl">
+          {fantasyPoints} p
         </p>
       </div>
     </div>

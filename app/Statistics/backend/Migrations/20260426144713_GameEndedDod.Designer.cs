@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StatsApi.Data;
 
@@ -11,9 +12,11 @@ using StatsApi.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260426144713_GameEndedDod")]
+    partial class GameEndedDod
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -216,7 +219,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ChatMessages", (string)null);
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("StatsApi.Models.Coach", b =>
@@ -236,7 +239,7 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coaches", (string)null);
+                    b.ToTable("Coaches");
                 });
 
             modelBuilder.Entity("StatsApi.Models.CoachGameStats", b =>
@@ -266,7 +269,7 @@ namespace backend.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("CoachGameStats", (string)null);
+                    b.ToTable("CoachGameStats");
                 });
 
             modelBuilder.Entity("StatsApi.Models.Game", b =>
@@ -310,7 +313,7 @@ namespace backend.Migrations
 
                     b.HasIndex("RefereeId");
 
-                    b.ToTable("Games", (string)null);
+                    b.ToTable("Games");
                 });
 
             modelBuilder.Entity("StatsApi.Models.Person", b =>
@@ -425,7 +428,7 @@ namespace backend.Migrations
 
                     b.HasIndex("TeamId");
 
-                    b.ToTable("Players", (string)null);
+                    b.ToTable("Players");
                 });
 
             modelBuilder.Entity("StatsApi.Models.PlayerGameStats", b =>
@@ -513,7 +516,7 @@ namespace backend.Migrations
                     b.HasIndex(new[] { "PlayerId", "GameId" }, "IX_Player_Game_Unique")
                         .IsUnique();
 
-                    b.ToTable("PlayerGameStats", (string)null);
+                    b.ToTable("PlayerGameStats");
                 });
 
             modelBuilder.Entity("StatsApi.Models.Team", b =>
@@ -536,7 +539,7 @@ namespace backend.Migrations
 
                     b.HasIndex("coachId");
 
-                    b.ToTable("Teams", (string)null);
+                    b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

@@ -10,5 +10,6 @@ public class GameStartedEvent
     public int Round { get; set; }
     public DateTime DateTime { get; set; }
     public string Venue { get; set; } = "";
+     public bool GameEnded { get; set; } = false;
     public DateTime Timestamp { get; set; }
 }

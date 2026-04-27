@@ -11,6 +11,7 @@ public class GameEndedEvent
     public int GuestTeamScore { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.Now;
     public List<CoachStatsSnapshot> CoachStats { get; set; } = new();
+    public bool GameEnded { get; set; } = true;
 }
 
 public class CoachStatsSnapshot

@@ -20,23 +20,34 @@ public class FantasyPointsService
     public double CalculateTeamPoints(
         List<FantasyPlayerRound> playerRounds,
         FantasyCoachRound coachRound
+    // int round
     )
     {
         double totalPoints = 0;
 
-        foreach (var round in playerRounds)
+        Console.WriteLine("[RACUNANJE] racunam poene igraca, trenutno je total: ", totalPoints);
+
+        foreach (var player in playerRounds)
         {
-            var strategy = StrategyFactory.GetStrategy(round.Role);
-            double points = strategy.CalculatePoints(round.PlayerGameStats, null);
-            totalPoints += points;
+            // var strategy = StrategyFactory.GetStrategy(round.Role);
+            // double points = strategy.CalculatePoints(round.PlayerGameStats, null);
+            totalPoints += player.roundPoints;
         }
+        Console.WriteLine(
+            "[RACUNANJE] Izracunao sam  poene igraca, trenutno je total: ",
+            totalPoints
+        );
 
         if (coachRound != null)
         {
-            var coachStrategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
-            double coachPoints = coachStrategy.CalculatePoints(null, coachRound.CoachGameStats);
-            totalPoints += coachPoints;
+            // var coachStrategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
+            // double coachPoints = coachStrategy.CalculatePoints(null, coachRound.CoachGameStats);
+            totalPoints += coachRound.roundPoints;
         }
+        Console.WriteLine(
+            "[RACUNANJE] Izracunao sam  poene trenera, trenutno je total: ",
+            totalPoints
+        );
 
         return totalPoints;
     }
@@ -90,7 +101,6 @@ public class FantasyPointsService
         return result;
     }
 
-    
     public async Task PushPlayerPointsAsync(Guid fantasyTeamId, CalculatePointsDto dto)
     {
         await _hubContext
@@ -98,11 +108,15 @@ public class FantasyPointsService
             .SendAsync("PlayerPointsUpdated", dto);
     }
 
-   
     public async Task PushCoachPointsAsync(Guid fantasyTeamId, CalculatePointsDto dto)
     {
         await _hubContext
             .Clients.Group(fantasyTeamId.ToString())
             .SendAsync("CoachPointsUpdated", dto);
+    }
+
+    public async Task PushLeaderboard()
+    {
+        await _hubContext.Clients.All.SendAsync("LeaderboardUpdate");
     }
 }
