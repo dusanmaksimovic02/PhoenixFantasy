@@ -273,26 +273,11 @@ public class GameController : ControllerBase
                     PlayerId = player.Id,
                     TeamId = isHomePlayer ? game.HomeTeam!.Id : game.GuestTeam!.Id,
                     IsStarter = dto.HomeStartersIds.Contains(player.Id) || dto.GuestStartersIds.Contains(player.Id),
-
-                    Points = 0,
-                    Made1p = 0,
-                    Miss1p = 0,
-                    Made2p = 0,
-                    Miss2p = 0,
-                    Made3p = 0,
-                    Miss3p = 0,
-                    Assists = 0,
-                    Rebounds = 0,
-                    OffensiveRebounds = 0,
-                    DefensiveRebounds = 0,
-                    Steals = 0,
-                    Turnovers = 0,
-                    Pir = 0,
-                    PersonalFouls = 0,
-                    RecievedFouls = 0,
-                    Blocks = 0,
-                    RecievedBlocks = 0,
-                    TechnicalFouls = 0
+                    Points = 0, Made1p = 0, Miss1p = 0, Made2p = 0, Miss2p = 0,
+                    Made3p = 0, Miss3p = 0, Assists = 0, Rebounds = 0,
+                    OffensiveRebounds = 0, DefensiveRebounds = 0, Steals = 0,
+                    Turnovers = 0, Pir = 0, PersonalFouls = 0, RecievedFouls = 0,
+                    Blocks = 0, RecievedBlocks = 0, TechnicalFouls = 0
                 });
             }
 
@@ -320,10 +305,9 @@ public class GameController : ControllerBase
 
             context.PlayerGameStats.AddRange(stats);
             context.CoachGameStats.AddRange(coachStats);
-
             await context.SaveChangesAsync();
-            
 
+            // publish game started event
             var gameStartedEvent = new GameStartedEvent
             {
                 GameId = game.Id,
@@ -337,9 +321,6 @@ public class GameController : ControllerBase
                 Timestamp = DateTime.Now
             };
 
-            var json = JsonSerializer.Serialize(gameStartedEvent);
-
-            
             _ = Task.Run(async () =>
             {
                 try
@@ -347,7 +328,7 @@ public class GameController : ControllerBase
                     await _rabbitMQ.PublishToExchangeAsync(
                         exchangeName: "stats.topic",
                         routingKey: "game.started",
-                        message: json
+                        message: JsonSerializer.Serialize(gameStartedEvent)
                     );
                     Console.WriteLine($"[RabbitMQ] Published GameStartedEvent for game {game.Id}");
                 }
@@ -509,7 +490,6 @@ public class GameController : ControllerBase
             if (game.HomeTeamScore == 0 || game.GuestTeamScore == 0)
                 return BadRequest("Game score is not set");
 
-            
             var coachStats = await context.CoachGameStats
                 .Where(cgs => cgs.Game!.Id == gameId)
                 .Include(cgs => cgs.Coach)
@@ -518,7 +498,6 @@ public class GameController : ControllerBase
             if (coachStats.Count != 2)
                 return BadRequest("Coach stats not properly initialized");
 
-           
             foreach (var stat in coachStats)
             {
                 if (stat.Coach!.Id == game.HomeTeam!.coach!.Id)
@@ -527,6 +506,9 @@ public class GameController : ControllerBase
                     stat.Difference = game.GuestTeamScore - game.HomeTeamScore;
             }
 
+            
+            game.GameEnded = true;
+            context.Games.Update(game);
             context.CoachGameStats.UpdateRange(coachStats);
             await context.SaveChangesAsync();
 
@@ -540,8 +522,8 @@ public class GameController : ControllerBase
                 GuestTeamName = game.GuestTeam.Name ?? "",
                 HomeTeamScore = game.HomeTeamScore,
                 GuestTeamScore = game.GuestTeamScore,
+                GameEnded = true,
                 Timestamp = DateTime.Now,
-                
                 CoachStats = coachStats.Select(cs => new CoachStatsSnapshot
                 {
                     CoachId = cs.Coach!.Id,
@@ -554,9 +536,20 @@ public class GameController : ControllerBase
                 }).ToList()
             };
 
-            var json = JsonSerializer.Serialize(gameEndedEvent);
-
             
+            var finalScoreEvent = new GameScoreUpdatedEvent
+            {
+                GameId = game.Id,
+                HomeTeamId = game.HomeTeam!.Id,
+                GuestTeamId = game.GuestTeam!.Id,
+                HomeTeamName = game.HomeTeam.Name ?? "",
+                GuestTeamName = game.GuestTeam.Name ?? "",
+                HomeTeamScore = game.HomeTeamScore,
+                GuestTeamScore = game.GuestTeamScore,
+                GameEnded = true,
+                Timestamp = DateTime.Now
+            };
+
             _ = Task.Run(async () =>
             {
                 try
@@ -564,13 +557,21 @@ public class GameController : ControllerBase
                     await _rabbitMQ.PublishToExchangeAsync(
                         exchangeName: "stats.topic",
                         routingKey: "game.ended",
-                        message: json
+                        message: JsonSerializer.Serialize(gameEndedEvent)
                     );
                     Console.WriteLine($"[RabbitMQ] Published GameEndedEvent for game {gameId}");
+
+                   
+                    await _rabbitMQ.PublishToExchangeAsync(
+                        exchangeName: "stats.topic",
+                        routingKey: "game.score.updated",
+                        message: JsonSerializer.Serialize(finalScoreEvent)
+                    );
+                    Console.WriteLine($"[RabbitMQ] Published final score event for game {gameId}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[RabbitMQ ERROR] Failed to publish GameEndedEvent: {ex.Message}");
+                    Console.WriteLine($"[RabbitMQ ERROR] Failed to publish events: {ex.Message}");
                 }
             });
 

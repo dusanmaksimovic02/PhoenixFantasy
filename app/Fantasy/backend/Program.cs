@@ -14,18 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(
-        "Frontend",
-        policy =>
-        {
-            policy
-                .WithOrigins("http://localhost:5174", "https://localhost:5174")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-                .SetIsOriginAllowed(_ => true);
-        }
-    );
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5174", "https://localhost:5174")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .SetIsOriginAllowed(_ => true);
+    });
 });
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -49,57 +46,46 @@ builder.Services.AddScoped<GameEndedHandler>();
 builder.Services.AddScoped<GameScoreUpdatedHandler>();
 builder.Services.AddScoped<GameStartedHandler>();
 
-builder
-    .Services.AddIdentity<Person, IdentityRole>()
+builder.Services.AddIdentity<Person, IdentityRole>()
     .AddEntityFrameworkStores<FantasyDbContext>()
     .AddDefaultTokenProviders();
 
-builder
-    .Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.SaveToken = true;
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            ),
-            ClockSkew = TimeSpan.Zero,
-        };
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+        ),
+        ClockSkew = TimeSpan.Zero,
+    };
 
-        options.Events = new JwtBearerEvents
-        {
-            OnMessageReceived = context =>
-            {
-                return Task.CompletedTask;
-            },
-            OnTokenValidated = context =>
-            {
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = context =>
-            {
-                return Task.CompletedTask;
-            },
-        };
-    });
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context => Task.CompletedTask,
+        OnTokenValidated = context => Task.CompletedTask,
+        OnAuthenticationFailed = context => Task.CompletedTask,
+    };
+});
 
 builder.Services.AddAuthorization();
 builder.Services.AddHostedService<StatsConsumerService>();
-
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<DraftChatService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -116,23 +102,18 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
     string[] roles = { "Admin", "Manager", "User" };
-
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
-        {
             await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseCors("Frontend");
+
 
 app.MapHub<DraftHub>("/draftHub");
 app.MapHub<CreateDraftHub>("/createDraftHub");

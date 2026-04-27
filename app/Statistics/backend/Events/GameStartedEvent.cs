@@ -9,6 +9,7 @@ public class GameStartedEvent
     public string GuestTeamName { get; set; } = "";
     public int Round { get; set; }
     public DateTime DateTime { get; set; }
+     public bool GameEnded { get; set; } = false;
     public string Venue { get; set; } = "";
     public DateTime Timestamp { get; set; } = DateTime.Now;
 }

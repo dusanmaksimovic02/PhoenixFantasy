@@ -9,5 +9,6 @@ public class GameScoreUpdatedEvent
     public Guid GuestTeamId { get; set; }
     public int HomeTeamScore { get; set; }
     public int GuestTeamScore { get; set; }
+     public bool GameEnded { get; set; } = false;
     public DateTime Timestamp { get; set; } = DateTime.Now;
 }

@@ -9,4 +9,5 @@ export type Game = {
   homeTeamScore: number;
   guestTeamScore: number;
   round: number;
+  gameEnded: boolean;
 };
