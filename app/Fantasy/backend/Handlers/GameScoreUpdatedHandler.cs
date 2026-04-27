@@ -34,6 +34,8 @@ public class GameScoreUpdatedHandler
         await _hubContext.Clients.Group(scoreEvent.GuestTeamId.ToString())
             .SendAsync("GameScoreUpdated", payload);
 
+        await _hubContext.Clients.Group(scoreEvent.GameId.ToString())
+            .SendAsync("GameScoreUpdated", payload);
         Console.WriteLine($"[GameScoreHub] Score pushed: {scoreEvent.HomeTeamName} {scoreEvent.HomeTeamScore} - {scoreEvent.GuestTeamScore} {scoreEvent.GuestTeamName} | Ended: {scoreEvent.GameEnded}");
     }
 }

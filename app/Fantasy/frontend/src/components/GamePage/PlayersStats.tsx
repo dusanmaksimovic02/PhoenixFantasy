@@ -1,38 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { CiCircleInfo } from "react-icons/ci";
-import { useQuery } from "@tanstack/react-query";
-import type { FC } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, type FC } from "react";
 import { getPlayersStatsFromGame } from "../../services/StatsService";
 import type { PlayerStats } from "../../models/PlayerStats";
+import * as signalR from "@microsoft/signalr";
 
-type PlayerStastsProps = {
+const FANTASY_API_URL = "https://localhost:7035";
+
+type PlayerStatsProps = {
   gameId: string;
   teamId: string;
   teamName: string;
 };
 
 const TABLE_HEAD = [
-  "No.",
-  "Name",
-  "P",
-  "A",
-  "R",
-  "OR",
-  "DR",
-  "S",
-  "T",
-  "B",
-  "RB",
-  "PF",
-  "RF",
-  "TF",
-  "1P",
-  "1P %",
-  "2P",
-  "2P %",
-  "3P",
-  "3P %",
-  "PIR",
+  "No.", "Name", "P", "A", "R", "OR", "DR",
+  "S", "T", "B", "RB", "PF", "RF", "TF",
+  "1P", "1P %", "2P", "2P %", "3P", "3P %", "PIR",
 ];
 
 const TABLE_HEAD_MEANING = [
@@ -59,29 +44,57 @@ const TABLE_HEAD_MEANING = [
   { abbr: "PIR", meaning: "Player Impact Rating" },
 ];
 
-const PlayersStats: FC<PlayerStastsProps> = ({ teamId, teamName, gameId }) => {
+const PlayersStats: FC<PlayerStatsProps> = ({ teamId, teamName, gameId }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const { data: playerStats } = useQuery({
-    queryKey: ["homeTeamPlayersStats", gameId, teamId],
+    queryKey: ["teamPlayersStats", gameId, teamId],
     queryFn: () => getPlayersStatsFromGame(gameId, teamId),
   });
 
-  const handleRowClick = (player: PlayerStats) => {
-    const playerName = `${player.fullName}`.toLowerCase().replace(/\s+/g, "-");
-    const team = teamName.toLowerCase().replace(/\s+/g, "-");
+  useEffect(() => {
+    
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(`${FANTASY_API_URL}/gameScoreHub`)
+      .withAutomaticReconnect()
+      .build();
 
+    
+    connection.on("GameScoreUpdated", (data) => {
+      if (data.gameId !== gameId) return;
+      queryClient.invalidateQueries({ queryKey: ["teamPlayersStats", gameId, teamId] });
+    });
+
+    connection.on("GameEnded", (data) => {
+      if (data.gameId !== gameId) return;
+      queryClient.invalidateQueries({ queryKey: ["teamPlayersStats", gameId, teamId] });
+    });
+
+    connection.start()
+      .then(async () => {
+        await connection.invoke("JoinGame", gameId);
+      })
+      .catch((err) => console.error("[SignalR PlayersStats] Error:", err));
+
+    return () => {
+      connection.stop();
+    };
+  }, [gameId, teamId, queryClient]);
+
+  const handleRowClick = (player: PlayerStats) => {
+    const playerName = player.fullName.toLowerCase().replace(/\s+/g, "-");
+    const team = teamName.toLowerCase().replace(/\s+/g, "-");
     navigate(`/team/${team}/${playerName}`, {
-      state: { playerId: player.playerId, teamName: teamName },
+      state: { playerId: player.playerId, teamName },
     });
   };
+
   return (
     <>
       <div className="p-5 w-full flex justify-end">
         <div className="dropdown dropdown-left">
-          <label
-            tabIndex={0}
-            className="btn btn-ghost p-0 hover:bg-transparent"
-          >
+          <label tabIndex={0} className="btn btn-ghost p-0 hover:bg-transparent">
             <CiCircleInfo className="h-8 w-8 text-black dark:text-white" />
           </label>
 
@@ -89,13 +102,10 @@ const PlayersStats: FC<PlayerStastsProps> = ({ teamId, teamName, gameId }) => {
             tabIndex={0}
             className="dropdown-content z-10 w-72 rounded-xl border-2 border-black bg-surface-light p-5 shadow-lg dark:bg-surface-dark text-black dark:text-white"
           >
-            <p className="font-extrabold text-center mb-2">
-              Table Head meaning
-            </p>
-
+            <p className="font-extrabold text-center mb-2">Table Head meaning</p>
             <div className="text-sm space-y-1">
-              {TABLE_HEAD_MEANING.map((th, index) => (
-                <div key={index}>
+              {TABLE_HEAD_MEANING.map((th) => (
+                <div key={th.abbr}>
                   <strong>{th.abbr}</strong> – {th.meaning}
                 </div>
               ))}
@@ -103,21 +113,20 @@ const PlayersStats: FC<PlayerStastsProps> = ({ teamId, teamName, gameId }) => {
           </div>
         </div>
       </div>
+
       <div className="w-full overflow-hidden rounded-lg border border-surface overflow-x-scroll">
         <table className="w-full text-nowrap whitespace-nowrap">
           <thead className="border-b border-surface bg-surface-light text-sm font-medium text-foreground dark:bg-surface-dark">
             <tr>
               {TABLE_HEAD.map((head, index) => (
-                <th
-                  key={index}
-                  className="px-3.5 py-3 text-start font-extrabold text-lg text-nowrap"
-                >
+                <th key={index} className="px-3.5 py-3 text-start font-extrabold text-lg text-nowrap">
                   {head}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="group text-sm text-black dark:text-white ">
+
+          <tbody className="group text-sm text-black dark:text-white">
             {playerStats?.map((player: PlayerStats, index) => (
               <tr
                 key={index}
@@ -143,26 +152,17 @@ const PlayersStats: FC<PlayerStastsProps> = ({ teamId, teamName, gameId }) => {
                 <td className="p-5">
                   {`${player.freeThrow.made}/${player.freeThrow.made + player.freeThrow.missed}`}
                 </td>
-
-                <td className="p-5">
-                  {`${player.freeThrow.percentage.toFixed(0)}%`}
-                </td>
+                <td className="p-5">{player.freeThrow.percentage.toFixed(0)}%</td>
 
                 <td className="p-5">
                   {`${player.twoPoint.made}/${player.twoPoint.made + player.twoPoint.missed}`}
                 </td>
-
-                <td className="p-5">
-                  {`${player.twoPoint.percentage.toFixed(0)}%`}
-                </td>
+                <td className="p-5">{player.twoPoint.percentage.toFixed(0)}%</td>
 
                 <td className="p-5">
                   {`${player.threePoint.made}/${player.threePoint.made + player.threePoint.missed}`}
                 </td>
-
-                <td className="p-5">
-                  {`${player.threePoint.percentage.toFixed(0)}%`}
-                </td>
+                <td className="p-5">{player.threePoint.percentage.toFixed(0)}%</td>
 
                 <td className="p-5">{player.pir.toFixed(1)}</td>
               </tr>

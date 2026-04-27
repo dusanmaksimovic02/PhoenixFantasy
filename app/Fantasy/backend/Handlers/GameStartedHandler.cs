@@ -34,7 +34,8 @@ public class GameStartedHandler
         await _hubContext.Clients.Group(gameEvent.GuestTeamId.ToString())
             .SendAsync("GameStarted", payload);
 
-        
+        await _hubContext.Clients.Group(gameEvent.GameId.ToString())
+            .SendAsync("GameStarted", payload);
         await _hubContext.Clients.Group(gameEvent.Round.ToString())
             .SendAsync("GameStarted", payload);
 

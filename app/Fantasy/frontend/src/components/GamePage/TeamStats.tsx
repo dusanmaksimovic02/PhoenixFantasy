@@ -9,167 +9,84 @@ interface TeamStatsProps {
 }
 
 const TeamStats: FC<TeamStatsProps> = ({ gameId, homeTeamId, guestTeamId }) => {
-  const { data: homeTeamPayersStats } = useQuery({
+  const { data: homeTeamStats } = useQuery({
     queryKey: ["homeTeamPlayersStats", gameId, homeTeamId],
     queryFn: () => getPlayersStatsFromGame(gameId, homeTeamId),
   });
 
-  const { data: guestTeamPayersStats } = useQuery({
+  const { data: guestTeamStats } = useQuery({
     queryKey: ["guestTeamPlayersStats", gameId, guestTeamId],
     queryFn: () => getPlayersStatsFromGame(gameId, guestTeamId),
   });
 
-  const calculatedHomeTeamStats = useMemo(() => {
-    if (!homeTeamPayersStats || homeTeamPayersStats.length === 0) return null;
+  const calculate = (stats: any[] | undefined) => {
+    if (!stats || stats.length === 0) return null;
 
-    const totals = homeTeamPayersStats.reduce(
-      (acc, player) => {
-        return {
-          ppg: acc.ppg + player.points,
-          apg: acc.apg + player.assists,
-          rpg: acc.rpg + player.rebounds,
-          orpg: acc.orpg + (player.offensiveRebounds ?? 0),
-          drpg: acc.drpg + (player.defensiveRebounds ?? 0),
-          spg: acc.spg + player.steals,
-          bpg: acc.bpg + player.blocks,
-          rbpg: acc.rbpg + player.receivedBlocks,
-          tpg: acc.tpg + player.turnovers,
-          ftMade: acc.ftMade + player.freeThrow.made,
-          ftMissed: acc.ftMissed + player.freeThrow.missed,
-          twoMade: acc.twoMade + player.twoPoint.made,
-          twoMissed: acc.twoMissed + player.twoPoint.missed,
-          threeMade: acc.threeMade + player.threePoint.made,
-          threeMissed: acc.threeMissed + player.threePoint.missed,
-          pir: acc.pir + player.pir,
-          fouls: acc.fouls + (player.personalFouls ?? 0),
-          rfpg: acc.rfpg + (player.receivedFouls ?? 0),
-          tfpg: acc.tfpg + (player.technicalFouls ?? 0),
-        };
-      },
+    const t = stats.reduce(
+      (acc, p) => ({
+        ppg: acc.ppg + p.points,
+        apg: acc.apg + p.assists,
+        rpg: acc.rpg + p.rebounds,
+        orpg: acc.orpg + (p.offensiveRebounds ?? 0),
+        drpg: acc.drpg + (p.defensiveRebounds ?? 0),
+        spg: acc.spg + p.steals,
+        bpg: acc.bpg + p.blocks,
+        rbpg: acc.rbpg + p.receivedBlocks,
+        tpg: acc.tpg + p.turnovers,
+        ftMade: acc.ftMade + p.freeThrow.made,
+        ftMissed: acc.ftMissed + p.freeThrow.missed,
+        twoMade: acc.twoMade + p.twoPoint.made,
+        twoMissed: acc.twoMissed + p.twoPoint.missed,
+        threeMade: acc.threeMade + p.threePoint.made,
+        threeMissed: acc.threeMissed + p.threePoint.missed,
+        pir: acc.pir + p.pir,
+        fouls: acc.fouls + (p.personalFouls ?? 0),
+        rfpg: acc.rfpg + (p.receivedFouls ?? 0),
+        tfpg: acc.tfpg + (p.technicalFouls ?? 0),
+      }),
       {
-        ppg: 0,
-        apg: 0,
-        rpg: 0,
-        orpg: 0,
-        drpg: 0,
-        spg: 0,
-        bpg: 0,
-        rbpg: 0,
-        tpg: 0,
-        ftMade: 0,
-        ftMissed: 0,
-        twoMade: 0,
-        twoMissed: 0,
-        threeMade: 0,
-        threeMissed: 0,
-        pir: 0,
-        fouls: 0,
-        rfpg: 0,
-        tfpg: 0,
-      },
+        ppg: 0, apg: 0, rpg: 0, orpg: 0, drpg: 0,
+        spg: 0, bpg: 0, rbpg: 0, tpg: 0,
+        ftMade: 0, ftMissed: 0,
+        twoMade: 0, twoMissed: 0,
+        threeMade: 0, threeMissed: 0,
+        pir: 0, fouls: 0, rfpg: 0, tfpg: 0,
+      }
     );
 
-    const calcPct = (made: number, missed: number) =>
-      made + missed > 0
-        ? ((made / (made + missed)) * 100).toFixed(1) + "%"
-        : "0%";
+    const pct = (m: number, mi: number) =>
+      m + mi > 0 ? ((m / (m + mi)) * 100).toFixed(1) + "%" : "0%";
 
     return {
-      points: totals.ppg.toFixed(1),
-      assists: totals.apg.toFixed(1),
-      rebounds: totals.rpg.toFixed(1),
-      orpg: totals.orpg.toFixed(1),
-      drpg: totals.drpg.toFixed(1),
-      steals: totals.spg.toFixed(1),
-      turnovers: totals.tpg.toFixed(1),
-      blocks: totals.bpg.toFixed(1),
-      ftp: calcPct(totals.ftMade, totals.ftMissed),
-      twop: calcPct(totals.twoMade, totals.twoMissed),
-      threep: calcPct(totals.threeMade, totals.threeMissed),
-      pir: totals.pir.toFixed(1),
-      fouls: totals.fouls.toFixed(1),
-      rbpg: totals.rbpg.toFixed(1),
-      rfpg: totals.rfpg.toFixed(1),
-      tfpg: totals.tfpg.toFixed(1),
+      pir: t.pir.toFixed(1),
+      points: t.ppg.toFixed(1),
+      assists: t.apg.toFixed(1),
+      rebounds: t.rpg.toFixed(1),
+      orpg: t.orpg.toFixed(1),
+      drpg: t.drpg.toFixed(1),
+      steals: t.spg.toFixed(1),
+      blocks: t.bpg.toFixed(1),
+      turnovers: t.tpg.toFixed(1),
+      ftMade: t.ftMade.toFixed(0),
+      ftAttempted: (t.ftMade + t.ftMissed).toFixed(0),
+      ftp: pct(t.ftMade, t.ftMissed),
+      twoMade: t.twoMade.toFixed(0),
+      twoAttempted: (t.twoMade + t.twoMissed).toFixed(0),
+      twop: pct(t.twoMade, t.twoMissed),
+      threeMade: t.threeMade.toFixed(0),
+      threeAttempted: (t.threeMade + t.threeMissed).toFixed(0),
+      threep: pct(t.threeMade, t.threeMissed),
+      fouls: t.fouls.toFixed(1),
+      rbpg: t.rbpg.toFixed(1),
+      rfpg: t.rfpg.toFixed(1),
+      tfpg: t.tfpg.toFixed(1),
     };
-  }, [homeTeamPayersStats]);
+  };
 
-  const calculatedGuestTeamStats = useMemo(() => {
-    if (!guestTeamPayersStats || guestTeamPayersStats.length === 0) return null;
+  const home = useMemo(() => calculate(homeTeamStats), [homeTeamStats]);
+  const guest = useMemo(() => calculate(guestTeamStats), [guestTeamStats]);
 
-    const totals = guestTeamPayersStats.reduce(
-      (acc, player) => {
-        return {
-          ppg: acc.ppg + player.points,
-          apg: acc.apg + player.assists,
-          rpg: acc.rpg + player.rebounds,
-          orpg: acc.orpg + (player.offensiveRebounds ?? 0),
-          drpg: acc.drpg + (player.defensiveRebounds ?? 0),
-          spg: acc.spg + player.steals,
-          bpg: acc.bpg + player.blocks,
-          rbpg: acc.rbpg + player.receivedBlocks,
-          tpg: acc.tpg + player.turnovers,
-          ftMade: acc.ftMade + player.freeThrow.made,
-          ftMissed: acc.ftMissed + player.freeThrow.missed,
-          twoMade: acc.twoMade + player.twoPoint.made,
-          twoMissed: acc.twoMissed + player.twoPoint.missed,
-          threeMade: acc.threeMade + player.threePoint.made,
-          threeMissed: acc.threeMissed + player.threePoint.missed,
-          pir: acc.pir + player.pir,
-          fouls: acc.fouls + (player.personalFouls ?? 0),
-          rfpg: acc.rfpg + (player.receivedFouls ?? 0),
-          tfpg: acc.tfpg + (player.technicalFouls ?? 0),
-        };
-      },
-      {
-        ppg: 0,
-        apg: 0,
-        rpg: 0,
-        orpg: 0,
-        drpg: 0,
-        spg: 0,
-        bpg: 0,
-        rbpg: 0,
-        tpg: 0,
-        ftMade: 0,
-        ftMissed: 0,
-        twoMade: 0,
-        twoMissed: 0,
-        threeMade: 0,
-        threeMissed: 0,
-        pir: 0,
-        fouls: 0,
-        rfpg: 0,
-        tfpg: 0,
-      },
-    );
-
-    const calcPct = (made: number, missed: number) =>
-      made + missed > 0
-        ? ((made / (made + missed)) * 100).toFixed(1) + "%"
-        : "0%";
-
-    return {
-      points: totals.ppg.toFixed(1),
-      assists: totals.apg.toFixed(1),
-      rebounds: totals.rpg.toFixed(1),
-      orpg: totals.orpg.toFixed(1),
-      drpg: totals.drpg.toFixed(1),
-      steals: totals.spg.toFixed(1),
-      turnovers: totals.tpg.toFixed(1),
-      blocks: totals.bpg.toFixed(1),
-      ftp: calcPct(totals.ftMade, totals.ftMissed),
-      twop: calcPct(totals.twoMade, totals.twoMissed),
-      threep: calcPct(totals.threeMade, totals.threeMissed),
-      pir: totals.pir.toFixed(1),
-      fouls: totals.fouls.toFixed(1),
-      rbpg: totals.rbpg.toFixed(1),
-      rfpg: totals.rfpg.toFixed(1),
-      tfpg: totals.tfpg.toFixed(1),
-    };
-  }, [guestTeamPayersStats]);
-
-  const teamStatCategories = [
+  const categories = [
     { label: "Performance Index Rating", key: "pir" },
     { label: "Points", key: "points" },
     { label: "Assist", key: "assists" },
@@ -178,54 +95,55 @@ const TeamStats: FC<TeamStatsProps> = ({ gameId, homeTeamId, guestTeamId }) => {
     { label: "Total Rebounds", key: "rebounds" },
     { label: "Steals", key: "steals" },
     { label: "Block", key: "blocks" },
-    { label: "Turnovers", key: "turnovers", lowerIsBetter: true },
+    { label: "Turnovers", key: "turnovers", lower: true },
+    { label: "Free Throws Made", key: "ftMade" },
+    { label: "Free Throws Attempted", key: "ftAttempted" },
     { label: "Free Throws Percentage", key: "ftp" },
-    { label: "Two Points Percentage", key: "twop" },
+    { label: "Three Points Made", key: "threeMade" },
+    { label: "Three Points Attempted", key: "threeAttempted" },
     { label: "Three Points Percentage", key: "threep" },
-    { label: "Personal Fouls", key: "fouls", lowerIsBetter: true },
-    { label: "Blocks Received", key: "rbpg", lowerIsBetter: true },
-    { label: "Fouls Received", key: "rfpg" },
-    { label: "Technical Fouls", key: "tfpg", lowerIsBetter: true },
+    { label: "Two Points Made", key: "twoMade" },
+    { label: "Two Points Attempted", key: "twoAttempted" },
+    { label: "Two Points Percentage", key: "twop" },
   ];
+
+  if (!home || !guest) return null;
 
   return (
     <div className="w-full overflow-hidden rounded-lg border-2 border-surface">
       <table className="w-full">
         <tbody className="group text-black dark:text-white">
-        { calculatedGuestTeamStats && calculatedHomeTeamStats &&teamStatCategories.map((cat) => {
-            const homeRaw = calculatedHomeTeamStats[cat.key as keyof typeof calculatedHomeTeamStats];
-            const guestRaw = calculatedGuestTeamStats[cat.key as keyof typeof calculatedGuestTeamStats];
+          {categories.map((c) => {
+            const hVal = parseFloat((home as any)[c.key]);
+            const gVal = parseFloat((guest as any)[c.key]);
 
-            const homeVal = parseFloat(homeRaw.toString());
-            const guestVal = parseFloat(guestRaw.toString());
+            let homeWin = false;
+            let guestWin = false;
 
-            let homeIsWinner = false;
-            let guestIsWinner = false;
-
-            if (homeVal === guestVal) {
-              homeIsWinner = true;
-              guestIsWinner = true;
-            } else if (cat.lowerIsBetter) {
-              homeIsWinner = homeVal < guestVal;
-              guestIsWinner = guestVal < homeVal;
+            if (hVal === gVal) {
+              homeWin = true;
+              guestWin = true;
+            } else if (c.lower) {
+              homeWin = hVal < gVal;
+              guestWin = gVal < hVal;
             } else {
-              homeIsWinner = homeVal > guestVal;
-              guestIsWinner = guestVal > homeVal;
+              homeWin = hVal > gVal;
+              guestWin = gVal > hVal;
             }
 
             return (
-              <tr 
-                key={cat.key} 
+              <tr
+                key={c.key}
                 className="border-2 border-surface last:border-0 even:bg-surface-light dark:even:bg-surface-dark"
               >
-                <td className={`p-3 text-center font-semibold ${homeIsWinner ? "bg-phoenix text-white" : ""}`}>
-                  {homeRaw}
+                <td className={`p-3 text-center font-semibold ${homeWin ? "bg-phoenix text-white" : ""}`}>
+                  {(home as any)[c.key]}
                 </td>
                 <td className="p-3 text-center font-bold text-lg border-x-2 border-surface">
-                  {cat.label}
+                  {c.label}
                 </td>
-                <td className={`p-3 text-center font-semibold ${guestIsWinner ? "bg-phoenix text-white" : ""}`}>
-                  {guestRaw}
+                <td className={`p-3 text-center font-semibold ${guestWin ? "bg-phoenix text-white" : ""}`}>
+                  {(guest as any)[c.key]}
                 </td>
               </tr>
             );

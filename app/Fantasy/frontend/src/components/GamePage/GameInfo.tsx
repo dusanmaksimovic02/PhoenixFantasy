@@ -10,90 +10,52 @@ interface GameInfoProps {
 }
 
 const GameInfo: FC<GameInfoProps> = ({ gameId, homeTeamId, guestTeamId }) => {
-  const { data: homeTeamPayersStats } = useQuery({
+  const { data: home } = useQuery({
     queryKey: ["homeTeamPlayersStats", gameId, homeTeamId],
     queryFn: () => getPlayersStatsFromGame(gameId, homeTeamId),
   });
 
-  const { data: guestTeamPayersStats } = useQuery({
+  const { data: guest } = useQuery({
     queryKey: ["guestTeamPlayersStats", gameId, guestTeamId],
     queryFn: () => getPlayersStatsFromGame(gameId, guestTeamId),
   });
 
   const getLeader = (stats: PlayerStats[] | undefined, path: string) => {
     if (!stats || stats.length === 0) return { name: "-", value: 0 };
-
-    const getValue = (obj: any, path: string): number => {
-      return path.split(".").reduce((acc, part) => acc && acc[part], obj) || 0;
-    };
-
-    const leader = stats.reduce((prev, current) =>
-      getValue(prev, path) >= getValue(current, path) ? prev : current,
+    const get = (obj: any, p: string): number =>
+      p.split(".").reduce((a, b) => a?.[b], obj) || 0;
+    const leader = stats.reduce((a, b) =>
+      get(a, path) >= get(b, path) ? a : b
     );
-
-    return {
-      name: leader.fullName,
-      value: getValue(leader, path),
-    };
+    return { name: leader.fullName, value: get(leader, path) };
   };
 
-  const formatValue = (value: number, isPercentage: boolean) => {
-    return isPercentage ? value.toFixed(1) : value.toString();
-  };
+  const format = (v: number, pct: boolean) =>
+    pct ? v.toFixed(1) : v.toString();
 
   const statCategories = [
-    { label: "PIR", path: "pir", isPercentage: false },
-    { label: "Points", path: "points", isPercentage: false },
-    { label: "Assists", path: "assists", isPercentage: false },
-    { label: "Total Rebounds", path: "rebounds", isPercentage: false },
-    {
-      label: "Offensive Rebounds",
-      path: "offensiveRebounds",
-      isPercentage: false,
-    },
-    {
-      label: "Defensive Rebounds",
-      path: "defensiveRebounds",
-      isPercentage: false,
-    },
-    { label: "Steals", path: "steals", isPercentage: false },
-    { label: "Blocks", path: "blocks", isPercentage: false },
-    {
-      label: "Turnovers",
-      path: "turnovers",
-      isPercentage: false,
-      lowerIsBetter: true,
-    },
-    {
-      label: "Blocks Received",
-      path: "receivedBlocks",
-      isPercentage: false,
-      lowerIsBetter: true,
-    },
-    {
-      label: "Personal Fouls",
-      path: "personalFouls",
-      isPercentage: false,
-      lowerIsBetter: true,
-    },
-    { label: "Fouls Received", path: "receivedFouls", isPercentage: false },
-    {
-      label: "Technical Fouls",
-      path: "technicalFouls",
-      isPercentage: false,
-      lowerIsBetter: true,
-    },
-    {
-      label: "Free Throws %",
-      path: "freeThrow.percentage",
-      isPercentage: true,
-    },
-    { label: "2FG %", path: "twoPoint.percentage", isPercentage: true },
-    { label: "3FG %", path: "threePoint.percentage", isPercentage: true },
+    { label: "Performance Index Rating", path: "pir", pct: false },
+    { label: "Points", path: "points", pct: false },
+    { label: "Assists", path: "assists", pct: false },
+    { label: "Total Rebounds", path: "rebounds", pct: false },
+    { label: "Offensive Rebounds", path: "offensiveRebounds", pct: false },
+    { label: "Defensive Rebounds", path: "defensiveRebounds", pct: false },
+    { label: "Steals", path: "steals", pct: false },
+    { label: "Blocks", path: "blocks", pct: false },
+    { label: "Turnovers", path: "turnovers", pct: false, low: true },
+    { label: "Blocks Received", path: "receivedBlocks", pct: false, low: true },
+    { label: "Personal Fouls", path: "personalFouls", pct: false, low: true },
+    { label: "Fouls Received", path: "receivedFouls", pct: false },
+    { label: "Technical Fouls", path: "technicalFouls", pct: false, low: true },
+    { label: "Free Throws %", path: "freeThrow.percentage", pct: true },
+    { label: "Two Points %", path: "twoPoint.percentage", pct: true },
+    { label: "Three Points %", path: "threePoint.percentage", pct: true },
   ];
 
   return (
     <>
+      <h3 className="text-center text-2xl font-bold mb-4">Game Leaders</h3>
+
       <div className="w-full overflow-auto rounded-lg border-2 border-surface">
         <table className="w-full">
           <thead className="border-2 border-surface bg-surface-light text-phoenix font-bold text-2xl dark:bg-surface-dark">
@@ -106,46 +68,40 @@ const GameInfo: FC<GameInfoProps> = ({ gameId, homeTeamId, guestTeamId }) => {
             </tr>
           </thead>
           <tbody className="group text-black dark:text-white">
-            {statCategories.map((cat) => {
-              const homeLeader = getLeader(homeTeamPayersStats, cat.path);
-              const guestLeader = getLeader(guestTeamPayersStats, cat.path);
+            {statCategories.map((s) => {
+              const h = getLeader(home, s.path);
+              const g = getLeader(guest, s.path);
 
-              let homeIsWinner = false;
-              let guestIsWinner = false;
+              let homeWin = false;
+              let guestWin = false;
 
-              if (cat.lowerIsBetter) {
-                homeIsWinner = homeLeader.value <= guestLeader.value;
-                guestIsWinner = guestLeader.value <= homeLeader.value;
+              if (h.value === g.value) {
+                homeWin = true;
+                guestWin = true;
+              } else if (s.low) {
+                homeWin = h.value < g.value;
+                guestWin = g.value < h.value;
               } else {
-                homeIsWinner = homeLeader.value >= guestLeader.value;
-                guestIsWinner = guestLeader.value >= homeLeader.value;
+                homeWin = h.value > g.value;
+                guestWin = g.value > h.value;
               }
+
               return (
                 <tr
-                  key={cat.path}
+                  key={s.path}
                   className="border-2 border-surface even:bg-surface-light dark:even:bg-surface-dark"
                 >
-                  <td className="p-3 text-center">{homeLeader.name}</td>
-                  <td
-                    className={`p-3 text-center font-semibold ${
-                      homeIsWinner ? "bg-phoenix text-white" : ""
-                    }`}
-                  >
-                    {formatValue(homeLeader.value, cat.isPercentage)}
-                    {cat.isPercentage ? "%" : ""}
+                  <td className="p-3 text-center">{h.name}</td>
+                  <td className={`p-3 text-center font-semibold ${homeWin ? "bg-phoenix text-white" : ""}`}>
+                    {format(h.value, s.pct)}{s.pct && "%"}
                   </td>
                   <td className="p-3 text-center font-bold text-lg border-x-2 border-surface">
-                    {cat.label}
+                    {s.label}
                   </td>
-                  <td
-                    className={`p-3 text-center font-semibold ${
-                      guestIsWinner ? "bg-phoenix text-white" : ""
-                    }`}
-                  >
-                    {formatValue(guestLeader.value, cat.isPercentage)}
-                    {cat.isPercentage ? "%" : ""}
+                  <td className={`p-3 text-center font-semibold ${guestWin ? "bg-phoenix text-white" : ""}`}>
+                    {format(g.value, s.pct)}{s.pct && "%"}
                   </td>
-                  <td className="p-3 text-center">{guestLeader.name}</td>
+                  <td className="p-3 text-center">{g.name}</td>
                 </tr>
               );
             })}

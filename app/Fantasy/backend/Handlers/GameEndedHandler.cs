@@ -36,7 +36,7 @@ public class GameEndedHandler
 
         foreach (var coachSnapshot in gameEvent.CoachStats)
         {
-            // calculate points from snapshot - no EF navigation properties needed
+            
             var tempCoachStats = new CoachGameStats
             {
                 Difference = coachSnapshot.Difference,
@@ -47,7 +47,7 @@ public class GameEndedHandler
             var strategy = StrategyFactory.GetStrategy(FantasyRole.Coach);
             double calculatedPoints = strategy.CalculatePoints(null, tempCoachStats);
 
-            // AsNoTracking so EF doesn't try to update these entities
+            
             var fantasyTeamCoaches = await _fantasyDb
                 .FantasyTeamCoaches.AsNoTracking()
                 .Where(ftc => ftc.CoachId == coachSnapshot.CoachId)
@@ -76,7 +76,7 @@ public class GameEndedHandler
                         && cr.round == league.CurrentRound
                     );
 
-                // skip if already calculated
+                
                 if (existingRound != null && existingRound.roundPoints != 0)
                     continue;
 
@@ -87,7 +87,7 @@ public class GameEndedHandler
                         .ExecuteDeleteAsync();
                 }
 
-                // raw SQL insert to bypass EF tracking entirely — avoids concurrency errors
+                
                 await _fantasyDb.Database.ExecuteSqlRawAsync(
                     @"INSERT INTO FantasyCoachRounds (Id, FantasyTeamId, CoachId, round, Role, roundPoints)
                       VALUES ({0}, {1}, {2}, {3}, {4}, {5})",
@@ -119,8 +119,7 @@ public class GameEndedHandler
 
         await Task.WhenAll(pushTasks);
 
-        // notify frontend that game is finished via GameScoreHub
-        // both teams get notified so their Games list updates
+        
         var gameEndedPayload = new
         {
             gameId = gameEvent.GameId,
@@ -136,6 +135,9 @@ public class GameEndedHandler
             .SendAsync("GameEnded", gameEndedPayload);
         await _hubContext
             .Clients.Group(gameEvent.GuestTeamId.ToString())
+            .SendAsync("GameEnded", gameEndedPayload);
+            
+        await _hubContext.Clients.Group(gameEvent.GameId.ToString())
             .SendAsync("GameEnded", gameEndedPayload);
 
         Console.WriteLine($"[Handler] Game {gameEvent.GameId} ended — SignalR notified both teams");
