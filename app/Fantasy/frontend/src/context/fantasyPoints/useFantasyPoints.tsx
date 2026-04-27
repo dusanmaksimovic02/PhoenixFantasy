@@ -1,11 +1,13 @@
 import { useContext } from "react";
 import { FantasyPointsContext } from "./FantasyPointsContext";
 
-export const useAuth = () => {
+export const useFantasyPoints = () => {
   const context = useContext(FantasyPointsContext);
 
   if (context === undefined)
-    throw new Error("useAuth must be used within a AuthProvider");
+    throw new Error(
+      "useFantasyPoints must be used within a FantasyPointsProvider",
+    );
 
   return context;
 };

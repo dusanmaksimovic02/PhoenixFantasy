@@ -1,5 +1,4 @@
 using FantasyApi.Data;
-
 using FantasyApi.Enums;
 using FantasyApi.Events;
 using FantasyApi.Models;
@@ -16,7 +15,8 @@ public class PlayerStatsUpdatedHandler
 
     public PlayerStatsUpdatedHandler(
         FantasyDbContext fantasyDb,
-        FantasyPointsService fantasyPointsService)
+        FantasyPointsService fantasyPointsService
+    )
     {
         _fantasyDb = fantasyDb;
         _fantasyPointsService = fantasyPointsService;
@@ -24,9 +24,8 @@ public class PlayerStatsUpdatedHandler
 
     public async Task HandleAsync(PlayerStatsUpdatedEvent statsEvent)
     {
-        
-        var fantasyTeamPlayers = await _fantasyDb.FantasyTeamPlayers
-            .Include(ftp => ftp.FantasyTeam)
+        var fantasyTeamPlayers = await _fantasyDb
+            .FantasyTeamPlayers.Include(ftp => ftp.FantasyTeam)
             .Where(ftp => ftp.PlayerId == statsEvent.PlayerId)
             .ToListAsync();
 
@@ -39,18 +38,23 @@ public class PlayerStatsUpdatedHandler
         foreach (var fantasyTeamPlayer in fantasyTeamPlayers)
         {
             var fantasyTeam = fantasyTeamPlayer.FantasyTeam;
-            if (fantasyTeam == null) continue;
+            if (fantasyTeam == null)
+                continue;
 
-            var league = await _fantasyDb.FantasyLeagues
-                .FirstOrDefaultAsync(l => l.Id == fantasyTeam.LeagueId);
+            var league = await _fantasyDb.FantasyLeagues.FirstOrDefaultAsync(l =>
+                l.Id == fantasyTeam.LeagueId
+            );
 
-            if (league == null || !league.IsRoundActive) continue;
+            if (league == null || !league.IsRoundActive)
+                continue;
 
-            var role = fantasyTeamPlayer.Position != null
-                ? Enum.Parse<FantasyRole>(fantasyTeamPlayer.Position)
-                : FantasyRole.Bench;
+            // var role =
+            //     fantasyTeamPlayer.Position != null
+            //         ? Enum.Parse<FantasyRole>(fantasyTeamPlayer.Position)
+            //         : FantasyRole.Bench;
 
-            
+            var role = fantasyTeamPlayer.Role;
+
             var playerStats = new PlayerGameStats
             {
                 Pir = statsEvent.Pir,
@@ -76,13 +80,15 @@ public class PlayerStatsUpdatedHandler
                 IsStarter = statsEvent.IsStarter,
             };
 
-           
-            var playerRound = await _fantasyDb.FantasyPlayerRounds
-                .Include(pr => pr.fantasyPlayer)
+            Console.WriteLine($"[RABBITMQ] Primljena statistika {statsEvent}");
+
+            var playerRound = await _fantasyDb
+                .FantasyPlayerRounds.Include(pr => pr.fantasyPlayer)
                 .FirstOrDefaultAsync(pr =>
-                    pr.fantasyPlayer!.FantasyTeamId == fantasyTeam.Id &&
-                    pr.fantasyPlayer.PlayerId == statsEvent.PlayerId &&
-                    pr.round == league.CurrentRound);
+                    pr.fantasyPlayer!.FantasyTeamId == fantasyTeam.Id
+                    && pr.fantasyPlayer.PlayerId == fantasyTeamPlayer.PlayerId
+                    && pr.round == league.CurrentRound
+                );
 
             if (playerRound == null)
             {
@@ -91,19 +97,40 @@ public class PlayerStatsUpdatedHandler
                     fantasyPlayer = fantasyTeamPlayer,
                     round = league.CurrentRound,
                     Role = role,
-                    PlayerGameStats = playerStats,
-                    roundPoints = 0
+                    // PlayerGameStats = playerStats,
+                    roundPoints = 0,
                 };
                 _fantasyDb.FantasyPlayerRounds.Add(playerRound);
             }
             else
             {
-                playerRound.PlayerGameStats = playerStats;
+                // playerRound.PlayerGameStats = playerStats;
             }
 
-           
             var strategy = StrategyFactory.GetStrategy(playerRound.Role);
             playerRound.roundPoints = strategy.CalculatePoints(playerStats, null);
+
+            var playerRounds = await _fantasyDb
+                .FantasyPlayerRounds.Include(x => x.fantasyPlayer)
+                .Where(x =>
+                    x.fantasyPlayer!.FantasyTeamId == fantasyTeam.Id
+                    && x.round == league.CurrentRound
+                )
+                .ToListAsync();
+
+            var coachRound = await _fantasyDb
+                .FantasyCoachRounds.Include(x => x.fantasyCoach)
+                .FirstOrDefaultAsync(x => x.fantasyCoach!.FantasyTeamId == fantasyTeam.Id);
+
+            var totalPoints = _fantasyPointsService.CalculateTeamPoints(playerRounds, coachRound!);
+
+            var teamRound = await _fantasyDb
+                .FantasyTeamRounds.Include(t => t.fantasyTeam)
+                .FirstOrDefaultAsync(t =>
+                    t.fantasyTeam!.Id == fantasyTeam.Id && t.round == league.CurrentRound
+                );
+
+            teamRound!.roundPoints = totalPoints;
 
             await _fantasyDb.SaveChangesAsync();
 
@@ -116,7 +143,9 @@ public class PlayerStatsUpdatedHandler
 
             await _fantasyPointsService.PushPlayerPointsAsync(fantasyTeam.Id, dto);
 
-            Console.WriteLine($"[Handler] Player {statsEvent.PlayerId} → team {fantasyTeam.Id}: {playerRound.roundPoints} pts");
+            Console.WriteLine(
+                $"[Handler] Player {statsEvent.PlayerId} → team {fantasyTeam.Id}: {playerRound.roundPoints} pts"
+            );
         }
     }
 }

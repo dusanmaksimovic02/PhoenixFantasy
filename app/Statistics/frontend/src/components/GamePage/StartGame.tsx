@@ -99,21 +99,21 @@ const StartGame: FC<startGameProps> = () => {
             starterHomeIds.length !== 5 ||
             starterGuestIds.length !== 5
           }
-          onClick={() => startGameMutation.mutate()}
-          // onClick={() => {
-          //   const homeTeam = game.homeTeam.name;
-          //   const awayTeam = game.guestTeam.name;
+          // onClick={() => startGameMutation.mutate()}
+          onClick={() => {
+            const homeTeam = game.homeTeam.name;
+            const awayTeam = game.guestTeam.name;
 
-          //   navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
-          //     state: {
-          //       game,
-          //       selectedHomeIds,
-          //       starterHomeIds,
-          //       selectedGuestIds,
-          //       starterGuestIds,
-          //     },
-          //   });
-          // }}
+            navigate(`/game/${homeTeam}/vs/${awayTeam}`, {
+              state: {
+                game,
+                selectedHomeIds,
+                starterHomeIds,
+                selectedGuestIds,
+                starterGuestIds,
+              },
+            });
+          }}
           className="btn bg-green-600/80 hover:bg-green-600 hover:border-green-600 border-green-600 text-black dark:text-white hover:border-4 hover:cursor-pointer drop-shadow rounded-xl text-xl"
         >
           Start Game

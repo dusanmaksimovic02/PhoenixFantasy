@@ -155,7 +155,7 @@ const Navbar: FC = () => {
           />
           {isMenuOpen && (
             <>
-              <div className="absolute top-0 w-full h-screen bg-phoenix flex flex-col items-center justify-center gap-5 z-200">
+              <div className="absolute top-0 w-full h-screen bg-phoenix flex flex-col items-center justify-center gap-5 z-100">
                 <IoClose
                   className="cursor-pointer text-white dark:text-black h-8 w-8 absolute top-5 right-5"
                   onClick={toggleMenu}

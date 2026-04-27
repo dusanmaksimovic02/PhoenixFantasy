@@ -517,4 +517,60 @@ public class FantasyTeamController : ControllerBase
 
         return Ok();
     }
+
+    [HttpGet("GetPointsForTeam/{teamId}")]
+    public async Task<ActionResult> GetPointsForTeam(Guid teamId)
+    {
+        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == teamId);
+
+        if (team == null || team.LeagueId == null)
+        {
+            return NotFound("Tim ili liga nisu pronađeni.");
+        }
+
+        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
+
+        int currentRound = league!.CurrentRound;
+
+        var playerPoints = await context
+            .FantasyTeamPlayers.Where(ftp => ftp.FantasyTeamId == teamId)
+            .Select(ftp => new
+            {
+                ftp.PlayerId,
+                RoundPoints = context
+                    .FantasyPlayerRounds.Include(frp => frp.fantasyPlayer)
+                    .Where(fpr =>
+                        fpr!.fantasyPlayer!.PlayerId == ftp.PlayerId && fpr.round == currentRound
+                    )
+                    .Select(fpr => fpr.roundPoints)
+                    .FirstOrDefault(),
+            })
+            .ToListAsync();
+
+        var coachPoints = await context
+            .FantasyTeamCoaches.Where(ftc => ftc.FantasyTeamId == teamId)
+            .Select(ftc => new
+            {
+                ftc.CoachId,
+                RoundPoints = context
+                    .FantasyCoachRounds.Include(p => p.fantasyCoach)
+                    .Where(fcr =>
+                        fcr.fantasyCoach!.CoachId == ftc.CoachId
+                        && fcr.round == currentRound
+                        && fcr.fantasyCoach.FantasyTeam!.Id == teamId
+                    )
+                    .Select(fcr => fcr.roundPoints)
+                    .FirstOrDefault(),
+            })
+            .FirstOrDefaultAsync();
+
+        return Ok(
+            new
+            {
+                Round = currentRound,
+                Players = playerPoints,
+                Coach = coachPoints,
+            }
+        );
+    }
 }

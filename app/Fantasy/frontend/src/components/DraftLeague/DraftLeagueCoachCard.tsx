@@ -24,7 +24,9 @@ const DraftLeagueCoachCard: FC<DraftLeagueCoachCardProps> = ({
             className="w-4 h-4 pr-1"
           />
         </div>
-        <p className="text-[13px] text-center font-bold pt-2">{fantasyPoints}</p>
+        <p className="text-[13px] text-center font-bold pt-2">
+          {fantasyPoints} p
+        </p>
         <p className="text-[13px] text-center text-nowrap">
           {firstName[0]}. {lastName}
         </p>

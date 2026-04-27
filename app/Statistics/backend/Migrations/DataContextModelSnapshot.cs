@@ -275,6 +275,9 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool?>("GameEnded")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("GuestTeamId")
                         .HasColumnType("uniqueidentifier");
 

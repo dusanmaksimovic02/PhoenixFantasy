@@ -89,12 +89,38 @@ export const tradeCoach = async (
 export const switchPlayer = async (
   fantasyTeamId: string,
   starterPlayerId: string,
-  benchPlayerId:string
-)=>{
+  benchPlayerId: string,
+) => {
   const response = await apiClient.post("FantasyTeam/SwitchPlayers", {
     fantasyTeamId,
     starterPlayerId,
-    benchPlayerId
-  })
-  return response.data
-}
+    benchPlayerId,
+  });
+  return response.data;
+};
+
+export const getPointsForTeam = async (teamId: string) => {
+  const response = await apiClient.get<{
+    round: number;
+    players: { playerId: string; roundPoints: number }[];
+    coach: { coachId: string; roundPoints: number };
+  }>(`FantasyTeam/GetPointsForTeam/${teamId}`);
+  return response.data;
+};
+
+export const calculateTeamPoints = async (
+  fantasyTeamId: string,
+  round: number,
+) => {
+  const response = await apiClient.put(
+    `FantasyRound/CalculateTeamPoints/${fantasyTeamId}/${round}`,
+  );
+  return response.data;
+};
+
+export const getFantasyTeamPoints = async (teamId: string, round: number) => {
+  const response = await apiClient.get(
+    `FantasyTeam/GetFantasyTeamPoints/${teamId}/${round}`,
+  );
+  return response.data;
+};
