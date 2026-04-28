@@ -29,7 +29,7 @@ const Footer: FC = () => {
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -107,7 +107,7 @@ const Footer: FC = () => {
           </div>
         </div>
         <div className="text-center grow shrink flex flex-col">
-          <div className="text-center grow shrink">
+          {/* <div className="text-center grow shrink">
             <h1 className="font-extrabold text-2xl text-phoenix mb-4">
               Next round
             </h1>
@@ -141,7 +141,7 @@ const Footer: FC = () => {
                 />
               </div>
             )}
-          </div>
+          </div> */}
           <button
             className="w-fit text-black flex justify-center items-center cursor-pointer gap-2 bg-phoenix/80 shadow-inner drop-shadow px-4 py-2 rounded-md mt-4 hover:bg-phoenix justify-self-end self-end"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

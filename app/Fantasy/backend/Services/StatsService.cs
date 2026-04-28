@@ -374,4 +374,41 @@ public class StatsService
 
         return rounds == 0 ? null : rounds;
     }
+
+    public async Task<object> GetTopPlayers()
+    {
+        var topPlayers = await _context
+            .PlayerGameStats.GroupBy(s => s.PlayerId)
+            .Select(g => new
+            {
+                PlayerId = g.Key,
+                AvgPir = g.Average(s => (double?)s.Pir),
+                AvgPoints = g.Average(s => (double?)s.Points),
+                AvgAssists = g.Average(s => (double?)s.Assists),
+                AvgRebounds = g.Average(s => (double?)s.Rebounds),
+            })
+            .OrderByDescending(p => p.AvgPir)
+            .Take(10)
+            .Join(
+                _context.Players,
+                stat => stat.PlayerId,
+                player => player.Id,
+                (stat, player) =>
+                    new
+                    {
+                        player.Id,
+                        player.FirstName,
+                        player.LastName,
+                        player.Position,
+                        player.JerseyNumber,
+                        AvgPir = Math.Round((decimal)stat.AvgPir, 2),
+                        AvgPoints = Math.Round((decimal)stat.AvgPoints, 2),
+                        AvgAssists = Math.Round((decimal)stat.AvgAssists, 2),
+                        AvgRebounds = Math.Round((decimal)stat.AvgRebounds, 2),
+                    }
+            )
+            .ToListAsync();
+
+        return topPlayers;
+    }
 }

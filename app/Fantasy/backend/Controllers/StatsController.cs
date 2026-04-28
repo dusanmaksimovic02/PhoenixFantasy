@@ -181,4 +181,12 @@ public class StatsController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("GetTopPlayers")]
+    public async Task<IActionResult> GetTopPlayers()
+    {
+        var result = await _service.GetTopPlayers();
+
+        return Ok(result);
+    }
 }

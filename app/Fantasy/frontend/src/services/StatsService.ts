@@ -99,3 +99,19 @@ export const getPlayersStatsFromGame = async (
   );
   return response.data;
 };
+
+export const getTopPlayers = async () => {
+  const response = await apiClient.get<
+    {
+      id: string;
+      firstName: string;
+      lastName: string;
+      position: string;
+      avgPir: number;
+      avgPoints: number;
+      avgAssists: number;
+      avgRebounds: number;
+    }[]
+  >("api/Stats/GetTopPlayers");
+  return response.data;
+};

@@ -16,7 +16,6 @@ const Footer: FC = () => {
     minutes: 0,
     seconds: 0,
   });
-  
 
   const [isLive, setIsLive] = useState(false);
   const [blink, setBlink] = useState(false);
@@ -65,7 +64,7 @@ const Footer: FC = () => {
       (err) => {
         console.error("FAILED...", err);
         toast.error("Something went wrong. Please try again!");
-      }
+      },
     );
   };
 
@@ -82,7 +81,7 @@ const Footer: FC = () => {
 
       const days = Math.floor(distance / (1000 * 60 * 60 * 24));
       const hours = Math.floor(
-        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
       );
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
@@ -159,7 +158,7 @@ const Footer: FC = () => {
             />
           </div>
         </div>
-        <div className="text-center grow shrink">
+        {/* <div className="text-center grow shrink">
           <div className="text-center grow shrink">
             <h1 className="font-extrabold text-2xl text-phoenix mb-4">
               Next round
@@ -195,7 +194,7 @@ const Footer: FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
         <div className="grow shrink">
           <h1 className="font-extrabold text-2xl text-phoenix">Phoenix</h1>
 

@@ -1,5 +1,6 @@
 import { type FC } from "react";
 import jersey from "../../assets/images/jersey.png";
+import logo from "../../assets/images/phoenixLogo2.png";
 
 interface AddedPlayerToTeamCardProps {
   position: string;
@@ -16,11 +17,7 @@ const AddedPlayerToTeamCard: FC<AddedPlayerToTeamCardProps> = (props) => {
       <div className="absolute flex flex-col w-full h-full top-0 left-0 text-black p-4 pt-7 ">
         <div className="flex  items-center gap-2 ">
           <p className="text-[10px] pl-1.5 pt-1">{props.position}</p>
-          <img
-            src="https://upload.wikimedia.org/wikipedia/sr/thumb/8/80/KK_Partizan_logo.svg/1920px-KK_Partizan_logo.svg.png"
-            alt="club logo"
-            className="w-4 h-4 pr-1 "
-          />
+          <img src={logo} alt="club logo" className="w-3 h-5" />
         </div>
         <p className="text-[15.5px] text-center font-extrabold">
           {props.jerseyNumber}

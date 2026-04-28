@@ -94,45 +94,48 @@ public class FantasyTeamController : ControllerBase
         await using var transaction = await context.Database.BeginTransactionAsync(
             System.Data.IsolationLevel.Serializable
         );
-        var team = await context.FantasyTeams.FirstOrDefaultAsync(t => t.Id == dto.FantasyTeamId);
 
-        if (team == null)
-            return BadRequest("Tim ne postoji");
-
-        var league = await context.FantasyLeagues.FirstOrDefaultAsync(l => l.Id == team.LeagueId);
-
-        if (league == null)
-            return BadRequest("Liga ne postoji");
-
-        if (league.IsRoundActive)
-            return BadRequest("Trade nije dozvoljen dok je runda aktivna");
-
-        var teamPlayer = await context.FantasyTeamPlayers.FirstOrDefaultAsync(tp =>
+        var oldTeamPlayer = await context.FantasyTeamPlayers.FirstOrDefaultAsync(tp =>
             tp.FantasyTeamId == dto.FantasyTeamId && tp.PlayerId == dto.OldPlayerId
         );
 
-        if (teamPlayer == null)
+        if (oldTeamPlayer == null)
             return BadRequest("Igrač nije pronađen u tvom timu");
 
-        var exists = await context.FantasyTeamPlayers.AnyAsync(x =>
+        var isNewPlayerActiveSomewhere = await context.FantasyTeamPlayers.AnyAsync(x =>
             x.PlayerId == dto.NewPlayerId && x.IsActive
         );
 
-        if (exists)
+        if (isNewPlayerActiveSomewhere)
             return BadRequest("Igrač je već u nekom timu");
 
-        teamPlayer.IsActive = false;
+        oldTeamPlayer.IsActive = false;
 
-        context.FantasyTeamPlayers.Add(
-            new FantasyTeamPlayer
-            {
-                FantasyTeamId = dto.FantasyTeamId,
-                PlayerId = dto.NewPlayerId,
-                Position = dto.NewPlayerPosition,
-                Role = teamPlayer.Role,
-                IsActive = true,
-            }
-        );
+        var existingInactiveRecord = await context
+            .FantasyTeamPlayers.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(tp =>
+                tp.FantasyTeamId == dto.FantasyTeamId && tp.PlayerId == dto.NewPlayerId
+            );
+
+        if (existingInactiveRecord != null)
+        {
+            existingInactiveRecord.IsActive = true;
+            existingInactiveRecord.Position = dto.NewPlayerPosition;
+            existingInactiveRecord.Role = oldTeamPlayer.Role;
+        }
+        else
+        {
+            context.FantasyTeamPlayers.Add(
+                new FantasyTeamPlayer
+                {
+                    FantasyTeamId = dto.FantasyTeamId,
+                    PlayerId = dto.NewPlayerId,
+                    Position = dto.NewPlayerPosition,
+                    Role = oldTeamPlayer.Role,
+                    IsActive = true,
+                }
+            );
+        }
 
         await context.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -215,48 +218,45 @@ public class FantasyTeamController : ControllerBase
             .Select(tp => tp.PlayerId)
             .ToListAsync();
 
-        var playerAverages = await context
-            .FantasyPlayerRounds.Where(r =>
-                r.fantasyPlayer != null && r.fantasyPlayer.FantasyTeam!.LeagueId == leagueId
-            )
-            .GroupBy(r => r.fantasyPlayer!.PlayerId)
-            .Select(g => new { PlayerId = g.Key, AvgPoints = g.Average(x => x.roundPoints) })
-            .ToListAsync();
-
-        var avgDict = playerAverages.ToDictionary(x => x.PlayerId, x => x.AvgPoints);
-
-        var freePlayersFromDb = await statsDbContext
-            .Players.Where(p => !takenPlayerIds.Contains(p.Id))
-            .Select(p => new
-            {
-                p.Id,
-                p.FirstName,
-                p.LastName,
-                p.JerseyNumber,
-                p.Position,
-            })
-            .ToListAsync();
-
         var teams = await statsDbContext
             .Teams.Include(t => t.Players)
             .Where(t => t.Players != null && t.Players.Any(p => takenPlayerIds.Contains(p.Id)))
             .ToListAsync();
 
-        var sortedPlayers = freePlayersFromDb
+        var freePlayers = await statsDbContext
+            .Players.Where(p => !takenPlayerIds.Contains(p.Id))
             .Select(p => new
             {
-                playerId = p.Id,
+                PlayerId = p.Id,
                 p.FirstName,
                 p.LastName,
                 p.JerseyNumber,
                 p.Position,
-                AvgPoints = avgDict.ContainsKey(p.Id) ? avgDict[p.Id] : 0,
-                TeamName = teams.FirstOrDefault(t => t.Players!.Any(pl => pl.Id == p.Id))?.Name,
+                AvgPoints = statsDbContext
+                    .PlayerGameStats.Where(s => s.PlayerId == p.Id)
+                    .Average(s => (double?)s.Pir)
+                    ?? 0.0,
+            })
+            .OrderByDescending(p => p.AvgPoints)
+            .ToListAsync();
+
+        var players = freePlayers
+            .Select(p => new
+            {
+                PlayerId = p.PlayerId,
+                p.FirstName,
+                p.LastName,
+                p.JerseyNumber,
+                p.Position,
+                p.AvgPoints,
+                TeamName = teams
+                    .FirstOrDefault(t => t.Players!.Any(pl => pl.Id == p.PlayerId))
+                    ?.Name,
             })
             .OrderByDescending(p => p.AvgPoints)
             .ToList();
 
-        return Ok(sortedPlayers);
+        return Ok(players);
     }
 
     [HttpGet("GetAllFreePlayersByPosition/{leagueId}")]

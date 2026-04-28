@@ -176,11 +176,11 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
             key={
               item.isCoach ? `coach-${item.coachId}` : `player-${item.playerId}`
             }
-            className={`flex items-center justify-between border-2 rounded-xl p-3 m-2 gap-10 hover:bg-red-500 transition-transform duration-200 cursor-pointer
+            className={`flex items-center justify-between border-2 rounded-xl p-3 m-2 gap-10  transition-transform duration-200 cursor-pointer
                 ${
                   isInteractionDisabled
                     ? "cursor-not-allowed pointer-events-none opacity-60 border-transparent bg-neutral-200/50 dark:bg-neutral-700/50"
-                    : "cursor-pointer hover:scale-105 hover:bg-neutral-200 shadow-sm"
+                    : "cursor-pointer hover:scale-105  shadow-sm"
                 } ${
                   selectedFreePlayerCoach &&
                   (item.isCoach
@@ -189,7 +189,7 @@ const TradePlayerPanel: FC<TradePlayerPanelProps> = ({
                     : "playerId" in selectedFreePlayerCoach &&
                       selectedFreePlayerCoach.playerId === item.playerId)
                     ? "border-phoenix bg-phoenix/20 scale-105 shadow-lg"
-                    : "hover:scale-105 hover:bg-neutral-200 shadow-sm"
+                    : "hover:scale-105  shadow-sm"
                 }`}
             onClick={(e) => {
               e.stopPropagation();
